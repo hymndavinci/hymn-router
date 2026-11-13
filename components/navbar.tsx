@@ -15,7 +15,9 @@ const NAV_LINKS = [
 ];
 
 export default async function Navbar() {
-  const user = await getSessionUser();
+  // Kalau DB gagal sesaat, navbar tampil sebagai belum login — jangan
+  // sampai seluruh halaman ikut crash gara-gara session check.
+  const user = await getSessionUser().catch(() => null);
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg">

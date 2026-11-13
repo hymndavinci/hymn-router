@@ -14,9 +14,26 @@ export async function GET(req: NextRequest) {
       { status: 503 },
     );
   }
-  const user = await getSessionUser();
+  let user;
+  try {
+    user = await getSessionUser();
+  } catch (err) {
+    console.error("[dashboard/usage] database error:", err);
+    return NextResponse.json(
+      { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+      { status: 503 },
+    );
+  }
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const daysParam = Number(new URL(req.url).searchParams.get("days") ?? 7);
   const days = Number.isFinite(daysParam) ? Math.min(90, Math.max(1, daysParam)) : 7;
-  return NextResponse.json({ usage: await getUsageSummary(user.id, days) });
+  try {
+    return NextResponse.json({ usage: await getUsageSummary(user.id, days) });
+  } catch (err) {
+    console.error("[dashboard/usage] database error:", err);
+    return NextResponse.json(
+      { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+      { status: 503 },
+    );
+  }
 }

@@ -74,7 +74,15 @@ export function verifySession(token: string): string | null {
   }
 }
 
-/** User yang sedang login (dari cookie session + DB), atau null. */
+/**
+ * User yang sedang login (dari cookie session + DB), atau null kalau tidak
+ * ada session / session tidak valid / user tidak ditemukan.
+ *
+ * MELEMPAR Error("session_db_error") kalau query DB gagal — kegagalan
+ * database TIDAK BOLEH disamarkan jadi "belum login", karena caller akan
+ * membalas 401 "unauthorized" yang menyesatkan. Caller wajib menangkap
+ * error ini dan membalas 503 / menampilkan pesan database error.
+ */
 export async function getSessionUser(): Promise<SessionUser | null> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
@@ -90,8 +98,9 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     if (rows.length === 0) return null;
     const r = rows[0];
     return { id: r.id, email: r.email, name: r.name, avatarUrl: r.avatar_url };
-  } catch {
-    return null;
+  } catch (err) {
+    console.error("[auth] getSessionUser: query database gagal:", err);
+    throw new Error("session_db_error");
   }
 }
 

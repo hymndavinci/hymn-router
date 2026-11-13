@@ -20,10 +20,28 @@ export async function POST(
       { status: 503 },
     );
   }
-  const user = await getSessionUser();
+  let user;
+  try {
+    user = await getSessionUser();
+  } catch (err) {
+    console.error("[dashboard/revoke] database error:", err);
+    return NextResponse.json(
+      { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+      { status: 503 },
+    );
+  }
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const { id } = await params;
-  const ok = await revokeApiKey(id, user.id);
+  let ok;
+  try {
+    ok = await revokeApiKey(id, user.id);
+  } catch (err) {
+    console.error("[dashboard/revoke] database error:", err);
+    return NextResponse.json(
+      { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+      { status: 503 },
+    );
+  }
   if (!ok) {
     return NextResponse.json(
       { error: "key tidak ditemukan, bukan milikmu, atau sudah di-revoke" },

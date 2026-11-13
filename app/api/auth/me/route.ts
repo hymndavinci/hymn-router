@@ -6,7 +6,16 @@ import { getSessionUser } from "@/lib/auth";
 export const runtime = "nodejs";
 
 export async function GET() {
-  const user = await getSessionUser();
+  let user;
+  try {
+    user = await getSessionUser();
+  } catch (err) {
+    console.error("[auth/me] database error:", err);
+    return NextResponse.json(
+      { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+      { status: 503 },
+    );
+  }
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   return NextResponse.json({ user });
 }

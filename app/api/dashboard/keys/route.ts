@@ -20,16 +20,33 @@ function notConfigured() {
   );
 }
 
+function dbError(err: unknown) {
+  console.error("[dashboard/keys] database error:", err);
+  return NextResponse.json(
+    { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+    { status: 503 },
+  );
+}
+
 export async function GET() {
   if (!isDbConfigured()) return notConfigured();
-  const user = await getSessionUser();
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  return NextResponse.json({ keys: await listApiKeys(user.id) });
+  try {
+    const user = await getSessionUser();
+    if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    return NextResponse.json({ keys: await listApiKeys(user.id) });
+  } catch (err) {
+    return dbError(err);
+  }
 }
 
 export async function POST(req: NextRequest) {
   if (!isDbConfigured()) return notConfigured();
-  const user = await getSessionUser();
+  let user;
+  try {
+    user = await getSessionUser();
+  } catch (err) {
+    return dbError(err);
+  }
   if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   let body: unknown;
@@ -46,7 +63,12 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const created = await createApiKey(user.id, name.trim());
+  let created;
+  try {
+    created = await createApiKey(user.id, name.trim());
+  } catch (err) {
+    return dbError(err);
+  }
   if (!created) return notConfigured();
   return NextResponse.json({ key: created }, { status: 201 });
 }
