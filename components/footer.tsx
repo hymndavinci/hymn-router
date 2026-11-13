@@ -16,8 +16,8 @@ export default function Footer() {
             </span>
           </div>
           <p className="mt-4 max-w-[260px] text-[14px] leading-relaxed text-muted">
-            Satu endpoint untuk semua model AI gratis. Login dengan Google,
-            buat API key, tembak dari kode apa pun.
+            Satu endpoint untuk semua model AI gratis. Login, buat API
+            key, tembak dari kode apa pun.
           </p>
         </div>
 

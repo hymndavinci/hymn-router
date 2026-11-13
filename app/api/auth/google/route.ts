@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { newOAuthState, OAUTH_STATE_COOKIE } from "@/lib/auth";
+import { buildOAuthState, newOAuthState, OAUTH_STATE_COOKIE } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -23,7 +23,11 @@ export async function GET(req: NextRequest) {
   }
 
   const origin = new URL(req.url).origin;
-  const state = newOAuthState();
+  // Query `next` (opsional, path internal) dibawa di dalam state dan
+  // dipakai callback untuk redirect sesudah login. Tanpa next, state
+  // sama persis dengan nonce seperti sebelumnya.
+  const nonce = newOAuthState();
+  const state = buildOAuthState(nonce, new URL(req.url).searchParams.get("next"));
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: `${origin}/api/auth/callback/google`,
@@ -37,7 +41,7 @@ export async function GET(req: NextRequest) {
   const res = NextResponse.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
   );
-  res.cookies.set(OAUTH_STATE_COOKIE, state, {
+  res.cookies.set(OAUTH_STATE_COOKIE, nonce, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

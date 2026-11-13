@@ -91,6 +91,7 @@ function BreakdownRows({
 
 export default function DashboardClient({
   user,
+  loginMethods,
   initialKeys,
   initialUsage,
   initialModelUsage,
@@ -101,6 +102,7 @@ export default function DashboardClient({
   baseUrl,
 }: {
   user: SessionUser;
+  loginMethods: string[] | null;
   initialKeys: ApiKeyInfo[];
   initialUsage: UsageSummary;
   initialModelUsage: ModelUsage[];
@@ -217,6 +219,11 @@ export default function DashboardClient({
             Halo, {user.name ?? "di sana"}
           </h1>
           <p className="break-all font-mono text-[13px] text-muted">{user.email}</p>
+          {loginMethods && loginMethods.length > 0 && (
+            <p className="mt-1 font-mono text-[12px] text-faint">
+              Masuk via {loginMethods.join(" · ")}
+            </p>
+          )}
         </div>
       </div>
 

@@ -86,7 +86,7 @@ export default async function AuthErrorPage({
         <p className="mt-3 text-[16px] leading-relaxed text-muted">{msg.body}</p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
-            href="/api/auth/google"
+            href="/login"
             className="btn-press border-2 border-black bg-yellow px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
           >
             Coba login lagi

@@ -1,11 +1,12 @@
 /**
- * /dashboard — login wajib (redirect ke / kalau belum login).
+ * /dashboard — login wajib (redirect ke /login?next=/dashboard kalau belum login).
  * Server component: ambil user, API key, dan ringkasan usage dari DB,
  * lalu render DashboardClient untuk interaksi (buat/revoke key).
  */
 
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
+import { getDb } from "@/lib/db";
 import { listApiKeys } from "@/lib/api-keys";
 import {
   getDailyUsage,
@@ -47,7 +48,34 @@ export default async function DashboardPage() {
     return "DB_ERROR" as const;
   });
   if (user === "DB_ERROR") return <DbErrorView />;
-  if (!user) redirect("/");
+  if (!user) redirect("/login?next=/dashboard");
+
+  // Metode login user ("Google" / "GitHub" / "Email") dari kolom akun.
+  // Kolom github_id/password_hash baru ada di migrasi 002 — kalau migrasi
+  // belum dijalankan, query ini gagal dan baris metode disembunyikan,
+  // dashboard tetap jalan normal.
+  const loginMethods = await (async (): Promise<string[] | null> => {
+    const db = getDb();
+    if (!db) return null;
+    try {
+      const rows = (await db`
+        SELECT google_sub, github_id, password_hash IS NOT NULL AS has_password
+        FROM users WHERE id = ${user.id} LIMIT 1
+      `) as {
+        google_sub: string | null;
+        github_id: string | null;
+        has_password: boolean;
+      }[];
+      if (rows.length === 0) return null;
+      const methods: string[] = [];
+      if (rows[0].google_sub) methods.push("Google");
+      if (rows[0].github_id) methods.push("GitHub");
+      if (rows[0].has_password) methods.push("Email");
+      return methods;
+    } catch {
+      return null;
+    }
+  })();
 
   const data = await Promise.all([
     listApiKeys(user.id),
@@ -71,6 +99,7 @@ export default async function DashboardPage() {
       <Navbar />
       <DashboardClient
         user={user}
+        loginMethods={loginMethods}
         initialKeys={keys}
         initialUsage={usage}
         initialModelUsage={modelUsage}

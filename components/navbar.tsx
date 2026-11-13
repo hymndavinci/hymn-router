@@ -89,13 +89,13 @@ export default async function Navbar() {
           ) : (
             <>
               <Link
-                href="/api/auth/google"
+                href="/login"
                 className="text-[14px] font-bold text-black transition-colors hover:text-blue"
               >
                 Masuk
               </Link>
               <Link
-                href="/api/auth/google"
+                href="/login"
                 className="btn-press border-2 border-black bg-yellow px-5 py-2.5 text-[14px] font-bold text-black shadow-brutal-sm"
               >
                 Mulai
@@ -107,7 +107,7 @@ export default async function Navbar() {
         {/* Mobile: satu CTA utama + hamburger (link lain di dalam menu) */}
         <div className="flex items-center gap-2 md:hidden">
           <Link
-            href={user ? "/dashboard" : "/api/auth/google"}
+            href={user ? "/dashboard" : "/login"}
             className="border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-sm"
           >
             {user ? "Dashboard" : "Mulai"}

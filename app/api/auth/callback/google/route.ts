@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, isDbConfigured } from "@/lib/db";
-import { OAUTH_STATE_COOKIE, setSessionCookie } from "@/lib/auth";
+import { OAUTH_STATE_COOKIE, parseOAuthState, setSessionCookie } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
@@ -37,7 +37,8 @@ export async function GET(req: NextRequest) {
     if (!code) return fail("missing_code");
 
     const stateCookie = req.cookies.get(OAUTH_STATE_COOKIE)?.value;
-    if (!state || !stateCookie || state !== stateCookie) return fail("bad_state");
+    const { valid, next } = parseOAuthState(state, stateCookie);
+    if (!valid) return fail("bad_state");
 
     const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim();
@@ -73,22 +74,42 @@ export async function GET(req: NextRequest) {
     if (!info.sub || !info.email) return fail("bad_token");
     if (Number(info.exp) * 1000 < Date.now()) return fail("token_expired");
 
-    // Cari / buat user (upsert berdasarkan google_sub).
+    // Cari / buat user.
     const db = getDb();
     if (!db) return fail("no_database");
-    const rows = (await db`
-      INSERT INTO users (google_sub, email, name, avatar_url)
-      VALUES (${info.sub}, ${info.email}, ${info.name ?? null}, ${info.picture ?? null})
-      ON CONFLICT (google_sub) DO UPDATE
-        SET email = EXCLUDED.email, name = EXCLUDED.name, avatar_url = EXCLUDED.avatar_url
-      RETURNING id
-    `) as { id: string }[];
-    if (rows.length === 0) return fail("db_error");
+    const email = info.email.toLowerCase();
+    let userId: string | null = null;
 
-    const ok = await setSessionCookie(rows[0].id);
+    // Kalau email sudah dipakai akun lain (daftar email/GitHub dulu),
+    // tautkan google_sub ke akun itu — kalau tidak, INSERT di bawah
+    // akan gagal di unique index email (migrasi 002).
+    const byEmail = (await db`
+      SELECT id, google_sub FROM users WHERE email = ${email} LIMIT 1
+    `) as { id: string; google_sub: string | null }[];
+    if (byEmail.length > 0 && byEmail[0].google_sub !== info.sub) {
+      userId = byEmail[0].id;
+      await db`
+        UPDATE users
+        SET google_sub = ${info.sub}, name = ${info.name ?? null}, avatar_url = ${info.picture ?? null}
+        WHERE id = ${userId}
+      `;
+    } else {
+      // Upsert berdasarkan google_sub (user Google baru / yang kembali).
+      const rows = (await db`
+        INSERT INTO users (google_sub, email, name, avatar_url)
+        VALUES (${info.sub}, ${email}, ${info.name ?? null}, ${info.picture ?? null})
+        ON CONFLICT (google_sub) DO UPDATE
+          SET email = EXCLUDED.email, name = EXCLUDED.name, avatar_url = EXCLUDED.avatar_url
+        RETURNING id
+      `) as { id: string }[];
+      userId = rows[0]?.id ?? null;
+    }
+    if (!userId) return fail("db_error");
+
+    const ok = await setSessionCookie(userId);
     if (!ok) return fail("no_session_secret");
 
-    const res = NextResponse.redirect(`${origin}/dashboard`);
+    const res = NextResponse.redirect(`${origin}${next ?? "/dashboard"}`);
     res.cookies.delete(OAUTH_STATE_COOKIE);
     return res;
   } catch {

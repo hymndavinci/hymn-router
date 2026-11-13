@@ -208,6 +208,40 @@ export default function ApiDocs() {
         deploy lu, mis. https://hymn-router.vercel.app
       </p>
 
+      <Section eyebrow="Akun" title="Cara login">
+        <InfoCard
+          title="Tiga cara masuk, satu akun"
+          items={[
+            <>
+              Login di{" "}
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
+                /login
+              </code>
+              : email + password, Google, atau GitHub (GitHub aktif kalau
+              server sudah dikonfigurasi OAuth App-nya).
+            </>,
+            <>
+              Daftar pakai email: password minimal 8 karakter, disimpan
+              sebagai hash scrypt — password asli tidak pernah disimpan.
+            </>,
+            <>
+              Satu email = satu akun: kalau lu daftar pakai email lalu login
+              Google/GitHub dengan email yang sama, akunnya ditautkan
+              otomatis — login dengan cara mana pun masuk ke akun yang sama.
+            </>,
+            <>
+              Belum ada verifikasi email: akun yang didaftar lewat email
+              langsung aktif.
+            </>,
+            <>
+              Login dibatasi 10 percobaan per 15 menit per IP (anti brute
+              force). Pesan error login sengaja generik supaya email yang
+              terdaftar tidak bisa ditebak.
+            </>,
+          ]}
+        />
+      </Section>
+
       <Section eyebrow="Gateway" title="API v1 — OpenAI-compatible">
         <InfoCard
           title="Cara kerja"

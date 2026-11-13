@@ -108,13 +108,13 @@ export default async function Home() {
               Satu endpoint untuk semua model AI gratis.
             </h1>
             <p className="mt-6 max-w-[520px] text-[16px] leading-[1.6] text-muted">
-              Sembilan provider LLM gratis di balik satu API. Login dengan
-              Google, buat API key, dan tembak dari kode lu — tanpa kartu
-              kredit, tanpa saldo.
+              Sembilan provider LLM gratis di balik satu API. Login, buat
+              API key, dan tembak dari kode lu — tanpa kartu kredit, tanpa
+              saldo.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                href="/api/auth/google"
+                href="/login"
                 className="btn-press border-2 border-black bg-yellow px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
               >
                 Mulai sekarang
@@ -408,16 +408,16 @@ export default async function Home() {
               Mulai pakai hari ini.
             </h2>
             <p className="mt-3 max-w-[520px] text-[16px] leading-[1.6] text-ondark-muted">
-              Login dengan Google, buat API key pertama lu, dan tembak
-              request pertama dalam waktu kurang dari semenit.
+              Login, buat API key pertama lu, dan tembak request pertama
+              dalam waktu kurang dari semenit.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/api/auth/google"
+              href="/login"
               className="btn-press shadow-green border-2 border-black bg-yellow px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
             >
-              Login dengan Google
+              Mulai sekarang
             </Link>
             <Link
               href="/chat"

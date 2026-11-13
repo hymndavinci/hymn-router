@@ -1,4 +1,4 @@
-# Setup Hymn Router — login Google, database, API key
+# Setup Hymn Router — login, database, API key
 
 Hymn Router jalan dalam dua mode:
 
@@ -6,10 +6,12 @@ Hymn Router jalan dalam dua mode:
 |---|---|---|
 | Landing page, playground chat anonim (`/chat`), `GET /api/ai/chat` | ✅ jalan | ✅ jalan |
 | `POST /api/ai/chat` anonim (20 req/menit/IP) | ✅ jalan | ✅ jalan |
-| Login Google, dashboard, API key per user, gateway `/api/v1` | ❌ tidak aktif | ✅ jalan |
+| Login (email/Google/GitHub), dashboard, API key per user, gateway `/api/v1` | ❌ tidak aktif | ✅ jalan |
 
 Setup = 3 langkah: (1) Google OAuth client, (2) database Neon, (3) isi
 4 environment variable + migrasi + redeploy. Semuanya gratis.
+GitHub OAuth bersifat opsional (langkah 4) — tanpa itu, login email +
+Google tetap jalan.
 
 ---
 
@@ -55,7 +57,28 @@ Catatan: redirect URI harus cocok persis dengan yang dipakai aplikasi
    ```
 
    Migrasi membuat 3 tabel: `users`, `api_keys`, `usage` (+ index).
-   Skemanya ada di `db/migrations/001_init.sql`.
+   Skemanya ada di `db/migrations/001_init.sql`. Migrasi
+   `002_auth.sql` menambahkan kolom `password_hash` + `github_id`,
+   membuat `google_sub` boleh NULL (akun email/GitHub tidak punya),
+   dan unique index email + `github_id` — wajib dijalankan sebelum
+   login email/GitHub dipakai.
+
+## 2b. GitHub OAuth App (opsional — untuk tombol GitHub di /login)
+
+1. Buka [github.com](https://github.com/) → foto profil → **Settings** →
+   **Developer settings** → **OAuth Apps** → **New OAuth App**.
+2. Isi:
+   - **Application name**: `Hymn Router` (bebas).
+   - **Homepage URL**: `https://hymn-router.vercel.app`
+   - **Authorization callback URL**:
+     `https://hymn-router.vercel.app/api/auth/callback/github`
+     (harus cocok persis — GitHub OAuth App hanya mengizinkan satu
+     callback URL; untuk lokal, buat OAuth App kedua dengan
+     `http://localhost:3000/api/auth/callback/github`).
+3. Register → salin **Client ID**, lalu **Generate a new client secret**.
+   Ini jadi `GITHUB_CLIENT_ID` dan `GITHUB_CLIENT_SECRET`.
+4. Tanpa kedua variabel ini, tombol GitHub tidak muncul di `/login` dan
+   `/api/auth/github` redirect ke `/login?error=github_not_configured`.
 
 ## 3. Environment variable di Vercel + redeploy
 
@@ -69,6 +92,8 @@ Catatan: redirect URI harus cocok persis dengan yang dipakai aplikasi
      ```
      Jangan pakai nilai ini di tempat lain, dan jangan commit ke repo.
    - `DATABASE_URL` — dari langkah 2
+   - (Opsional) `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` — dari
+     langkah 2b, untuk tombol GitHub di `/login`.
    - (Opsional) `GROQ_API_KEY`, `GEMINI_API_KEY`, `NVIDIA_API_KEY`,
      `OPENROUTER_API_KEY`, `MISTRAL_API_KEY` — key gratis tiap provider
      kalau mau kapasitas lebih besar. Tanpa ini pun router jalan lewat
@@ -90,6 +115,9 @@ Catatan: redirect URI harus cocok persis dengan yang dipakai aplikasi
 |---|---|
 | Tombol login balas 503 "Google login belum dikonfigurasi" | `GOOGLE_CLIENT_ID` belum diisi di Vercel, atau belum redeploy |
 | Google error `redirect_uri_mismatch` | Redirect URI di Google Cloud Console tidak sama persis dengan `{origin}/api/auth/callback/google` |
+| `/login?error=github_not_configured` | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` belum diisi (tombol GitHub seharusnya tidak muncul kalau belum di-set) |
+| `/login?error=github_no_email` | Akun GitHub menyembunyikan email (Settings → Emails → Keep my email addresses private) dan tidak ada email terverifikasi |
+| Signup/login email balas 503 "Migrasi database belum dijalankan" | Migrasi `002_auth.sql` belum dijalankan (`npm run migrate`) |
 | Login gagal ke `/auth/error?reason=no_database` | `DATABASE_URL` belum diisi |
 | Login gagal ke `/auth/error?reason=db_error` | Migrasi belum dijalankan (`npm run migrate`) |
 | Login gagal ke `/auth/error?reason=no_session_secret` | `SESSION_SECRET` belum diisi / kurang dari 32 karakter |
@@ -105,6 +133,11 @@ Catatan: redirect URI harus cocok persis dengan yang dipakai aplikasi
   kalau bocor, ganti nilainya (semua user otomatis logout).
 - API key user (`hr_...`) disimpan sebagai **hash SHA-256** di database,
   bukan plaintext. Key utuh hanya tampil sekali saat dibuat.
+- Password user disimpan sebagai **hash scrypt** (salt acak per user),
+  bukan plaintext. Password asli tidak pernah di-log.
+- Login email dibatasi 10 percobaan per 15 menit per IP, dan pesan
+  error login sengaja generik supaya email yang terdaftar tidak bisa
+  ditebak (anti-enumerasi).
 - Prompt dan response **tidak disimpan**. Yang dicatat hanya jumlah
   request, token, provider, dan latensi. Tapi request tetap diteruskan ke
   provider gratis pihak ketiga — jangan kirim data sensitif.

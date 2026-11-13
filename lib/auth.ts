@@ -158,3 +158,44 @@ export async function clearSessionCookie(): Promise<void> {
 export function newOAuthState(): string {
   return randomBytes(16).toString("base64url");
 }
+
+/**
+ * Path internal yang aman untuk redirect sesudah login: harus diawali
+ * "/" tapi bukan "//" (yang bisa jadi URL absolut ke host lain).
+ * Dipakai untuk parameter `next` di /login dan di state OAuth.
+ */
+export function isSafeNextPath(next: string | null | undefined): next is string {
+  if (!next) return false;
+  if (!next.startsWith("/") || next.startsWith("//")) return false;
+  if (next.includes("\\")) return false;
+  return true;
+}
+
+/**
+ * State OAuth yang membawa `next`: "<nonce>" saja kalau tidak ada next
+ * yang valid, atau "<nonce>.<next-base64url>". Cookie state hanya
+ * menyimpan nonce; callback memverifikasi nonce lalu mengambil next.
+ * next yang tidak aman dibuang (callback redirect ke /dashboard).
+ */
+export function buildOAuthState(nonce: string, next: string | null | undefined): string {
+  if (!isSafeNextPath(next)) return nonce;
+  return `${nonce}.${Buffer.from(next, "utf8").toString("base64url")}`;
+}
+
+/** Verifikasi state OAuth terhadap nonce di cookie; ambil `next` bila ada. */
+export function parseOAuthState(
+  state: string | null,
+  nonce: string | null | undefined,
+): { valid: boolean; next: string | null } {
+  if (!state || !nonce) return { valid: false, next: null };
+  const dot = state.indexOf(".");
+  const stateNonce = dot === -1 ? state : state.slice(0, dot);
+  if (stateNonce !== nonce) return { valid: false, next: null };
+  if (dot === -1) return { valid: true, next: null };
+  try {
+    const next = Buffer.from(state.slice(dot + 1), "base64url").toString("utf8");
+    return { valid: true, next: isSafeNextPath(next) ? next : null };
+  } catch {
+    return { valid: true, next: null };
+  }
+}

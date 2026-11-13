@@ -69,11 +69,11 @@ export default function MobileMenu({ user }: { user: SessionUser | null }) {
               </>
             ) : (
               <Link
-                href="/api/auth/google"
+                href="/login"
                 onClick={() => setOpen(false)}
                 className="flex h-11 items-center justify-center border-2 border-black bg-yellow text-[14px] font-bold text-black shadow-brutal-sm"
               >
-                Masuk dengan Google
+                Masuk / Daftar
               </Link>
             )}
           </div>

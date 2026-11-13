@@ -1,7 +1,8 @@
 # Hymn Router
 
 Gateway AI **OpenAI-compatible** untuk **9 endpoint LLM gratis** — satu
-API, Rp 0. Login dengan Google, buat API key, tembak dari kode apa pun.
+API, Rp 0. Login dengan email, Google, atau GitHub, buat API key,
+tembak dari kode apa pun.
 Kalau satu provider kena 429 / 5xx / timeout, router otomatis fallback ke
 provider berikutnya.
 
@@ -37,7 +38,10 @@ Hymn Router (Next.js, Vercel)
   opsional. Tiap jawaban menunjukkan provider + model + latensi + jejak
   fallback. Riwayat tersimpan di localStorage browser. Anonim, tanpa login.
 - **`/docs`** — dokumentasi API: gateway `/api/v1` + endpoint `/api/ai/chat`.
-- **`/dashboard`** — login Google wajib: ringkasan pemakaian (7 hari,
+- **`/login`** — masuk / daftar: email + password (hash scrypt), Google,
+  atau GitHub (opsional). Satu email = satu akun, apa pun cara loginnya.
+  Belum ada verifikasi email — akun email langsung aktif.
+- **`/dashboard`** — login wajib: ringkasan pemakaian (7 hari,
   per provider), daftar API key + buat key baru + revoke, quickstart
   snippet.
 
@@ -139,8 +143,12 @@ project Neon gratis, isi `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
 `SESSION_SECRET`, `DATABASE_URL` di `.env.local`, lalu:
 
 ```bash
-npm run migrate   # buat tabel users, api_keys, usage
+npm run migrate   # buat tabel users, api_keys, usage + kolom auth (002)
 ```
+
+GitHub OAuth bersifat opsional — tambah `GITHUB_CLIENT_ID` +
+`GITHUB_CLIENT_SECRET` (lihat docs/setup.md) kalau mau tombol GitHub
+muncul di `/login`. Tanpa itu, login email + Google tetap jalan.
 
 Tanpa 4 variabel itu, login/dashboard/API key tidak aktif — tapi landing,
 playground anonim, dan `/api/ai/chat` tetap jalan normal.
