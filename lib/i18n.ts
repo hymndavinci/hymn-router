@@ -1,7 +1,7 @@
 /**
  * i18n Hymn Router — kamus Bahasa Indonesia (formal) + Inggris.
  *
- * - Locale disimpan di cookie `hymn_locale` ("id" | "en"), default "id".
+ * - Locale disimpan di cookie `hymn_locale` ("id" | "en"), default "en".
  * - TANPA prefix URL locale: semua route tetap /login, /dashboard, dst.
  * - Teks Indonesia di sini adalah teks formal dari commit 12b7fe0 —
  *   jangan diubah ke bahasa kasual.
@@ -22,7 +22,7 @@ import { cookies } from "next/headers";
 export type Locale = "id" | "en";
 
 export const LOCALE_COOKIE = "hymn_locale";
-export const DEFAULT_LOCALE: Locale = "id";
+export const DEFAULT_LOCALE: Locale = "en";
 
 export function isLocale(v: unknown): v is Locale {
   return v === "id" || v === "en";
