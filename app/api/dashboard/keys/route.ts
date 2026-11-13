@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { isDbConfigured } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUserFromRequest } from "@/lib/auth";
 import { createApiKey, listApiKeys } from "@/lib/api-keys";
 
 export const runtime = "nodejs";
@@ -28,10 +28,10 @@ function dbError(err: unknown) {
   );
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   if (!isDbConfigured()) return notConfigured();
   try {
-    const user = await getSessionUser();
+    const user = await getSessionUserFromRequest(req);
     if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     return NextResponse.json({ keys: await listApiKeys(user.id) });
   } catch (err) {
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
   if (!isDbConfigured()) return notConfigured();
   let user;
   try {
-    user = await getSessionUser();
+    user = await getSessionUserFromRequest(req);
   } catch (err) {
     return dbError(err);
   }

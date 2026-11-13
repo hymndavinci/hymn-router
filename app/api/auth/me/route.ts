@@ -1,14 +1,14 @@
 /** GET /api/auth/me — user yang sedang login, atau 401 kalau belum login. */
 
-import { NextResponse } from "next/server";
-import { getSessionUser } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { getSessionUserFromRequest } from "@/lib/auth";
 
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   let user;
   try {
-    user = await getSessionUser();
+    user = await getSessionUserFromRequest(req);
   } catch (err) {
     console.error("[auth/me] database error:", err);
     return NextResponse.json(

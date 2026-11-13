@@ -2,7 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { isDbConfigured } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUserFromRequest } from "@/lib/auth";
 import { getUsageSummary } from "@/lib/usage";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   }
   let user;
   try {
-    user = await getSessionUser();
+    user = await getSessionUserFromRequest(req);
   } catch (err) {
     console.error("[dashboard/usage] database error:", err);
     return NextResponse.json(

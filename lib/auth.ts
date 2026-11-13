@@ -13,6 +13,7 @@
 
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import type { NextRequest } from "next/server";
 import { getDb } from "./db";
 
 export const SESSION_COOKIE = "hymn_session";
@@ -75,8 +76,42 @@ export function verifySession(token: string): string | null {
 }
 
 /**
+ * Inti resolusi session dari token mentah. Mengembalikan user + alasan
+ * penolakan (untuk log) — alasan TIDAK pernah menyertakan token.
+ * Melempar Error("session_db_error") kalau query DB gagal.
+ */
+export async function resolveSessionUser(
+  token: string | undefined,
+): Promise<{ user: SessionUser | null; reason: string }> {
+  if (!token) return { user: null, reason: "no_cookie" };
+  const uid = verifySession(token);
+  if (!uid) return { user: null, reason: "bad_token" };
+  const db = getDb();
+  if (!db) return { user: null, reason: "no_db" };
+  try {
+    const rows = (await db`
+      SELECT id, email, name, avatar_url FROM users WHERE id = ${uid} LIMIT 1
+    `) as { id: string; email: string; name: string | null; avatar_url: string | null }[];
+    if (rows.length === 0) return { user: null, reason: "user_not_found" };
+    const r = rows[0];
+    return {
+      user: { id: r.id, email: r.email, name: r.name, avatarUrl: r.avatar_url },
+      reason: "ok",
+    };
+  } catch (err) {
+    console.error("[auth] resolveSessionUser: query database gagal:", err);
+    throw new Error("session_db_error");
+  }
+}
+
+/**
  * User yang sedang login (dari cookie session + DB), atau null kalau tidak
  * ada session / session tidak valid / user tidak ditemukan.
+ *
+ * Untuk Server Component. Route handler HARUS pakai
+ * getSessionUserFromRequest(req) — cookie dibaca dari request langsung,
+ * bukan dari next/headers, supaya POST handler tidak bergantung pada
+ * konteks request Next.
  *
  * MELEMPAR Error("session_db_error") kalau query DB gagal — kegagalan
  * database TIDAK BOLEH disamarkan jadi "belum login", karena caller akan
@@ -85,23 +120,18 @@ export function verifySession(token: string): string | null {
  */
 export async function getSessionUser(): Promise<SessionUser | null> {
   const store = await cookies();
-  const token = store.get(SESSION_COOKIE)?.value;
-  if (!token) return null;
-  const uid = verifySession(token);
-  if (!uid) return null;
-  const db = getDb();
-  if (!db) return null;
-  try {
-    const rows = (await db`
-      SELECT id, email, name, avatar_url FROM users WHERE id = ${uid} LIMIT 1
-    `) as { id: string; email: string; name: string | null; avatar_url: string | null }[];
-    if (rows.length === 0) return null;
-    const r = rows[0];
-    return { id: r.id, email: r.email, name: r.name, avatarUrl: r.avatar_url };
-  } catch (err) {
-    console.error("[auth] getSessionUser: query database gagal:", err);
-    throw new Error("session_db_error");
-  }
+  const { user, reason } = await resolveSessionUser(store.get(SESSION_COOKIE)?.value);
+  if (!user) console.warn(`[auth] getSessionUser rejected: ${reason}`);
+  return user;
+}
+
+/** Versi untuk Route Handler: baca cookie session dari NextRequest. */
+export async function getSessionUserFromRequest(
+  req: NextRequest,
+): Promise<SessionUser | null> {
+  const { user, reason } = await resolveSessionUser(req.cookies.get(SESSION_COOKIE)?.value);
+  if (!user) console.warn(`[auth] getSessionUserFromRequest rejected: ${reason}`);
+  return user;
 }
 
 /** Set cookie session. False kalau SESSION_SECRET belum benar. */

@@ -5,13 +5,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { isDbConfigured } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionUserFromRequest } from "@/lib/auth";
 import { revokeApiKey } from "@/lib/api-keys";
 
 export const runtime = "nodejs";
 
 export async function POST(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   if (!isDbConfigured()) {
@@ -22,7 +22,7 @@ export async function POST(
   }
   let user;
   try {
-    user = await getSessionUser();
+    user = await getSessionUserFromRequest(req);
   } catch (err) {
     console.error("[dashboard/revoke] database error:", err);
     return NextResponse.json(
