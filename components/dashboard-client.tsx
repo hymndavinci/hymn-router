@@ -221,7 +221,7 @@ export default function DashboardClient({
           <p className="break-all font-mono text-[13px] text-muted">{user.email}</p>
           {loginMethods && loginMethods.length > 0 && (
             <p className="mt-1 font-mono text-[12px] text-faint">
-              Masuk via {loginMethods.join(" · ")}
+              Masuk melalui {loginMethods.join(" · ")}
             </p>
           )}
         </div>
@@ -274,7 +274,7 @@ export default function DashboardClient({
               ? `Sisa ${initialQuota.remaining} request. `
               : "Kuota hari ini habis — request /v1 akan ditolak 429 sampai reset. "}
             Reset {fmtDateTime(initialQuota.resetsAt)} WIB · berlaku untuk request /v1
-            ber-autentikasi (termasuk /api/ai/chat pakai key).
+            ber-autentikasi (termasuk /api/ai/chat menggunakan key).
           </p>
         </div>
       )}
@@ -285,7 +285,7 @@ export default function DashboardClient({
         {usage.byProvider.length === 0 ? (
           <p className="mt-2 text-[14px] text-muted">
             Belum ada request tercatat dalam {usage.days} hari terakhir. Buat
-            API key di bawah dan kirim request pertama lu.
+            API key di bawah dan kirim request pertama Anda.
           </p>
         ) : (
           <div className="mt-4 space-y-3">
@@ -633,17 +633,17 @@ export default function DashboardClient({
         </div>
         <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-relaxed text-ondark">
 {`curl ${baseUrl}/api/v1/chat/completions \\
-  -H "Authorization: Bearer hr_KEY_LU" \\
+  -H "Authorization: Bearer hr_KEY_ANDA" \\
   -H "Content-Type: application/json" \\
   -d '{"model": "hymn/auto",
        "messages": [{"role": "user", "content": "Halo!"}]}'`}
         </pre>
       </div>
       <p className="mt-3 break-words font-mono text-[12px] leading-relaxed text-faint">
-        Ganti hr_KEY_LU dengan API key dari tabel di atas. Model juga bisa
+        Ganti hr_KEY_ANDA dengan API key dari tabel di atas. Model juga bisa
         berupa id provider (mis. &quot;groq&quot;), id model dari GET{" "}
         {baseUrl}/api/v1/models, atau model OpenRouter berakhiran &quot;:free&quot;.
-        Streaming didukung: tambah{" "}
+        Streaming didukung: tambahkan{" "}
         <code className="bg-yellow-soft px-1 font-bold text-black">&quot;stream&quot;: true</code>{" "}
         dan baca SSE-nya. Kuota Free plan: 100 request/hari, reset 00:00 WIB.
         Detail lengkap di /docs.

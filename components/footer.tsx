@@ -16,8 +16,8 @@ export default function Footer() {
             </span>
           </div>
           <p className="mt-4 max-w-[260px] text-[14px] leading-relaxed text-muted">
-            Satu endpoint untuk semua model AI gratis. Login, buat API
-            key, tembak dari kode apa pun.
+            Satu endpoint untuk semua model AI gratis. Masuk, buat API
+            key, dan panggil dari kode apa pun.
           </p>
         </div>
 
@@ -48,7 +48,7 @@ export default function Footer() {
             </li>
             <li>
               <Link href="/dashboard" className="hover:text-blue">
-                Dashboard
+                Dasbor
               </Link>
             </li>
           </ul>
@@ -93,8 +93,8 @@ export default function Footer() {
           </p>
           <p className="mt-4 text-[14px] leading-relaxed text-muted">
             Prompt dan isi response tidak disimpan. Yang dicatat hanya jumlah
-            request, token, dan provider — untuk dashboard pemakaian lu.
-            Free tier berubah-ubah; jangan kirim data sensitif lewat
+            request, token, dan provider — untuk dasbor pemakaian Anda.
+            Free tier berubah-ubah; jangan kirim data sensitif melalui
             endpoint gratis.
           </p>
         </div>

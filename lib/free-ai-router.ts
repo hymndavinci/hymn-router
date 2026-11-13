@@ -113,7 +113,7 @@ export function getProviders(): ProviderConfig[] {
       model: env("GEMINI_MODEL") ?? "gemini-3.5-flash-lite",
       apiKey: env("GEMINI_API_KEY"),
       needsKey: true,
-      notes: "Free: Flash-Lite 500 req/hari; Flash 20 req/hari. Prompt free-tier bisa dipakai Google untuk improve produk.",
+      notes: "Free: Flash-Lite 500 req/hari; Flash 20 req/hari. Prompt free-tier dapat digunakan Google untuk meningkatkan produk.",
       timeoutMs: DEFAULT_TIMEOUT_MS,
     },
     {
@@ -140,7 +140,7 @@ export function getProviders(): ProviderConfig[] {
       model: "kilo-auto/free",
       apiKey: env("KILO_API_KEY"),
       needsKey: false,
-      notes: "Tanpa key: 200 req/jam per IP. Auto-router bisa kirim ke provider yang me-log prompt.",
+      notes: "Tanpa key: 200 req/jam per IP. Auto-router dapat mengirim ke provider yang me-log prompt.",
       timeoutMs: DEFAULT_TIMEOUT_MS,
     },
     {
@@ -165,7 +165,7 @@ export function getProviders(): ProviderConfig[] {
       baseUrl: "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1",
       model: "gpt-oss-20b",
       needsKey: false,
-      notes: "Tanpa key: 2 req/menit per IP per model. Terverifikasi OK via node 2026-11-13, tapi lambat (~15 detik).",
+      notes: "Tanpa key: 2 req/menit per IP per model. Terverifikasi OK via node 2026-11-13, tetapi lambat (~15 detik).",
       timeoutMs: DEFAULT_TIMEOUT_MS,
     },
   ];

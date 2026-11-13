@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
   const rawKey = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : "";
   if (!rawKey) {
     return openAiError(
-      "Authorization header Bearer <API key> wajib diisi. Buat key di dashboard.",
+      "Authorization header Bearer <API key> wajib diisi. Buat key di dasbor.",
       "invalid_api_key",
       401,
     );
@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             error: {
-              message: `Model '${modelStr}' butuh OpenRouter — server belum mengonfigurasi OPENROUTER_API_KEY. Pakai "hymn/auto" atau model dari GET /api/v1/models.`,
+              message: `Model '${modelStr}' memerlukan OpenRouter — server belum mengonfigurasi OPENROUTER_API_KEY. Gunakan "hymn/auto" atau model dari GET /api/v1/models.`,
               type: "server_error",
               code: "model_unavailable",
             },
@@ -190,7 +190,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: {
-            message: `Model '${modelStr}' tidak dikenal. Pakai "hymn/auto", id provider (mis. "groq"), id model dari GET /api/v1/models, atau model OpenRouter berakhiran ":free".`,
+            message: `Model '${modelStr}' tidak dikenal. Gunakan "hymn/auto", id provider (mis. "groq"), id model dari GET /api/v1/models, atau model OpenRouter berakhiran ":free".`,
             type: "invalid_request_error",
             code: "model_not_found",
           },

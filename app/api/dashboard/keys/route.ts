@@ -23,7 +23,7 @@ function notConfigured() {
 function dbError(err: unknown) {
   console.error("[dashboard/keys] database error:", err);
   return NextResponse.json(
-    { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+    { error: "database_error: gagal mengakses database, silakan coba lagi sebentar" },
     { status: 503 },
   );
 }

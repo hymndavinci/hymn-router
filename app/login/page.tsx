@@ -24,13 +24,13 @@ export const dynamic = "force-dynamic";
 
 const ERROR_MESSAGES: Record<string, string> = {
   github_not_configured:
-    "Login GitHub belum dikonfigurasi di server. Pakai Google atau email dulu.",
+    "Login GitHub belum dikonfigurasi di server. Silakan gunakan Google atau email.",
   github_no_email:
-    "Akun GitHub lu tidak membagikan alamat email (cek Settings → Emails di GitHub). Pakai Google atau email dulu.",
+    "Akun GitHub Anda tidak membagikan alamat email (periksa Settings → Emails di GitHub). Silakan gunakan Google atau email.",
   github_failed:
-    "Login GitHub gagal — coba lagi, atau pakai Google / email.",
+    "Login GitHub gagal — silakan coba lagi, atau gunakan Google / email.",
   oauth_only:
-    "Akun ini dibuat lewat Google/GitHub. Masuk dengan tombol di atas.",
+    "Akun ini dibuat melalui Google/GitHub. Silakan masuk menggunakan tombol di atas.",
 };
 
 export default async function LoginPage({
@@ -61,7 +61,7 @@ export default async function LoginPage({
           Masuk ke Hymn Router
         </h1>
         <p className="mt-2 text-center text-[15px] leading-relaxed text-muted">
-          Satu akun untuk API key, dashboard pemakaian, dan gateway /v1.
+          Satu akun untuk API key, dasbor pemakaian, dan gateway /v1.
         </p>
 
         {errorMsg && (
@@ -109,7 +109,7 @@ export default async function LoginPage({
         </div>
 
         <p className="mt-6 text-center text-[13px] leading-relaxed text-muted">
-          Dengan masuk, lu memakai gateway AI gratis ini untuk keperluan
+          Dengan masuk, Anda menggunakan gateway AI gratis ini untuk keperluan
           pribadi. Password disimpan sebagai hash scrypt — password asli
           tidak pernah disimpan.
         </p>

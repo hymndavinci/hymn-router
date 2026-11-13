@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     console.error("[dashboard/usage] database error:", err);
     return NextResponse.json(
-      { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+      { error: "database_error: gagal mengakses database, silakan coba lagi sebentar" },
       { status: 503 },
     );
   }
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   } catch (err) {
     console.error("[dashboard/usage] database error:", err);
     return NextResponse.json(
-      { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+      { error: "database_error: gagal mengakses database, silakan coba lagi sebentar" },
       { status: 503 },
     );
   }

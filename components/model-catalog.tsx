@@ -88,7 +88,7 @@ export default function ModelCatalog({
           </p>
         </div>
         <p className="mt-1 max-w-[720px] text-[14px] leading-relaxed text-muted">
-          Model default tiap provider. Pakai{" "}
+          Model default tiap provider. Gunakan{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">hymn/auto</code>{" "}
           untuk fallback otomatis, id provider (mis.{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">groq</code>) untuk
@@ -102,7 +102,7 @@ export default function ModelCatalog({
               <h3 className="font-mono text-[16px] font-black text-black">hymn/auto</h3>
               <p className="mt-1 text-[14px] leading-relaxed text-black">
                 Router otomatis — mencoba 9 provider berurutan sampai ada yang berhasil.
-                Pilihan default kalau tidak yakin mau pakai model apa.
+                Pilihan default jika Anda belum yakin model apa yang akan digunakan.
               </p>
             </div>
             <span className="shrink-0 border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
@@ -189,7 +189,7 @@ export default function ModelCatalog({
           <div className="mt-6 border-2 border-black bg-yellow-soft p-5 text-[14px] leading-relaxed text-black shadow-brutal-sm">
             <p className="font-bold">Katalog OpenRouter tidak bisa dimuat saat ini.</p>
             <p className="mt-1 text-muted">
-              Coba refresh halaman nanti. Model router di atas tetap bisa dipakai seperti biasa.
+              Silakan muat ulang halaman nanti. Model router di atas tetap bisa dipakai seperti biasa.
             </p>
           </div>
         ) : (

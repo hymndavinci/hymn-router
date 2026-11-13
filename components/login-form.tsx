@@ -113,7 +113,7 @@ export default function LoginForm({
               autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Nama lu"
+              placeholder="Nama Anda"
               maxLength={100}
               className={inputClass}
             />
@@ -132,7 +132,7 @@ export default function LoginForm({
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="lu@email.com"
+            placeholder="nama@email.com"
             maxLength={254}
             required
             className={inputClass}

@@ -25,25 +25,25 @@ const STATS = [
 const STEPS = [
   {
     n: "01",
-    title: "Login dengan Google",
-    body: "Satu klik, tanpa password baru. Akun dipakai untuk dashboard dan API key lu.",
+    title: "Masuk / Daftar",
+    body: "Masuk dengan Google, GitHub, atau email. Akun digunakan untuk dasbor dan API key Anda.",
   },
   {
     n: "02",
-    title: "Buat API key di dashboard",
+    title: "Buat API key di dasbor",
     body: "Key diawali hr_, bisa dibuat banyak, dan bisa di-revoke kapan saja.",
   },
   {
     n: "03",
     title: "Arahkan client ke gateway",
-    body: "Set base URL ke /api/v1 dan pakai model hymn/auto — atau pilih provider tertentu.",
+    body: "Atur base URL ke /api/v1 dan gunakan model hymn/auto — atau pilih provider tertentu.",
   },
 ];
 
 const FAQ_ITEMS: FaqItem[] = [
   {
     q: "Apa itu Hymn Router?",
-    a: "Gateway AI OpenAI-compatible yang merutekan request lu ke 9 endpoint LLM gratis (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) lewat satu endpoint. Kalau satu provider gagal atau kena limit, router otomatis fallback ke provider berikutnya.",
+    a: "Gateway AI OpenAI-compatible yang merutekan request Anda ke 9 endpoint LLM gratis (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) melalui satu endpoint. Jika satu provider gagal atau mencapai limit, router otomatis beralih ke provider berikutnya.",
   },
   {
     q: "Apakah benar-benar gratis?",
@@ -51,23 +51,23 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     q: "Perlu API key provider?",
-    a: "Tidak, untuk mulai. Empat provider (Kilo, LLM7, Pollinations, OVH) bisa dipakai tanpa key sama sekali. Yang lu butuhkan hanya API key Hymn Router (diawali hr_) yang dibuat di dashboard setelah login Google — itu key untuk gateway ini, bukan key provider.",
+    a: "Tidak, untuk mulai. Empat provider (Kilo, LLM7, Pollinations, OVH) bisa dipakai tanpa key sama sekali. Yang Anda butuhkan hanyalah API key Hymn Router (diawali hr_) yang dibuat di dasbor setelah masuk — key tersebut untuk gateway ini, bukan key provider.",
   },
   {
-    q: "Bagaimana cara pakai di kode?",
-    a: "Arahkan base URL client OpenAI lu ke /api/v1, isi API key dari dashboard, dan pakai model \"hymn/auto\". SDK OpenAI, cURL, dan fetch biasa semuanya jalan — contoh lengkap ada di dokumentasi.",
+    q: "Bagaimana cara menggunakannya di kode?",
+    a: "Arahkan base URL client OpenAI Anda ke /api/v1, isi API key dari dasbor, dan gunakan model \"hymn/auto\". SDK OpenAI, cURL, dan fetch biasa semuanya dapat digunakan — contoh lengkap tersedia di dokumentasi.",
   },
   {
     q: "Apakah prompt saya disimpan?",
-    a: "Tidak. Prompt dan isi response tidak pernah disimpan di server ini. Yang dicatat hanya jumlah request, token, provider, dan latensi — untuk dashboard pemakaian lu. Catatan jujur: request tetap diteruskan ke provider gratis pihak ketiga, dan beberapa provider bisa me-log prompt sesuai kebijakannya sendiri. Jangan kirim data sensitif.",
+    a: "Tidak. Prompt dan isi response tidak pernah disimpan di server ini. Yang dicatat hanya jumlah request, token, provider, dan latensi — untuk dasbor pemakaian Anda. Catatan jujur: request tetap diteruskan ke provider gratis pihak ketiga, dan beberapa provider bisa me-log prompt sesuai kebijakannya sendiri. Jangan kirim data sensitif.",
   },
   {
-    q: "Kenapa kadang lambat / gagal?",
-    a: "Provider gratis punya limit dan kadang sibuk. Router otomatis mencoba provider berikutnya kalau satu gagal; provider yang kena 429/5xx masuk cooldown 60 detik. OVH dikenal lambat (sekitar 15 detik). Kalau semua provider gagal, responsnya 502 beserta alasan tiap provider supaya gampang di-debug.",
+    q: "Mengapa terkadang lambat / gagal?",
+    a: "Provider gratis memiliki limit dan terkadang sibuk. Router otomatis mencoba provider berikutnya jika satu gagal; provider yang terkena 429/5xx masuk cooldown 60 detik. OVH dikenal lambat (sekitar 15 detik). Jika semua provider gagal, responsnya 502 beserta alasan tiap provider agar mudah di-debug.",
   },
   {
-    q: "Limit-nya berapa?",
-    a: "Anonim (playground dan /api/ai/chat tanpa key): 20 request/menit per IP. Pakai API key: 60 request/menit per key. Di atas itu, limit gratis tiap provider tetap berlaku.",
+    q: "Berapa limitnya?",
+    a: "Anonim (playground dan /api/ai/chat tanpa key): 20 request/menit per IP. Menggunakan API key: 60 request/menit per key. Di atas itu, limit gratis tiap provider tetap berlaku.",
   },
 ];
 
@@ -108,8 +108,8 @@ export default async function Home() {
               Satu endpoint untuk semua model AI gratis.
             </h1>
             <p className="mt-6 max-w-[520px] text-[16px] leading-[1.6] text-muted">
-              Sembilan provider LLM gratis di balik satu API. Login, buat
-              API key, dan tembak dari kode lu — tanpa kartu kredit, tanpa
+              Sembilan provider LLM gratis di balik satu API. Masuk, buat
+              API key, dan panggil dari kode Anda — tanpa kartu kredit, tanpa
               saldo.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -134,7 +134,7 @@ export default async function Home() {
             </div>
             <p className="mt-6 font-mono text-[12px] text-faint">
               {configured}/{providers.length} provider aktif saat ini · tanpa
-              key pun langsung jalan
+              key pun langsung dapat digunakan
             </p>
           </div>
           <div className="hidden min-w-0 lg:block">
@@ -168,7 +168,7 @@ export default async function Home() {
           </h2>
           <p className="mt-4 max-w-[640px] text-[16px] leading-[1.6] text-muted">
             Status live dari server — urutan kartu adalah urutan fallback
-            (atas dicoba duluan). Empat provider jalan tanpa API key.
+            (atas dicoba duluan). Empat provider berfungsi tanpa API key.
           </p>
           <div className="mt-12">
             <ProviderSection initial={providers} />
@@ -185,14 +185,14 @@ export default async function Home() {
               area gelap. */}
           <div className="min-w-0">
             <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-yellow">
-              Cara Pakai
+              Cara Penggunaan
             </p>
             <h2 className="mt-4 text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-ondark sm:text-[44px]">
-              Ganti base URL. Kode tetap jalan.
+              Ganti base URL. Kode tetap berfungsi.
             </h2>
             <p className="mt-4 max-w-[520px] text-[16px] leading-[1.6] text-ondark-muted">
               Gateway memakai format OpenAI API, jadi SDK dan tools yang sudah
-              lu pakai tetap jalan — yang berubah hanya base URL dan API key.
+              Anda gunakan tetap berfungsi — yang berubah hanya base URL dan API key.
             </p>
             <ol className="mt-10 space-y-8">
               {STEPS.map((s) => (
@@ -228,8 +228,8 @@ export default async function Home() {
           <div className="min-w-0 lg:pt-24">
             <CodeWindow baseUrl={baseUrl} />
             <p className="mt-4 font-mono text-[12px] leading-relaxed text-ondark-muted">
-              Simpan API key di environment variable. Streaming belum didukung
-              — respons dikirim sekaligus.
+              Simpan API key di environment variable. Streaming didukung
+              melalui SSE — lihat dokumentasi.
             </p>
           </div>
         </div>
@@ -240,13 +240,13 @@ export default async function Home() {
         <div className="mx-auto grid w-full max-w-[1280px] gap-12 px-6 py-24 lg:grid-cols-2 lg:px-8 lg:py-28">
           <div className="min-w-0">
             <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
-              <span className="bg-green px-2 py-1 text-white">Dashboard</span>
+              <span className="bg-green px-2 py-1 text-white">Dasbor</span>
             </p>
             <h2 className="mt-4 text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-black sm:text-[44px]">
-              Semua pemakaian lu, dalam satu dashboard.
+              Semua pemakaian Anda, dalam satu dasbor.
             </h2>
             <p className="mt-4 max-w-[520px] text-[16px] leading-[1.6] text-muted">
-              Setelah login, semua request lewat API key lu tercatat dan bisa
+              Setelah masuk, semua request melalui API key Anda tercatat dan dapat
               dipantau — tanpa setup apa pun.
             </p>
             <ul className="mt-10 space-y-8">
@@ -257,7 +257,7 @@ export default async function Home() {
                 },
                 {
                   title: "API key sendiri, bisa revoke",
-                  body: "Buat key per proyek atau per perangkat. Key yang bocor tinggal di-revoke — yang lain tetap jalan.",
+                  body: "Buat key per proyek atau per perangkat. Key yang bocor dapat langsung di-revoke — key lainnya tetap berfungsi.",
                 },
                 {
                   title: "Limit per key",
@@ -279,7 +279,7 @@ export default async function Home() {
             <div className="overflow-hidden border-2 border-black bg-white shadow-brutal">
               <div className="flex items-center justify-between border-b-2 border-black px-5 py-3.5">
                 <span className="font-mono text-[12px] font-bold text-muted">
-                  dashboard / pemakaian
+                  dasbor / pemakaian
                 </span>
                 <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
                   ● 4/9 provider aktif
@@ -327,7 +327,7 @@ export default async function Home() {
               </div>
             </div>
             <p className="mt-3 font-mono text-[12px] text-faint">
-              Ilustrasi dashboard. Nama dan angka hanya contoh.
+              Ilustrasi dasbor. Nama dan angka hanya contoh.
             </p>
           </div>
         </div>
@@ -347,7 +347,7 @@ export default async function Home() {
               {
                 big: "9",
                 title: "provider",
-                body: "Satu endpoint untuk semuanya. Fallback otomatis kalau satu provider gagal atau kena limit.",
+                body: "Satu endpoint untuk semuanya. Fallback otomatis jika satu provider gagal atau mencapai limit.",
               },
               {
                 big: "Rp 0",
@@ -357,7 +357,7 @@ export default async function Home() {
               {
                 big: "4",
                 title: "keyless",
-                body: "Kilo, LLM7, Pollinations, dan OVH langsung jalan tanpa API key provider apa pun.",
+                body: "Kilo, LLM7, Pollinations, dan OVH langsung berfungsi tanpa API key provider apa pun.",
               },
             ].map((c) => (
               <div
@@ -375,7 +375,7 @@ export default async function Home() {
           <p className="mt-12 max-w-[720px] text-[15px] leading-relaxed text-white/90">
             Soal privasi: prompt dan response tidak pernah disimpan di server
             ini. Yang dicatat hanya jumlah request, token, dan provider —
-            untuk dashboard lu sendiri. Request tetap diteruskan ke provider
+            untuk dasbor Anda sendiri. Request tetap diteruskan ke provider
             gratis pihak ketiga, jadi jangan kirim data sensitif.
           </p>
         </div>
@@ -391,7 +391,7 @@ export default async function Home() {
             Pertanyaan yang sering muncul.
           </h2>
           <p className="mt-4 max-w-[640px] text-[16px] leading-[1.6] text-muted">
-            Gratis, limit, privasi, dan cara pakai. Detail lain ada di
+            Gratis, limit, privasi, dan cara penggunaan. Detail lain ada di
             dokumentasi.
           </p>
           <div className="mt-10">
@@ -405,10 +405,10 @@ export default async function Home() {
         <div className="mx-auto flex w-full max-w-[1280px] flex-col items-start gap-6 px-6 py-20 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
             <h2 className="text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-ondark sm:text-[44px]">
-              Mulai pakai hari ini.
+              Mulai gunakan hari ini.
             </h2>
             <p className="mt-3 max-w-[520px] text-[16px] leading-[1.6] text-ondark-muted">
-              Login, buat API key pertama lu, dan tembak request pertama
+              Masuk, buat API key pertama Anda, dan kirim request pertama
               dalam waktu kurang dari semenit.
             </p>
           </div>
@@ -423,7 +423,7 @@ export default async function Home() {
               href="/chat"
               className="btn-press shadow-yellow border-2 border-white bg-dark px-6 py-3 text-[15px] font-bold text-ondark shadow-brutal-sm"
             >
-              Coba chat dulu
+              Coba chat
             </Link>
           </div>
         </div>

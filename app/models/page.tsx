@@ -58,11 +58,11 @@ export default async function ModelsPage() {
           Model
         </h1>
         <p className="mt-2 max-w-[640px] text-[15px] leading-relaxed text-muted">
-          Semua model yang bisa dipakai lewat Hymn Router — gratis. Salin id modelnya
+          Semua model yang dapat digunakan melalui Hymn Router — gratis. Salin id model
           ke field{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">model</code>{" "}
           di <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">/api/v1/chat/completions</code>.
-          Context window diambil dari data OpenRouter; kalau tidak ada datanya, tertulis
+          Context window diambil dari data OpenRouter; jika tidak ada datanya, tertulis
           &ldquo;tidak diketahui&rdquo;.
         </p>
         <div className="mt-8">

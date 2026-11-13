@@ -38,11 +38,11 @@ export default function ChatPageClient() {
             <span className="bg-blue px-2 py-1 text-white">Playground</span>
           </p>
           <h1 className="mt-3 text-[32px] font-black leading-tight tracking-tight text-black">
-            Coba router-nya langsung.
+            Coba router secara langsung.
           </h1>
           <p className="mt-2 max-w-[560px] text-[15px] leading-relaxed text-muted">
             Tanpa login, tanpa key. Anonim dibatasi 20 request/menit per IP —
-            login dan pakai API key untuk limit 60/menit.
+            masuk dan gunakan API key untuk limit 60/menit.
           </p>
         </div>
         <span className="border-2 border-black bg-white px-3.5 py-1.5 font-mono text-[12px] font-bold text-black shadow-brutal-xs">

@@ -9,59 +9,59 @@ import Navbar from "@/components/navbar";
 const MESSAGES: Record<string, { title: string; body: string }> = {
   denied: {
     title: "Login dibatalkan",
-    body: "Lu menolak izin di halaman Google. Tidak ada data yang disimpan — coba lagi kalau mau lanjut.",
+    body: "Anda menolak izin di halaman Google. Tidak ada data yang disimpan — silakan coba lagi jika ingin melanjutkan.",
   },
   missing_code: {
     title: "Kode login tidak ada",
-    body: "Google tidak mengirim kode otorisasi. Coba login lagi dari awal.",
+    body: "Google tidak mengirim kode otorisasi. Silakan masuk lagi dari awal.",
   },
   bad_state: {
     title: "Sesi login tidak valid",
-    body: "State keamanan tidak cocok — mungkin halaman login sudah terlalu lama dibuka. Coba lagi.",
+    body: "State keamanan tidak cocok — mungkin halaman login sudah terlalu lama dibuka. Silakan coba lagi.",
   },
   not_configured: {
     title: "Google login belum dikonfigurasi",
-    body: "Server belum diisi GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET. Pemilik web perlu mengikuti docs/setup.md dulu.",
+    body: "Server belum diisi GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET. Pemilik web perlu mengikuti docs/setup.md.",
   },
   no_session_secret: {
     title: "SESSION_SECRET belum dikonfigurasi",
-    body: "Server belum diisi SESSION_SECRET (min 32 karakter acak). Pemilik web perlu mengikuti docs/setup.md dulu.",
+    body: "Server belum diisi SESSION_SECRET (min 32 karakter acak). Pemilik web perlu mengikuti docs/setup.md.",
   },
   no_database: {
     title: "Database belum dikonfigurasi",
-    body: "Server belum diisi DATABASE_URL. Login butuh database untuk menyimpan akun — pemilik web perlu mengikuti docs/setup.md dulu.",
+    body: "Server belum diisi DATABASE_URL. Login memerlukan database untuk menyimpan akun — pemilik web perlu mengikuti docs/setup.md.",
   },
   token_exchange_failed: {
     title: "Gagal menukar kode login",
-    body: "Google menolak kode otorisasi — mungkin sudah dipakai atau kadaluarsa. Coba login lagi.",
+    body: "Google menolak kode otorisasi — mungkin sudah dipakai atau kadaluarsa. Silakan masuk lagi.",
   },
   no_id_token: {
     title: "Google tidak mengirim id_token",
-    body: "Respons Google tidak lengkap. Coba login lagi.",
+    body: "Respons Google tidak lengkap. Silakan masuk lagi.",
   },
   tokeninfo_failed: {
     title: "Gagal memverifikasi token Google",
-    body: "Token dari Google tidak bisa diverifikasi. Coba login lagi.",
+    body: "Token dari Google tidak dapat diverifikasi. Silakan masuk lagi.",
   },
   bad_audience: {
     title: "Token Google bukan untuk aplikasi ini",
-    body: "Audience id_token tidak cocok dengan GOOGLE_CLIENT_ID server. Cek konfigurasi OAuth client.",
+    body: "Audience id_token tidak cocok dengan GOOGLE_CLIENT_ID server. Periksa konfigurasi OAuth client.",
   },
   bad_token: {
     title: "Token Google tidak lengkap",
-    body: "Token tidak berisi sub/email. Coba login lagi.",
+    body: "Token tidak berisi sub/email. Silakan masuk lagi.",
   },
   token_expired: {
     title: "Token Google sudah kadaluarsa",
-    body: "Coba login lagi.",
+    body: "Silakan masuk lagi.",
   },
   db_error: {
     title: "Gagal menyimpan akun",
-    body: "Database menolak menyimpan akun lu — mungkin migrasi belum dijalankan (npm run migrate). Coba lagi nanti.",
+    body: "Database menolak menyimpan akun Anda — mungkin migrasi belum dijalankan (npm run migrate). Silakan coba lagi nanti.",
   },
   unknown: {
     title: "Login gagal",
-    body: "Terjadi kesalahan yang tidak terduga saat login. Coba lagi.",
+    body: "Terjadi kesalahan yang tidak terduga saat login. Silakan coba lagi.",
   },
 };
 
@@ -89,7 +89,7 @@ export default async function AuthErrorPage({
             href="/login"
             className="btn-press border-2 border-black bg-yellow px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
           >
-            Coba login lagi
+            Coba masuk lagi
           </Link>
           <Link
             href="/"

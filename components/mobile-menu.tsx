@@ -15,10 +15,10 @@ import type { SessionUser } from "@/lib/auth";
 const LINKS = [
   { href: "/#provider", label: "Provider" },
   { href: "/models", label: "Model" },
-  { href: "/#cara-pakai", label: "Cara Pakai" },
+  { href: "/#cara-pakai", label: "Cara Penggunaan" },
   { href: "/chat", label: "Chat" },
   { href: "/docs", label: "API Docs" },
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Dasbor" },
   { href: "/#faq", label: "FAQ" },
 ];
 

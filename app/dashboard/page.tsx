@@ -31,9 +31,9 @@ function DbErrorView() {
           Database sedang bermasalah
         </h1>
         <p className="mt-2 max-w-[640px] text-[15px] leading-relaxed text-muted">
-          Dashboard tidak bisa memuat datamu saat ini — kemungkinan koneksi ke
-          database sedang gagal sesaat. Coba muat ulang halaman ini sebentar
-          lagi; session login-mu tidak hilang.
+          Dasbor tidak dapat memuat data Anda saat ini — kemungkinan koneksi ke
+          database sedang gagal sesaat. Silakan muat ulang halaman ini sebentar
+          lagi; sesi login Anda tidak hilang.
         </p>
       </div>
     </div>

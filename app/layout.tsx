@@ -23,7 +23,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Hymn Router — Satu Endpoint untuk Semua Model AI Gratis",
   description:
-    "Gateway OpenAI-compatible untuk 9 endpoint LLM gratis (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, dan lainnya) dengan fallback otomatis. Login dengan Google, buat API key, tembak ke hymn-router.vercel.app/api/v1. Rp 0.",
+    "Gateway OpenAI-compatible untuk 9 endpoint LLM gratis (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, dan lainnya) dengan fallback otomatis. Masuk, buat API key, dan akses hymn-router.vercel.app/api/v1. Rp 0.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

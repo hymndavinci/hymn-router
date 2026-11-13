@@ -12,7 +12,7 @@ import MobileMenu from "@/components/mobile-menu";
 const NAV_LINKS = [
   { href: "/#provider", label: "Provider" },
   { href: "/models", label: "Model" },
-  { href: "/#cara-pakai", label: "Cara Pakai" },
+  { href: "/#cara-pakai", label: "Cara Penggunaan" },
   { href: "/docs", label: "API" },
   { href: "/#faq", label: "FAQ" },
 ];
@@ -75,7 +75,7 @@ export default async function Navbar() {
                 href="/dashboard"
                 className="btn-press border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-sm"
               >
-                Dashboard
+                Dasbor
               </Link>
               <form action="/api/auth/logout" method="POST" className="flex">
                 <button
@@ -110,7 +110,7 @@ export default async function Navbar() {
             href={user ? "/dashboard" : "/login"}
             className="border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-sm"
           >
-            {user ? "Dashboard" : "Mulai"}
+            {user ? "Dasbor" : "Mulai"}
           </Link>
           <MobileMenu user={user} />
         </div>

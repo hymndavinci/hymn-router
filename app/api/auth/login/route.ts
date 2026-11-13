@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: "rate_limited",
-        message: "Terlalu banyak percobaan login — coba lagi dalam 15 menit.",
+        message: "Terlalu banyak percobaan login — silakan coba lagi dalam 15 menit.",
       },
       { status: 429 },
     );
@@ -142,7 +142,7 @@ export async function POST(req: NextRequest) {
         {
           error: "oauth_only",
           message:
-            "Akun ini dibuat lewat Google/GitHub, silakan masuk dengan tombol tersebut.",
+            "Akun ini dibuat melalui Google/GitHub, silakan masuk dengan tombol tersebut.",
         },
         { status: 401 },
       );
@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
     }
     console.error("[auth/login] database error:", err);
     return NextResponse.json(
-      { error: "database_error", message: "Gagal masuk, coba lagi sebentar." },
+      { error: "database_error", message: "Gagal masuk, silakan coba lagi sebentar." },
       { status: 503 },
     );
   }

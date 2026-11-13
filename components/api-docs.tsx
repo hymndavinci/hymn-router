@@ -85,7 +85,7 @@ function InfoCard({ title, items }: { title: string; items: React.ReactNode[] })
 }
 
 const V1_CURL = `curl <domain>/api/v1/chat/completions \\
-  -H "Authorization: Bearer hr_KEY_LU" \\
+  -H "Authorization: Bearer hr_KEY_ANDA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "hymn/auto",
@@ -138,7 +138,7 @@ const V1_MODELS = `curl <domain>/api/v1/models
 # diabaikan client OpenAI. Versi visualnya ada di halaman /models.`;
 
 const V1_STREAM_CURL = `curl -N <domain>/api/v1/chat/completions \\
-  -H "Authorization: Bearer hr_KEY_LU" \\
+  -H "Authorization: Bearer hr_KEY_ANDA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "hymn/auto",
@@ -158,7 +158,7 @@ const V1_STREAM_CURL = `curl -N <domain>/api/v1/chat/completions \\
 
 const V1_STREAM_PYTHON = `from openai import OpenAI
 
-client = OpenAI(api_key="hr_KEY_LU", base_url="<domain>/api/v1")
+client = OpenAI(api_key="hr_KEY_ANDA", base_url="<domain>/api/v1")
 
 stream = client.chat.completions.create(
     model="hymn/auto",
@@ -173,8 +173,8 @@ const CURL_CHAT = `curl -X POST <domain>/api/ai/chat \\
   -H "Content-Type: application/json" \\
   -d '{"messages":[{"role":"user","content":"halo, jawab singkat"}]}'
 
-# Dengan API key (limit 60/menit/key, tercatat di dashboard):
-#   -H "Authorization: Bearer hr_KEY_LU"`;
+# Dengan API key (limit 60/menit/key, tercatat di dasbor):
+#   -H "Authorization: Bearer hr_KEY_ANDA"`;
 
 const REQUEST_JSON = `{
   "messages": [
@@ -183,7 +183,7 @@ const REQUEST_JSON = `{
   ],
   "temperature": 0.7,        // opsional, 0–2, default 0.7
   "maxTokens": 1024,         // opsional, 1–8192, default 1024
-  "preferProvider": "groq"   // opsional, tetap fallback kalau gagal
+  "preferProvider": "groq"   // opsional, tetap fallback jika gagal
 }`;
 
 const RESPONSE_JSON = `{
@@ -205,7 +205,7 @@ export default function ApiDocs() {
     <div className="flex flex-col gap-12">
       <p className="-mb-4 font-mono text-[13px] text-faint">
         Ganti <code className="font-bold text-muted">&lt;domain&gt;</code> dengan domain
-        deploy lu, mis. https://hymn-router.vercel.app
+        deployment Anda, mis. https://hymn-router.vercel.app
       </p>
 
       <Section eyebrow="Akun" title="Cara login">
@@ -217,20 +217,20 @@ export default function ApiDocs() {
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 /login
               </code>
-              : email + password, Google, atau GitHub (GitHub aktif kalau
+              : email + password, Google, atau GitHub (GitHub aktif jika
               server sudah dikonfigurasi OAuth App-nya).
             </>,
             <>
-              Daftar pakai email: password minimal 8 karakter, disimpan
+              Daftar menggunakan email: password minimal 8 karakter, disimpan
               sebagai hash scrypt — password asli tidak pernah disimpan.
             </>,
             <>
-              Satu email = satu akun: kalau lu daftar pakai email lalu login
-              Google/GitHub dengan email yang sama, akunnya ditautkan
-              otomatis — login dengan cara mana pun masuk ke akun yang sama.
+              Satu email = satu akun: jika Anda mendaftar menggunakan email lalu masuk
+              melalui Google/GitHub dengan email yang sama, akun akan ditautkan
+              otomatis — masuk dengan cara apa pun menuju akun yang sama.
             </>,
             <>
-              Belum ada verifikasi email: akun yang didaftar lewat email
+              Belum ada verifikasi email: akun yang didaftarkan melalui email
               langsung aktif.
             </>,
             <>
@@ -252,14 +252,14 @@ export default function ApiDocs() {
                 POST /api/v1/chat/completions
               </code>{" "}
               dengan format request/response OpenAI. SDK OpenAI, cURL, dan
-              fetch biasa langsung jalan — ganti base URL saja.
+              fetch biasa langsung dapat digunakan — cukup ganti base URL saja.
             </>,
             <>
               Wajib header{" "}
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 Authorization: Bearer hr_...
               </code>{" "}
-              dengan API key dari dashboard. Tanpa key / key tidak valid → 401.
+              dengan API key dari dasbor. Tanpa key / key tidak valid → 401.
             </>,
             <>
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">model</code>{" "}
@@ -290,15 +290,15 @@ export default function ApiDocs() {
               Rate limit: 60 request/menit per API key (melebihi itu → 429).
               Kuota harian Free plan: 100 request/hari per user, reset 00:00
               WIB (habis → 429 <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">quota_exceeded</code>).
-              Sisa kuota terlihat di dashboard dan header{" "}
+              Sisa kuota terlihat di dasbor dan header{" "}
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">X-Quota-Remaining</code>.
             </>,
             <>
-              Pemakaian tercatat di dashboard: request, token, provider, model,
+              Pemakaian tercatat di dasbor: request, token, provider, model,
               grafik harian, dan request terakhir.
             </>,
             <>
-              Kalau semua provider gagal → 502 beserta alasan tiap provider.
+              Jika semua provider gagal → 502 beserta alasan tiap provider.
             </>,
           ]}
         />
@@ -316,7 +316,7 @@ export default function ApiDocs() {
               Kirim{" "}
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">stream: true</code>{" "}
               di body /v1 (atau /api/ai/chat) untuk menerima token demi token
-              lewat Server-Sent Events. Format chunk sama seperti OpenAI:
+              melalui Server-Sent Events. Format chunk sama seperti OpenAI:
               delta teks di{" "}
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">choices[0].delta.content</code>,
               chunk terakhir berisi{" "}
@@ -326,19 +326,19 @@ export default function ApiDocs() {
             </>,
             <>
               Router menunggu token pertama dari provider sebelum merespons —
-              jadi kalau provider pertama gagal, fallback ke provider
-              berikutnya tetap jalan sebelum stream dimulai.
+              jadi jika provider pertama gagal, fallback ke provider
+              berikutnya tetap berfungsi sebelum stream dimulai.
             </>,
             <>
-              Kalau provider tidak mendukung stream, router memakai respons
+              Jika provider tidak mendukung stream, router memakai respons
               non-stream lalu mengirimnya sebagai satu chunk delta. Client
               tidak perlu menangani dua format.
             </>,
             <>
-              Usage token di dashboard: kalau provider melaporkan usage di
-              stream, angka itu yang dipakai; kalau tidak, token diestimasi
+              Usage token di dasbor: jika provider melaporkan usage di
+              stream, angka itu yang dipakai; jika tidak, token diestimasi
               dari panjang teks (±4 karakter per token). Estimasi ini hanya
-              untuk dashboard, tidak dikirim ke client.
+              untuk dasbor, tidak dikirim ke client.
             </>,
             <>
               Endpoint /api/ai/chat mengirim satu event tambahan di awal
@@ -349,7 +349,7 @@ export default function ApiDocs() {
             </>,
           ]}
         />
-        <CodeBlock title="Streaming — cURL (pakai -N supaya tidak di-buffer)" code={V1_STREAM_CURL} />
+        <CodeBlock title="Streaming — cURL (gunakan -N agar tidak di-buffer)" code={V1_STREAM_CURL} />
         <CodeBlock title="Streaming — Python (OpenAI SDK, stream=True)" code={V1_STREAM_PYTHON} />
       </Section>
 
@@ -357,8 +357,8 @@ export default function ApiDocs() {
         <div className="border-2 border-black bg-white shadow-brutal-sm">
           {[
             { code: "400", name: "invalid_request_error", desc: "Body tidak valid: messages kosong / >50 pesan, role tidak dikenal, konten >20000 karakter, temperature di luar 0–2, max_tokens di luar 1–8192, atau stream bukan boolean." },
-            { code: "401", name: "invalid_api_key", desc: "Header Authorization kosong, key tidak valid, atau key sudah di-revoke. Buat key baru di dashboard." },
-            { code: "404", name: "model_not_found", desc: "Model tidak dikenal. Pakai \"hymn/auto\", id provider, id model dari GET /api/v1/models, atau model OpenRouter berakhiran \":free\"." },
+            { code: "401", name: "invalid_api_key", desc: "Header Authorization kosong, key tidak valid, atau key sudah di-revoke. Buat key baru di dasbor." },
+            { code: "404", name: "model_not_found", desc: "Model tidak dikenal. Gunakan \"hymn/auto\", id provider, id model dari GET /api/v1/models, atau model OpenRouter berakhiran \":free\"." },
             { code: "429", name: "rate_limit_exceeded", desc: "Melebihi 60 request/menit per API key (atau 20/menit per IP untuk /api/ai/chat anonim)." },
             { code: "429", name: "quota_exceeded", desc: "Kuota harian gratis (100 request/hari) habis. Respons menyertakan retry_after (detik) dan header Retry-After; reset 00:00 WIB." },
             { code: "502", name: "all_providers_failed", desc: "Semua provider gagal (429 / 5xx / timeout). Pesan error berisi alasan tiap provider." },
@@ -390,22 +390,22 @@ export default function ApiDocs() {
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 POST /api/ai/chat
               </code>{" "}
-              menembak 9 provider gratis (Groq, NVIDIA, Gemini, OpenRouter,
+              memanggil 9 provider gratis (Groq, NVIDIA, Gemini, OpenRouter,
               Mistral, Kilo, LLM7, Pollinations, OVH) secara berurutan sampai
               ada yang berhasil.
             </>,
             <>
-              Anonim: rate limit 20 request/menit per IP, tidak kena kuota
+              Anonim: rate limit 20 request/menit per IP, tidak dikenakan kuota
               harian. Dengan header{" "}
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 Authorization: Bearer hr_...
               </code>
-              : limit 60/menit per key + pemakaian tercatat di dashboard dan
-              ikut menghabiskan kuota harian 100 request/hari.
+              : limit 60/menit per key + pemakaian tercatat di dasbor dan
+              turut menghabiskan kuota harian 100 request/hari.
               Bearer tidak valid → 401 (tidak fallback anonim).
             </>,
             <>
-              Tambah{" "}
+              Tambahkan{" "}
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">stream: true</code>{" "}
               di body untuk SSE (format sama seperti /v1, plus satu{" "}
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">event: meta</code>{" "}
@@ -420,8 +420,8 @@ export default function ApiDocs() {
               ada key yang dikirim ke browser.
             </>,
             <>
-              Kalau semua provider gagal, responsnya 502 beserta alasan tiap
-              provider — jadi gampang di-debug.
+              Jika semua provider gagal, responsnya 502 beserta alasan tiap
+              provider — sehingga mudah di-debug.
             </>,
           ]}
         />
@@ -441,21 +441,21 @@ export default function ApiDocs() {
             <>
               Free tier berubah-ubah: model{" "}
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">:free</code>{" "}
-              OpenRouter bisa hilang / jadi berbayar sewaktu-waktu. Cek{" "}
+              OpenRouter bisa hilang / jadi berbayar sewaktu-waktu. Periksa{" "}
               <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 https://openrouter.ai/api/v1/models
               </code>{" "}
-              kalau ada model yang 404.
+              jika ada model yang 404.
             </>,
             <>
-              Jangan kirim data sensitif lewat router ini — prompt di free tier
-              bisa dipakai provider untuk improve produk / di-log. Server ini
+              Jangan kirim data sensitif melalui router ini — prompt di free tier
+              dapat digunakan provider untuk meningkatkan produk / dicatat di log. Server ini
               sendiri tidak menyimpan prompt atau response; yang dicatat hanya
               jumlah request, token, provider, dan latensi.
             </>,
             <>
               Statistik di section Provider bersifat per proses server dan
-              reset saat restart. Histori pemakaian per user (dashboard)
+              reset saat restart. Histori pemakaian per user (dasbor)
               tersimpan permanen di database.
             </>,
           ]}

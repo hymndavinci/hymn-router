@@ -19,7 +19,7 @@ const TABS: { id: TabId; label: string }[] = [
 function snippets(baseUrl: string): Record<TabId, string> {
   return {
     curl: `curl ${baseUrl}/api/v1/chat/completions \\
-  -H "Authorization: Bearer hr_KEY_LU" \\
+  -H "Authorization: Bearer hr_KEY_ANDA" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "hymn/auto",

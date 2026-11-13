@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: "rate_limited",
-        message: "Terlalu banyak percobaan daftar — coba lagi dalam 15 menit.",
+        message: "Terlalu banyak percobaan daftar — silakan coba lagi dalam 15 menit.",
       },
       { status: 429 },
     );
@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
     }
     console.error("[auth/signup] database error:", err);
     return NextResponse.json(
-      { error: "database_error", message: "Gagal membuat akun, coba lagi sebentar." },
+      { error: "database_error", message: "Gagal membuat akun, silakan coba lagi sebentar." },
       { status: 503 },
     );
   }

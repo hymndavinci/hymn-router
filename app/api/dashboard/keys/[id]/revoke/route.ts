@@ -26,7 +26,7 @@ export async function POST(
   } catch (err) {
     console.error("[dashboard/revoke] database error:", err);
     return NextResponse.json(
-      { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+      { error: "database_error: gagal mengakses database, silakan coba lagi sebentar" },
       { status: 503 },
     );
   }
@@ -38,13 +38,13 @@ export async function POST(
   } catch (err) {
     console.error("[dashboard/revoke] database error:", err);
     return NextResponse.json(
-      { error: "database_error: gagal mengakses database, coba lagi sebentar" },
+      { error: "database_error: gagal mengakses database, silakan coba lagi sebentar" },
       { status: 503 },
     );
   }
   if (!ok) {
     return NextResponse.json(
-      { error: "key tidak ditemukan, bukan milikmu, atau sudah di-revoke" },
+      { error: "key tidak ditemukan, bukan milik Anda, atau sudah di-revoke" },
       { status: 404 },
     );
   }

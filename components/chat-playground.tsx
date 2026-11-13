@@ -141,7 +141,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
         {
           id: uid(),
           role: "assistant",
-          content: data.content ?? "(respon kosong)",
+          content: data.content ?? "(respons kosong)",
           provider: data.provider,
           model: data.model,
           latencyMs: Date.now() - started,
@@ -389,8 +389,8 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
 
       {providers !== null && configured.length === 0 && (
         <div className="border-2 border-black bg-yellow p-3 text-sm font-medium text-black shadow-brutal-sm">
-          Belum ada provider yang terkonfigurasi — ini seharusnya tidak terjadi, karena Kilo &amp;
-          LLM7 keyless selalu aktif. Cek section Provider di beranda.
+          Belum ada provider yang terkonfigurasi — hal ini seharusnya tidak terjadi, karena Kilo &amp;
+          LLM7 keyless selalu aktif. Periksa bagian Provider di beranda.
         </div>
       )}
 
@@ -400,9 +400,9 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
           <div className="m-auto max-w-md py-10 text-center">
             <p className="font-mono text-sm font-bold text-black">Belum ada pesan.</p>
             <p className="mt-1 text-sm text-faint">
-              Ketik di bawah untuk ngetes router. Tanpa API key pun langsung jalan lewat Kilo &amp;
-              LLM7 — login dan pakai API key dari dashboard kalau mau limit lebih besar
-              (60 req/menit).
+              Ketik pesan di bawah untuk menguji router. Tanpa API key pun dapat langsung
+              digunakan melalui Kilo &amp; LLM7 — masuk dan gunakan API key dari dasbor
+              jika menginginkan limit yang lebih besar (60 req/menit).
             </p>
           </div>
         )}
@@ -420,7 +420,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
                   m.role === "user" ? "text-blue" : "text-green"
                 }`}
               >
-                {m.role === "user" ? "lu" : "asisten"}
+                {m.role === "user" ? "Anda" : "asisten"}
               </span>
               {m.provider && (
                 <span className="break-all border border-black bg-white px-1.5 py-0.5 font-mono text-[11px] font-bold text-muted">

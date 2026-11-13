@@ -20,11 +20,11 @@ export default function DocsPage() {
           API Docs
         </h1>
         <p className="mt-2 max-w-[640px] text-[15px] leading-relaxed text-muted">
-          Dua cara memakai router: gateway OpenAI-compatible{" "}
+          Dua cara menggunakan router: gateway OpenAI-compatible{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">/api/v1</code>{" "}
-          (pakai API key dari dashboard) dan endpoint sederhana{" "}
+          (menggunakan API key dari dasbor) dan endpoint sederhana{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">/api/ai/chat</code>{" "}
-          (anonim atau pakai key).
+          (anonim atau menggunakan key).
         </p>
         <div className="mt-8">
           <ApiDocs />
