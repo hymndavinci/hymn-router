@@ -14,6 +14,7 @@ import GlobeArt from "@/components/globe-art";
 import CodeWindow from "@/components/code-window";
 import Faq from "@/components/faq";
 import ProviderSection from "@/components/provider-section";
+import Reveal from "@/components/reveal";
 
 export const dynamic = "force-dynamic";
 
@@ -84,7 +85,7 @@ export default async function Home() {
         </div>
 
         {/* Stats row */}
-        <div className="border-t-2 border-black">
+        <Reveal className="border-t-2 border-black">
           <div className="mx-auto grid w-full max-w-[1280px] grid-cols-2 px-6 sm:grid-cols-4 sm:divide-x-2 sm:divide-black lg:px-8">
             {h.stats.map((s) => (
               <div key={s.label} className="px-1 py-7 sm:px-6 sm:first:pl-0">
@@ -95,7 +96,7 @@ export default async function Home() {
               </div>
             ))}
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* 4. Provider — kuning lembut */}
@@ -134,8 +135,8 @@ export default async function Home() {
               {h.howtoSub}
             </p>
             <ol className="mt-10 space-y-8">
-              {h.steps.map((s) => (
-                <li key={s.n} className="flex gap-5">
+              {h.steps.map((s, i) => (
+                <Reveal as="li" key={s.n} delay={Math.min(i * 50, 150)} className="flex gap-5">
                   <span className="font-mono text-[13px] font-bold text-yellow">
                     {s.n}
                   </span>
@@ -145,7 +146,7 @@ export default async function Home() {
                       {s.body}
                     </p>
                   </div>
-                </li>
+                </Reveal>
               ))}
             </ol>
             <div className="mt-10">
@@ -164,12 +165,12 @@ export default async function Home() {
               </div>
             </div>
           </div>
-          <div className="min-w-0 lg:pt-24">
+          <Reveal className="min-w-0 lg:pt-24">
             <CodeWindow baseUrl={baseUrl} />
             <p className="mt-4 font-mono text-[12px] leading-relaxed text-ondark-muted">
               {h.codeNote}
             </p>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -187,19 +188,19 @@ export default async function Home() {
               {h.dashboardSub}
             </p>
             <ul className="mt-10 space-y-8">
-              {h.dashboardFeatures.map((f) => (
-                <li key={f.title} className="border-t-2 border-black pt-6">
+              {h.dashboardFeatures.map((f, i) => (
+                <Reveal as="li" key={f.title} delay={Math.min(i * 50, 150)} className="border-t-2 border-black pt-6">
                   <h3 className="text-[18px] font-bold text-black">{f.title}</h3>
                   <p className="mt-1 max-w-[480px] text-[15px] leading-relaxed text-muted">
                     {f.body}
                   </p>
-                </li>
+                </Reveal>
               ))}
             </ul>
           </div>
 
           {/* Mock dashboard statis */}
-          <div className="min-w-0 lg:pt-24">
+          <Reveal className="min-w-0 lg:pt-24">
             <div className="overflow-hidden border-2 border-black bg-white shadow-brutal">
               <div className="flex items-center justify-between border-b-2 border-black px-5 py-3.5">
                 <span className="font-mono text-[12px] font-bold text-muted">
@@ -249,7 +250,7 @@ export default async function Home() {
               </div>
             </div>
             <p className="mt-3 font-mono text-[12px] text-faint">{h.mockCaption}</p>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -263,17 +264,16 @@ export default async function Home() {
             {h.whyTitle}
           </h2>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {h.whyCards.map((c) => (
-              <div
-                key={c.title}
-                className="border-2 border-black bg-white p-6 shadow-brutal"
-              >
-                <p className="text-[48px] font-black leading-none tracking-tight text-black">
-                  {c.big}
-                </p>
-                <h3 className="mt-3 text-[18px] font-bold text-black">{c.title}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-muted">{c.body}</p>
-              </div>
+            {h.whyCards.map((c, i) => (
+              <Reveal key={c.title} delay={Math.min(i * 50, 150)}>
+                <div className="h-full border-2 border-black bg-white p-6 shadow-brutal">
+                  <p className="text-[48px] font-black leading-none tracking-tight text-black">
+                    {c.big}
+                  </p>
+                  <h3 className="mt-3 text-[18px] font-bold text-black">{c.title}</h3>
+                  <p className="mt-2 text-[15px] leading-relaxed text-muted">{c.body}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
           <p className="mt-12 max-w-[720px] text-[15px] leading-relaxed text-white/90">
@@ -302,7 +302,7 @@ export default async function Home() {
 
       {/* 9. CTA — hitam */}
       <section className="bg-dark text-ondark">
-        <div className="mx-auto flex w-full max-w-[1280px] flex-col items-start gap-6 px-6 py-20 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <Reveal className="mx-auto flex w-full max-w-[1280px] flex-col items-start gap-6 px-6 py-20 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
             <h2 className="text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-ondark sm:text-[44px]">
               {h.ctaTitle}
@@ -325,7 +325,7 @@ export default async function Home() {
               {h.ctaChat}
             </Link>
           </div>
-        </div>
+        </Reveal>
       </section>
     </div>
   );

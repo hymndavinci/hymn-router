@@ -130,3 +130,41 @@ body {
 .animate-blink {
   animation: blink 1s step-end infinite;
 }
+
+/*
+ * Scroll reveal (components/reveal.tsx): hanya opacity + transform,
+ * tanpa layout shift, satu kali (tidak berulang).
+ */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 350ms ease-out, transform 350ms ease-out;
+  /* min-width: 0 supaya Reveal sebagai grid/flex item bisa mengecil
+     di bawah lebar konten minimumnya (tanpa ini, kartu di grid 1 kolom
+     mobile memaksa halaman melebar — truncate di dalamnya ikut gagal). */
+  min-width: 0;
+}
+.reveal-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Bar loading tak tentu (app/loading.tsx): blok kuning meluncur di trek. */
+@keyframes loading-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+.loading-bar {
+  animation: loading-slide 1.1s ease-in-out infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .loading-bar {
+    animation: none;
+  }
+}

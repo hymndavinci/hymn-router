@@ -760,6 +760,7 @@ const id = {
     copyLabel: "Salin",
     copiedLabel: "Disalin!",
     tryAgain: "Coba lagi",
+    loading: "Memuat…",
   },
 };
 
@@ -1491,6 +1492,7 @@ const en: Dict = {
     copyLabel: "Copy",
     copiedLabel: "Copied!",
     tryAgain: "Try again",
+    loading: "Loading…",
   },
 };
 

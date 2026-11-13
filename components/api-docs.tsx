@@ -11,6 +11,7 @@
 import { Fragment, useState } from "react";
 import type { Rich } from "@/lib/i18n";
 import { useLocale } from "@/components/locale-provider";
+import Reveal from "@/components/reveal";
 
 function CopyButton({ text }: { text: string }) {
   const { dict } = useLocale();
@@ -85,7 +86,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section>
+    <Reveal as="section">
       <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
         {eyebrow}
       </p>
@@ -93,7 +94,7 @@ function Section({
         {title}
       </h2>
       <div className="mt-5 flex flex-col gap-4">{children}</div>
-    </section>
+    </Reveal>
   );
 }
 

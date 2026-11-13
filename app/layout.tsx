@@ -39,7 +39,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="flex min-h-screen flex-col bg-bg text-text">
-        <LocaleProvider locale={locale} dict={dict[locale]}>
+        <LocaleProvider locale={locale} dicts={dict}>
           {children}
           <Footer />
         </LocaleProvider>

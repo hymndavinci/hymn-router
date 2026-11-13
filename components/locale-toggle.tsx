@@ -1,12 +1,16 @@
 /**
- * LocaleToggle — switch ID | EN neo-brutalism.
- * Klik -> POST /api/locale (set cookie hymn_locale) -> router.refresh()
- * supaya Server Component re-render dengan bahasa baru.
+ * LocaleToggle — switch ID | EN neo-brutalism, OPTIMISTIS.
+ *
+ * Klik -> UI berubah SEGERA (context locale + atribut lang) -> POST
+ * /api/locale di background -> router.refresh() untuk menyelaraskan
+ * Server Component. Tombol tidak pernah di-disable: klik cepat
+ * bergantian dilayani, dan hanya respons dari klik terbaru yang boleh
+ * memicu refresh (klik lama yang dibatalkan/didahului diabaikan).
  */
 
 "use client";
 
-import { useState } from "react";
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { Locale } from "@/lib/i18n";
 import { useLocale } from "@/components/locale-provider";
@@ -14,28 +18,48 @@ import { useLocale } from "@/components/locale-provider";
 const OPTIONS: Locale[] = ["id", "en"];
 
 export default function LocaleToggle() {
-  const { locale, dict } = useLocale();
+  const { locale, dict, setLocaleOptimistic } = useLocale();
   const router = useRouter();
-  const [busy, setBusy] = useState(false);
+  // Nomor urut klik terakhir + controller POST yang sedang jalan.
+  const seqRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
 
-  async function setLocale(l: Locale) {
-    if (l === locale || busy) return;
-    setBusy(true);
-    try {
-      const res = await fetch("/api/locale", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ locale: l }),
-      });
-      if (res.ok) {
-        // Perbarui atribut lang segera (refresh server juga akan
-        // melakukannya, tapi ini menjamin konsistensi).
-        document.documentElement.lang = l;
-        router.refresh();
+  function setLocale(l: Locale) {
+    if (l === locale) return;
+    const prev = locale;
+
+    // Optimistis: UI berubah sekarang, sebelum network selesai.
+    setLocaleOptimistic(l);
+    document.documentElement.lang = l;
+
+    const seq = ++seqRef.current;
+    // Batalkan POST sebelumnya supaya cookie akhir mengikuti klik terbaru.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    void (async () => {
+      try {
+        const res = await fetch("/api/locale", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ locale: l }),
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      } catch {
+        // Gagal/dibatalkan: kembalikan UI ke bahasa sebelumnya — hanya
+        // bila klik ini masih yang terbaru (klik yang lebih baru sudah
+        // menguasainya dan tidak boleh ditimpa).
+        if (seq !== seqRef.current) return;
+        setLocaleOptimistic(prev);
+        document.documentElement.lang = prev;
+        return;
       }
-    } finally {
-      setBusy(false);
-    }
+      if (seq !== seqRef.current) return;
+      // Selaraskan Server Component dengan cookie baru.
+      router.refresh();
+    })();
   }
 
   return (
@@ -48,10 +72,9 @@ export default function LocaleToggle() {
         <button
           key={l}
           type="button"
-          onClick={() => void setLocale(l)}
+          onClick={() => setLocale(l)}
           aria-pressed={locale === l}
-          disabled={busy}
-          className={`h-8 px-2.5 font-mono text-[12px] font-bold text-black transition-colors disabled:opacity-60 ${
+          className={`h-8 px-2.5 font-mono text-[12px] font-bold text-black ${
             locale === l ? "bg-yellow" : "hover:bg-yellow-soft"
           } ${l === "id" ? "border-r-2 border-black" : ""}`}
         >

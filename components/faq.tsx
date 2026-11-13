@@ -3,6 +3,7 @@
 "use client";
 
 import { useState } from "react";
+import Reveal from "@/components/reveal";
 
 export type FaqItem = { q: string; a: string };
 
@@ -14,7 +15,7 @@ export default function Faq({ items }: { items: FaqItem[] }) {
       {items.map((item, i) => {
         const isOpen = open === i;
         return (
-          <div key={item.q} className="border-b-2 border-black">
+          <Reveal key={item.q} delay={Math.min(i * 50, 150)} className="border-b-2 border-black">
             <button
               onClick={() => setOpen(isOpen ? null : i)}
               aria-expanded={isOpen}
@@ -34,7 +35,7 @@ export default function Faq({ items }: { items: FaqItem[] }) {
                 {item.a}
               </p>
             )}
-          </div>
+          </Reveal>
         );
       })}
     </div>

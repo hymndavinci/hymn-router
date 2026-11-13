@@ -12,6 +12,7 @@
 import type { ProviderStatus } from "@/lib/free-ai-router";
 import type { Dict } from "@/lib/i18n";
 import { dateLocaleOf, fill, useLocale } from "@/components/locale-provider";
+import Reveal from "@/components/reveal";
 
 const KEY_LINKS: Record<string, { label: string; url: string }> = {
   groq: { label: "console.groq.com/keys", url: "https://console.groq.com/keys" },
@@ -98,9 +99,8 @@ export default function ProvidersPanel({
               ? fill(t.successRate, { pct: Math.round((p.successes / p.requests) * 100) })
               : t.neverUsed;
           return (
-            <div
-              key={p.id}
-              className="flex min-w-0 flex-col border-2 border-black bg-white p-5 shadow-brutal-sm"
+            <Reveal key={p.id} delay={Math.min(i * 50, 150)}>
+              <div className="flex h-full min-w-0 flex-col border-2 border-black bg-white p-5 shadow-brutal-sm"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -163,7 +163,8 @@ export default function ProvidersPanel({
                   {t.optionalToken} {keyLink.label} {t.optional}
                 </a>
               )}
-            </div>
+              </div>
+            </Reveal>
           );
         })}
       </div>

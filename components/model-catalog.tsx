@@ -15,6 +15,7 @@ import { useMemo, useState } from "react";
 import type { Dict, Locale } from "@/lib/i18n";
 import { dateLocaleOf, fill, useLocale } from "@/components/locale-provider";
 import CopyButton from "./copy-button";
+import Reveal from "@/components/reveal";
 
 export type RouterModelInfo = {
   id: string;
@@ -108,7 +109,7 @@ export default function ModelCatalog({
         </p>
 
         {/* hymn/auto — kartu sorot */}
-        <div className="mt-6 border-2 border-black bg-yellow p-5 shadow-brutal-sm">
+        <Reveal className="mt-6 border-2 border-black bg-yellow p-5 shadow-brutal-sm">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
               <h3 className="font-mono text-[16px] font-black text-black">hymn/auto</h3>
@@ -126,13 +127,12 @@ export default function ModelCatalog({
             </code>
             <CopyButton text="hymn/auto" />
           </div>
-        </div>
+        </Reveal>
 
         <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {routerModels.map((m) => (
-            <div
-              key={m.id}
-              className="flex min-w-0 flex-col border-2 border-black bg-white p-5 shadow-brutal-sm"
+          {routerModels.map((m, i) => (
+            <Reveal key={m.id} delay={Math.min(i * 50, 150)}>
+              <div className="flex h-full min-w-0 flex-col border-2 border-black bg-white p-5 shadow-brutal-sm"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -164,7 +164,8 @@ export default function ModelCatalog({
               </p>
 
               <ModelString model={m.id} />
-            </div>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -222,11 +223,10 @@ export default function ModelCatalog({
               </p>
             ) : (
               <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredFree.map((m) => (
-                  <div
-                    key={m.id}
-                    className="flex min-w-0 flex-col border-2 border-black bg-white p-5 shadow-brutal-sm"
-                  >
+                {filteredFree.map((m, i) => (
+                  <Reveal key={m.id} delay={Math.min(i * 50, 150)}>
+                    <div className="flex h-full min-w-0 flex-col border-2 border-black bg-white p-5 shadow-brutal-sm"
+                    >
                     <h3 className="truncate font-mono text-[14px] font-bold text-black" title={m.id}>
                       {m.id}
                     </h3>
@@ -245,7 +245,8 @@ export default function ModelCatalog({
                     )}
                     <div className={m.description ? "" : "flex-1"} />
                     <ModelString model={m.id} />
-                  </div>
+                    </div>
+                  </Reveal>
                 ))}
               </div>
             )}
