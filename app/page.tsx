@@ -30,7 +30,7 @@ export default async function Home() {
       {/* 1. Announcement bar — kuning */}
       <div className="border-b-2 border-black bg-yellow">
         <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-center gap-x-3 gap-y-1 px-6 py-2.5 text-center lg:px-8">
-          <span className="text-[13px] font-bold text-black">{h.announcement}</span>
+          <span className="text-[13px] font-bold text-black">{fill(h.announcement, { total: providers.length })}</span>
           <Link
             href="#provider"
             className="font-mono text-[12px] font-bold text-black underline underline-offset-4 hover:text-blue"
@@ -244,7 +244,7 @@ export default async function Home() {
                   {h.mockLabel}
                 </span>
                 <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
-                  {h.mockActive}
+                  {fill(h.mockActive, { configured, total: providers.length })}
                 </span>
               </div>
               <div className="grid grid-cols-3 divide-x-2 divide-black border-b-2 border-black">

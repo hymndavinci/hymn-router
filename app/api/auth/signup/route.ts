@@ -2,12 +2,27 @@
  * POST /api/auth/signup — daftar dengan email + password.
  *
  * Body JSON: { email, password, name? }.
- * Sukses (201): session cookie + { ok: true, user: { id, email, name } }.
  * Email sudah ada -> 409 { error: "email_exists" }.
- * Rate limit: 10 percobaan per 15 menit per IP.
+ * Rate limit: 10 percobaan per 15 menit per IP, 5 pengiriman kode
+ * per jam per email.
+ *
+ * Dua jalur, tergantung konfigurasi email server:
+ *
+ * 1. RESEND_API_KEY terisi (jalur verifikasi): akun TIDAK langsung
+ *    dibuat. Data signup menunggu di pending_signups dan kode 6 digit
+ *    dikirim ke email. Respons 202 { verificationRequired: true,
+ *    email }. Akun dibuat oleh POST /api/auth/verify setelah kode
+ *    benar. Kalau pengiriman email gagal -> 502 email_send_failed
+ *    dan tidak ada akun yang dibuat.
+ *
+ * 2. RESEND_API_KEY belum diisi (fallback transisional, SENGAJA):
+ *    perilaku lama — akun langsung dibuat dan aktif, 201 + session
+ *    cookie. Fallback ini ada supaya pendaftaran tetap berfungsi
+ *    sebelum layanan email dikonfigurasi; setelah Resend aktif,
+ *    semua pendaftaran baru wajib verifikasi kode.
  *
  * Password tidak pernah di-log atau dikembalikan di respons. Email
- * disimpan lowercase. Akun langsung aktif — belum ada verifikasi email.
+ * disimpan lowercase. Kode verifikasi tidak pernah di-log.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -19,6 +34,14 @@ import {
   MIN_PASSWORD_LENGTH,
 } from "@/lib/password";
 import { rateLimitedWindow } from "@/lib/rate-limit";
+import { isEmailConfigured, sendVerificationCode } from "@/lib/mail";
+import {
+  CODE_TTL_MS,
+  generateCode,
+  hashCode,
+  MAX_SENDS_PER_HOUR,
+} from "@/lib/verification";
+import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE } from "@/lib/i18n";
 
 export const runtime = "nodejs";
 
@@ -27,6 +50,7 @@ const MAX_EMAIL_LENGTH = 254;
 const MAX_NAME_LENGTH = 100;
 const SIGNUP_LIMIT = 10;
 const SIGNUP_WINDOW_MS = 15 * 60 * 1000;
+const EMAIL_SEND_WINDOW_MS = 60 * 60 * 1000;
 
 function clientIp(req: NextRequest): string {
   return (
@@ -98,6 +122,20 @@ export async function POST(req: NextRequest) {
   const displayName =
     typeof name === "string" ? name.trim().slice(0, MAX_NAME_LENGTH) || null : null;
 
+  // Batas pengiriman kode per email (anti spam inbox) — dihitung dari
+  // semua percobaan signup untuk email ini, sebelum menyentuh DB.
+  if (
+    rateLimitedWindow(`signup-email:${normalizedEmail}`, MAX_SENDS_PER_HOUR, EMAIL_SEND_WINDOW_MS)
+  ) {
+    return NextResponse.json(
+      {
+        error: "rate_limited",
+        message: "Terlalu banyak permintaan kode untuk email ini — silakan coba lagi dalam satu jam.",
+      },
+      { status: 429 },
+    );
+  }
+
   if (!isDbConfigured()) {
     return NextResponse.json(
       {
@@ -129,6 +167,52 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // --- Jalur verifikasi (email terkonfigurasi) ---
+    if (isEmailConfigured()) {
+      const code = generateCode();
+      const expiresAt = new Date(Date.now() + CODE_TTL_MS).toISOString();
+      // pending_signups.name NOT NULL — nama kosong disimpan "" dan
+      // dikembalikan ke null saat akun dibuat di /api/auth/verify.
+      await db`
+        INSERT INTO pending_signups (email, name, password_hash, code_hash, attempts, expires_at, last_sent_at, created_at)
+        VALUES (${normalizedEmail}, ${displayName ?? ""}, ${hashPassword(password)}, ${hashCode(code)}, 0, ${expiresAt}, now(), now())
+        ON CONFLICT (email) DO UPDATE SET
+          name = EXCLUDED.name,
+          password_hash = EXCLUDED.password_hash,
+          code_hash = EXCLUDED.code_hash,
+          attempts = 0,
+          expires_at = EXCLUDED.expires_at,
+          last_sent_at = now(),
+          created_at = now()
+      `;
+      const cookieLocale = req.cookies.get(LOCALE_COOKIE)?.value;
+      const locale = isLocale(cookieLocale) ? cookieLocale : DEFAULT_LOCALE;
+      try {
+        await sendVerificationCode(normalizedEmail, code, locale);
+      } catch (err) {
+        // Email gagal terkirim — jangan sisakan pending yang tidak bisa
+        // diverifikasi, dan jangan buat akun.
+        console.error("[auth/signup] pengiriman kode verifikasi gagal:", err);
+        await db`DELETE FROM pending_signups WHERE email = ${normalizedEmail}`.catch(
+          () => undefined,
+        );
+        return NextResponse.json(
+          {
+            error: "email_send_failed",
+            message: "Kode verifikasi gagal dikirim — silakan coba lagi sebentar.",
+          },
+          { status: 502 },
+        );
+      }
+      return NextResponse.json(
+        { verificationRequired: true, email: normalizedEmail },
+        { status: 202 },
+      );
+    }
+
+    // --- Fallback transisional: email belum dikonfigurasi ---
+    // Akun langsung dibuat dan aktif (perilaku sebelum verifikasi ada).
+    // Sengaja dipertahankan sampai RESEND_API_KEY diisi di server.
     const rows = (await db`
       INSERT INTO users (email, name, password_hash)
       VALUES (${normalizedEmail}, ${displayName}, ${hashPassword(password)})
@@ -167,6 +251,17 @@ export async function POST(req: NextRequest) {
         {
           error: "server_not_configured",
           message: "Migrasi database belum dijalankan di server (002_auth).",
+        },
+        { status: 503 },
+      );
+    }
+    // Tabel pending_signups belum ada — migrasi 004 belum dijalankan.
+    if (isPgCode(err, "42P01")) {
+      console.error("[auth/signup] tabel pending_signups belum ada — migrasi 004 belum dijalankan");
+      return NextResponse.json(
+        {
+          error: "server_not_configured",
+          message: "Migrasi database belum dijalankan di server (004_email_verification).",
         },
         { status: 503 },
       );

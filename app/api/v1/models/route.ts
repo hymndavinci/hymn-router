@@ -42,7 +42,7 @@ export async function GET() {
       providers: providers.map((p) => p.id),
       configured: anyConfigured,
       needs_key: false,
-      free_tier: "Fallback chain 9 provider. Free plan: 100 request/hari per user.",
+      free_tier: `Fallback chain ${providers.length} provider. Free plan: 100 request/hari per user.`,
       type: "chat",
     },
   ];

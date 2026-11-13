@@ -155,12 +155,12 @@ const V1_RESPONSE = `{
   "usage": { "prompt_tokens": 12, "completion_tokens": 8, "total_tokens": 20 }
 }`;
 
-const V1_MODELS = `curl <domain>/api/v1/models
+const v1ModelsSample = (total: number) => `curl <domain>/api/v1/models
 
 # -> { "object": "list", "data": [
 #      { "id": "hymn/auto", "object": "model", "owned_by": "hymn-router",
 #        "provider": "hymn-router", "configured": true, "needs_key": false,
-#        "free_tier": "Fallback chain 9 provider..." },
+#        "free_tier": "Fallback chain ${total} provider..." },
 #      { "id": "openai/gpt-oss-120b", "object": "model", "owned_by": "groq",
 #        "provider": "groq", "configured": true, "needs_key": true,
 #        "free_tier": "Free: 30 RPM, 1000 req/hari..." },
@@ -247,7 +247,7 @@ const IMAGES_CURL = `curl <domain>/api/v1/images/generations \\
 # Satu gambar = 1 unit kuota harian. Gambar di atas ~3 MB hanya
 # mengembalikan url (tanpa b64_json).`;
 
-export default function ApiDocs() {
+export default function ApiDocs({ providerCount }: { providerCount: number }) {
   const { dict } = useLocale();
   const t = dict.docs;
   // href tiap langkah quickstart (urut dengan kamus quickstartSteps).
@@ -301,7 +301,7 @@ export default function ApiDocs() {
         <CodeBlock title={t.v1CodeTitles[0]} code={V1_CURL} />
         <CodeBlock title={t.v1CodeTitles[1]} code={V1_PYTHON} />
         <CodeBlock title={t.v1CodeTitles[2]} code={V1_RESPONSE} />
-        <CodeBlock title={t.v1CodeTitles[3]} code={V1_MODELS} />
+        <CodeBlock title={t.v1CodeTitles[3]} code={v1ModelsSample(providerCount)} />
       </Section>
 
       <Section eyebrow={t.streamEyebrow} title={t.streamTitle}>

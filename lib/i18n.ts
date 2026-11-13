@@ -42,19 +42,19 @@ const id = {
   meta: {
     homeTitle: "Hymn Router — Satu Endpoint untuk Semua Model AI Gratis",
     homeDescription:
-      "Gateway OpenAI-compatible untuk 9 endpoint LLM gratis (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, dan lainnya) dengan fallback otomatis. Masuk, buat API key, dan akses hymn-router.vercel.app/api/v1. Rp 0.",
+      "Gateway OpenAI-compatible untuk {total} endpoint LLM gratis (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, dan lainnya) dengan fallback otomatis. Masuk, buat API key, dan akses hymn-router.vercel.app/api/v1. Rp 0.",
     loginTitle: "Masuk — Hymn Router",
     loginDescription:
       "Masuk ke Hymn Router dengan email, Google, atau GitHub untuk membuat API key dan memakai gateway AI gratis.",
     chatTitle: "Chat — Hymn Router",
     chatDescription:
-      "Playground chat Hymn Router: coba 9 provider LLM gratis tanpa login, tanpa API key.",
+      "Playground chat Hymn Router: coba {total} provider LLM gratis tanpa login, tanpa API key.",
     docsTitle: "API Docs — Hymn Router",
     docsDescription:
       "Dokumentasi Hymn Router: gateway OpenAI-compatible /api/v1 dan endpoint /api/ai/chat.",
     modelsTitle: "Model — Hymn Router",
     modelsDescription:
-      "Katalog model Hymn Router: model gratis 9 provider + model :free OpenRouter, dengan context window dan limit free tier.",
+      "Katalog model Hymn Router: model gratis {total} provider + model :free OpenRouter, dengan context window dan limit free tier.",
     imagesTitle: "Gambar — Hymn Router",
     imagesDescription:
       "Playground image generation gratis Hymn Router: buat gambar dengan Flux atau Turbo dari Pollinations, tanpa login.",
@@ -90,10 +90,10 @@ const id = {
     privacy: "Privasi",
     privacyText:
       "Prompt dan isi response tidak disimpan. Yang dicatat hanya jumlah request, token, dan provider — untuk dasbor pemakaian Anda. Free tier berubah-ubah; jangan kirim data sensitif melalui endpoint gratis.",
-    bottom: "9 provider gratis · 1 endpoint · Rp 0",
+    bottom: "{total} provider gratis · 1 endpoint · Rp 0",
   },
   home: {
-    announcement: "100% gratis — 9 provider, tanpa kartu kredit",
+    announcement: "100% gratis — {total} provider, tanpa kartu kredit",
     announcementLink: "Lihat provider →",
     heroBadge: "AI Router · Gratis · OpenAI-Compatible",
     heroTitle: "Satu endpoint untuk semua model AI gratis.",
@@ -146,7 +146,7 @@ const id = {
       {
         n: "1",
         title: "Daftar / Masuk",
-        body: "Buat akun dengan Google, GitHub, atau email — gratis, tanpa verifikasi email.",
+        body: "Buat akun dengan Google, GitHub, atau email — gratis. Pendaftaran email memakai kode verifikasi.",
         cta: "Masuk / Daftar",
       },
       {
@@ -181,7 +181,7 @@ const id = {
       },
     ],
     mockLabel: "dasbor / pemakaian",
-    mockActive: "● 4/9 provider aktif",
+    mockActive: "● {configured}/{total} provider aktif",
     mockStats: [
       { v: "1.284", l: "request · 7 hari" },
       { v: "96,4K", l: "token" },
@@ -217,7 +217,7 @@ const id = {
     faqItems: [
       {
         q: "Apa itu Hymn Router?",
-        a: "Gateway AI OpenAI-compatible yang merutekan request Anda ke 9 endpoint LLM gratis (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) melalui satu endpoint. Jika satu provider gagal atau mencapai limit, router otomatis beralih ke provider berikutnya.",
+        a: "Gateway AI OpenAI-compatible yang merutekan request Anda ke endpoint LLM gratis (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) melalui satu endpoint. Jika satu provider gagal atau mencapai limit, router otomatis beralih ke provider berikutnya.",
       },
       {
         q: "Apakah benar-benar gratis?",
@@ -317,6 +317,41 @@ const id = {
     submitLogin: "Masuk",
     submitSignup: "Buat akun",
     signupNote: "Belum ada verifikasi email — akun langsung aktif setelah daftar.",
+    signupNoteVerify:
+      "Setelah daftar, kode verifikasi 6 digit dikirim ke email Anda — kode berlaku 10 menit.",
+    verifyTitle: "Verifikasi email Anda",
+    verifySubtitle: "Kode 6 digit telah dikirim ke {email}. Masukkan kode tersebut di bawah ini.",
+    codeLabel: "Kode verifikasi",
+    codePlaceholder: "123456",
+    verifySubmit: "Verifikasi & buat akun",
+    verifying: "Memverifikasi…",
+    resendBtn: "Kirim ulang kode",
+    resendCooldown: "Kirim ulang dalam {seconds} detik",
+    wrongEmail: "Salah email? Daftar ulang",
+    codeInvalid: "Kode harus 6 digit.",
+    codeSent: "Kode baru telah dikirim ke email Anda.",
+    errInvalidCode: "Kode salah — tersisa {remaining} percobaan.",
+    errExpired: "Kode sudah kedaluwarsa — silakan daftar ulang.",
+    errTooMany: "Terlalu banyak percobaan — silakan daftar ulang.",
+    errNotFound: "Verifikasi tidak ditemukan — silakan daftar ulang.",
+    errResendSoon: "Tunggu {seconds} detik sebelum meminta kode baru.",
+    errSendFailed: "Gagal mengirim kode — silakan coba lagi.",
+    forgotLink: "Lupa password?",
+    forgotTitle: "Reset password",
+    forgotSubtitle: "Masukkan email akun Anda — kami akan mengirim kode reset 6 digit.",
+    forgotSend: "Kirim kode",
+    forgotSent: "Jika email tersebut terdaftar, kode reset telah dikirim. Periksa kotak masuk Anda (termasuk folder spam).",
+    forgotCodeLabel: "Kode reset",
+    forgotNewPassword: "Password baru",
+    forgotConfirmPassword: "Konfirmasi password baru",
+    forgotResetSubmit: "Reset password",
+    forgotSuccess: "Password berhasil diubah — silakan masuk dengan password baru Anda.",
+    forgotBack: "Kembali ke masuk",
+    forgotPasswordMismatch: "Konfirmasi password tidak cocok.",
+    forgotResend: "Tidak menerima kode? Kirim ulang",
+    errResetNotFound: "Reset tidak ditemukan — silakan minta kode baru.",
+    errResetExpired: "Kode sudah kedaluwarsa — silakan minta kode baru.",
+    errResetTooMany: "Terlalu banyak percobaan — silakan minta kode baru.",
   },
   authError: {
     badge: "Login Google",
@@ -527,7 +562,12 @@ const id = {
       ],
       [
         {
-          t: "Belum ada verifikasi email: akun yang didaftarkan melalui email langsung aktif.",
+          t: "Pendaftaran email memakai kode verifikasi 6 digit yang dikirim ke email Anda — kode berlaku 10 menit dan dapat dikirim ulang.",
+        },
+      ],
+      [
+        {
+          t: "Lupa password: minta kode reset 6 digit dari halaman login — kode berlaku 10 menit, lalu atur password baru.",
         },
       ],
       [
@@ -739,7 +779,7 @@ const id = {
         { t: "Endpoint sederhana " },
         { c: "POST /api/ai/chat" },
         {
-          t: " memanggil 9 provider gratis (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) secara berurutan sampai ada yang berhasil.",
+          t: " memanggil provider gratis (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) secara berurutan sampai ada yang berhasil.",
         },
       ],
       [
@@ -818,7 +858,7 @@ const id = {
     routerIntroC:
       ") untuk memprioritaskan satu provider, atau id model persis seperti di bawah.",
     autoDesc:
-      "Router otomatis — mencoba 9 provider berurutan sampai ada yang berhasil. Pilihan default jika Anda belum yakin model apa yang akan digunakan.",
+      "Router otomatis — mencoba {total} provider berurutan sampai ada yang berhasil. Pilihan default jika Anda belum yakin model apa yang akan digunakan.",
     recommended: "rekomendasi",
     statusActive: "aktif",
     statusNeedsKey: "butuh key",
@@ -941,19 +981,19 @@ const en: Dict = {
   meta: {
     homeTitle: "Hymn Router — One Endpoint for Every Free AI Model",
     homeDescription:
-      "An OpenAI-compatible gateway for 9 free LLM endpoints (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, and more) with automatic fallback. Sign in, create an API key, and call hymn-router.vercel.app/api/v1. Free.",
+      "An OpenAI-compatible gateway for {total} free LLM endpoints (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, and more) with automatic fallback. Sign in, create an API key, and call hymn-router.vercel.app/api/v1. Free.",
     loginTitle: "Sign in — Hymn Router",
     loginDescription:
       "Sign in to Hymn Router with email, Google, or GitHub to create API keys and use the free AI gateway.",
     chatTitle: "Chat — Hymn Router",
     chatDescription:
-      "Hymn Router chat playground: try 9 free LLM providers with no sign-in and no API key.",
+      "Hymn Router chat playground: try {total} free LLM providers with no sign-in and no API key.",
     docsTitle: "API Docs — Hymn Router",
     docsDescription:
       "Hymn Router documentation: the OpenAI-compatible /api/v1 gateway and the /api/ai/chat endpoint.",
     modelsTitle: "Models — Hymn Router",
     modelsDescription:
-      "Hymn Router model catalog: free models from 9 providers plus OpenRouter :free models, with context windows and free-tier limits.",
+      "Hymn Router model catalog: free models from {total} providers plus OpenRouter :free models, with context windows and free-tier limits.",
     imagesTitle: "Images — Hymn Router",
     imagesDescription:
       "Hymn Router free image generation playground: create images with Flux or Turbo from Pollinations, no sign-in needed.",
@@ -989,10 +1029,10 @@ const en: Dict = {
     privacy: "Privacy",
     privacyText:
       "Prompts and response content are never stored. Only request counts, tokens, and providers are recorded — for your usage dashboard. Free tiers change over time; never send sensitive data through free endpoints.",
-    bottom: "9 free providers · 1 endpoint · $0",
+    bottom: "{total} free providers · 1 endpoint · $0",
   },
   home: {
-    announcement: "100% free — 9 providers, no credit card",
+    announcement: "100% free — {total} providers, no credit card",
     announcementLink: "See providers →",
     heroBadge: "AI Router · Free · OpenAI-Compatible",
     heroTitle: "One endpoint for every free AI model.",
@@ -1045,7 +1085,7 @@ const en: Dict = {
       {
         n: "1",
         title: "Sign up / Sign in",
-        body: "Create an account with Google, GitHub, or email — free, no email verification.",
+        body: "Create an account with Google, GitHub, or email — free. Email sign-up uses a verification code.",
         cta: "Sign in / Create account",
       },
       {
@@ -1080,7 +1120,7 @@ const en: Dict = {
       },
     ],
     mockLabel: "dashboard / usage",
-    mockActive: "● 4/9 providers active",
+    mockActive: "● {configured}/{total} providers active",
     mockStats: [
       { v: "1,284", l: "requests · 7 days" },
       { v: "96.4K", l: "tokens" },
@@ -1116,7 +1156,7 @@ const en: Dict = {
     faqItems: [
       {
         q: "What is Hymn Router?",
-        a: "An OpenAI-compatible AI gateway that routes your requests to 9 free LLM endpoints (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) through a single endpoint. If one provider fails or hits its limit, the router automatically moves on to the next provider.",
+        a: "An OpenAI-compatible AI gateway that routes your requests to free LLM endpoints (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) through a single endpoint. If one provider fails or hits its limit, the router automatically moves on to the next provider.",
       },
       {
         q: "Is it really free?",
@@ -1219,6 +1259,41 @@ const en: Dict = {
     submitSignup: "Create account",
     signupNote:
       "There is no email verification yet — your account is active right after signing up.",
+    signupNoteVerify:
+      "After signing up, a 6-digit verification code is sent to your email — the code is valid for 10 minutes.",
+    verifyTitle: "Verify your email",
+    verifySubtitle: "A 6-digit code has been sent to {email}. Enter it below.",
+    codeLabel: "Verification code",
+    codePlaceholder: "123456",
+    verifySubmit: "Verify & create account",
+    verifying: "Verifying…",
+    resendBtn: "Resend code",
+    resendCooldown: "Resend in {seconds}s",
+    wrongEmail: "Wrong email? Sign up again",
+    codeInvalid: "The code must be 6 digits.",
+    codeSent: "A new code has been sent to your email.",
+    errInvalidCode: "Wrong code — {remaining} attempts left.",
+    errExpired: "The code has expired — please sign up again.",
+    errTooMany: "Too many attempts — please sign up again.",
+    errNotFound: "Verification not found — please sign up again.",
+    errResendSoon: "Wait {seconds} seconds before requesting a new code.",
+    errSendFailed: "Failed to send the code — please try again.",
+    forgotLink: "Forgot your password?",
+    forgotTitle: "Reset password",
+    forgotSubtitle: "Enter your account email — we will send a 6-digit reset code.",
+    forgotSend: "Send code",
+    forgotSent: "If that email is registered, a reset code has been sent. Check your inbox (including spam).",
+    forgotCodeLabel: "Reset code",
+    forgotNewPassword: "New password",
+    forgotConfirmPassword: "Confirm new password",
+    forgotResetSubmit: "Reset password",
+    forgotSuccess: "Your password has been changed — please sign in with your new password.",
+    forgotBack: "Back to sign-in",
+    forgotPasswordMismatch: "The password confirmation does not match.",
+    forgotResend: "Didn't receive the code? Resend",
+    errResetNotFound: "Reset not found — please request a new code.",
+    errResetExpired: "The code has expired — please request a new code.",
+    errResetTooMany: "Too many attempts — please request a new code.",
   },
   authError: {
     badge: "Google Sign-in",
@@ -1428,7 +1503,12 @@ const en: Dict = {
       ],
       [
         {
-          t: "There is no email verification yet: accounts registered by email are active immediately.",
+          t: "Email sign-up uses a 6-digit verification code sent to your email — the code is valid for 10 minutes and can be resent.",
+        },
+      ],
+      [
+        {
+          t: "Forgot your password: request a 6-digit reset code from the sign-in page — the code is valid for 10 minutes, then set a new password.",
         },
       ],
       [
@@ -1640,7 +1720,7 @@ const en: Dict = {
         { t: "The simple endpoint " },
         { c: "POST /api/ai/chat" },
         {
-          t: " calls the 9 free providers (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) in order until one succeeds.",
+          t: " calls the free providers (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) in order until one succeeds.",
         },
       ],
       [
@@ -1721,7 +1801,7 @@ const en: Dict = {
     routerIntroC:
       ") to prioritize one provider, or the exact model id below.",
     autoDesc:
-      "Automatic router — tries all 9 providers in order until one succeeds. The default choice if you are not sure which model to use.",
+      "Automatic router — tries all {total} providers in order until one succeeds. The default choice if you are not sure which model to use.",
     recommended: "recommended",
     statusActive: "active",
     statusNeedsKey: "needs key",

@@ -3,6 +3,8 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import Footer from "@/components/footer";
 import { LocaleProvider } from "@/components/locale-provider";
 import { dict, getLocale } from "@/lib/i18n";
+import { fill } from "@/lib/i18n-utils";
+import { getProviders } from "@/lib/free-ai-router";
 import "./globals.css";
 
 const inter = Inter({
@@ -26,7 +28,9 @@ export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   return {
     title: dict[locale].meta.homeTitle,
-    description: dict[locale].meta.homeDescription,
+    description: fill(dict[locale].meta.homeDescription, {
+      total: getProviders().length,
+    }),
   };
 }
 

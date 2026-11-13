@@ -4,10 +4,14 @@ import ModelCatalog, { type RouterModelInfo } from "@/components/model-catalog";
 import { getProviders, getProviderStatus } from "@/lib/free-ai-router";
 import { findContextLength, getOpenRouterCatalog } from "@/lib/openrouter-catalog";
 import { dict, getLocale } from "@/lib/i18n";
+import { fill } from "@/lib/i18n-utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = dict[await getLocale()];
-  return { title: t.meta.modelsTitle, description: t.meta.modelsDescription };
+  return {
+    title: t.meta.modelsTitle,
+    description: fill(t.meta.modelsDescription, { total: getProviders().length }),
+  };
 }
 
 // Katalog OpenRouter di-cache 1 jam di lib; halaman ini dinamis supaya
@@ -71,6 +75,7 @@ export default async function ModelsPage() {
             freeModels={catalog.freeModels}
             catalogOk={catalog.ok}
             openRouterConfigured={openRouterConfigured}
+            providerCount={providers.length}
           />
         </div>
       </div>

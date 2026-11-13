@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/navbar";
 import ApiDocs from "@/components/api-docs";
 import { dict, getLocale } from "@/lib/i18n";
+import { getProviders } from "@/lib/free-ai-router";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = dict[await getLocale()];
@@ -28,7 +29,7 @@ export default async function DocsPage() {
           {t.docs.introC}
         </p>
         <div className="mt-8">
-          <ApiDocs />
+          <ApiDocs providerCount={getProviders().length} />
         </div>
       </div>
     </div>

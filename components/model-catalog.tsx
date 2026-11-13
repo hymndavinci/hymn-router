@@ -1,6 +1,6 @@
 /**
  * ModelCatalog — katalog model neo-brutalism.
- * Bagian 1: model router (9 provider + hymn/auto).
+ * Bagian 1: model router (semua provider + hymn/auto).
  * Bagian 2: model :free OpenRouter (data live, bisa dicari).
  * Context window hanya ditampilkan kalau ada datanya dari OpenRouter;
  * kalau tidak ada, tulis "tidak diketahui" — jangan mengarang angka.
@@ -69,11 +69,14 @@ export default function ModelCatalog({
   freeModels,
   catalogOk,
   openRouterConfigured,
+  providerCount,
 }: {
   routerModels: RouterModelInfo[];
   freeModels: FreeModelInfo[];
   catalogOk: boolean;
   openRouterConfigured: boolean;
+  /** Jumlah provider di katalog router (dari server — bukan jumlah model unik). */
+  providerCount: number;
 }) {
   const { locale, dict } = useLocale();
   const t = dict.models;
@@ -114,7 +117,7 @@ export default function ModelCatalog({
             <div className="min-w-0">
               <h3 className="font-mono text-[16px] font-black text-black">hymn/auto</h3>
               <p className="mt-1 text-[14px] leading-relaxed text-black">
-                {t.autoDesc}
+                {fill(t.autoDesc, { total: providerCount })}
               </p>
             </div>
             <span className="shrink-0 border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">

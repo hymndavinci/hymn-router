@@ -37,6 +37,7 @@ export default async function LoginPage({
   if (user) redirect(safeNext ?? "/dashboard");
 
   const githubConfigured = !!process.env.GITHUB_CLIENT_ID?.trim();
+  const emailVerificationEnabled = !!process.env.RESEND_API_KEY?.trim();
   const nextQuery = safeNext ? `?next=${encodeURIComponent(safeNext)}` : "";
   const errorMsg = error ? (t.login.errors[error] ?? null) : null;
 
@@ -95,6 +96,7 @@ export default async function LoginPage({
           <LoginForm
             initialMode={mode === "signup" ? "signup" : "login"}
             next={safeNext}
+            emailVerificationEnabled={emailVerificationEnabled}
           />
         </div>
 
