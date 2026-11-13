@@ -17,19 +17,21 @@ import type {
   RecentRequest,
   UsageSummary,
 } from "@/lib/usage";
+import type { Locale } from "@/lib/i18n";
+import { dateLocaleOf, fill, useLocale } from "@/components/locale-provider";
 
-function fmtDate(iso: string | null): string {
+function fmtDate(iso: string | null, locale: Locale): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("id-ID", {
+  return new Date(iso).toLocaleDateString(dateLocaleOf(locale), {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
 }
 
-function fmtDateTime(iso: string | null): string {
-  if (!iso) return "belum pernah";
-  return new Date(iso).toLocaleString("id-ID", {
+function fmtDateTime(iso: string | null, locale: Locale, neverUsed: string): string {
+  if (!iso) return neverUsed;
+  return new Date(iso).toLocaleString(dateLocaleOf(locale), {
     day: "numeric",
     month: "short",
     hour: "2-digit",
@@ -39,11 +41,11 @@ function fmtDateTime(iso: string | null): string {
 
 /** Label hari untuk grafik harian, mis. "Jum 13". Parse manual supaya
     tidak bergeser zona waktu (string YYYY-MM-DD diparse sebagai UTC). */
-function fmtDayLabel(date: string): string {
+function fmtDayLabel(date: string, locale: Locale): string {
   const [y, m, d] = date.split("-").map(Number);
   const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
   const weekday = dt
-    .toLocaleDateString("id-ID", { weekday: "short" })
+    .toLocaleDateString(dateLocaleOf(locale), { weekday: "short" })
     .replace(".", "");
   return `${weekday} ${d}`;
 }
@@ -58,6 +60,8 @@ function BreakdownRows({
   totalRequests: number;
   barClass: string;
 }) {
+  const { locale, dict } = useLocale();
+  const t = dict.dashboard;
   return (
     <div className="mt-4 space-y-3">
       {rows.map((r) => (
@@ -81,7 +85,8 @@ function BreakdownRows({
             />
           </div>
           <span className="font-mono text-[12px] text-muted sm:w-40 sm:shrink-0 sm:text-right">
-            {r.requests} req · {r.tokens.toLocaleString("id-ID")} token
+            {r.requests} req ·{" "}
+            {fill(t.tokensCount, { n: r.tokens.toLocaleString(dateLocaleOf(locale)) })}
           </span>
         </div>
       ))}
@@ -112,6 +117,9 @@ export default function DashboardClient({
   initialQuota: DailyQuota | null;
   baseUrl: string;
 }) {
+  const { locale, dict } = useLocale();
+  const t = dict.dashboard;
+  const numLocale = dateLocaleOf(locale);
   const router = useRouter();
   const [keys, setKeys] = useState<ApiKeyInfo[]>(initialKeys);
   const [name, setName] = useState("");
@@ -216,12 +224,12 @@ export default function DashboardClient({
         )}
         <div className="min-w-0">
           <h1 className="text-[28px] font-black leading-tight tracking-tight text-black">
-            Halo, {user.name ?? "di sana"}
+            {t.greeting} {user.name ?? t.nameFallback}
           </h1>
           <p className="break-all font-mono text-[13px] text-muted">{user.email}</p>
           {loginMethods && loginMethods.length > 0 && (
             <p className="mt-1 font-mono text-[12px] text-faint">
-              Masuk melalui {loginMethods.join(" · ")}
+              {t.signedInWith} {loginMethods.join(" · ")}
             </p>
           )}
         </div>
@@ -230,15 +238,15 @@ export default function DashboardClient({
       {/* Ringkasan usage */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
-          { v: String(usage.totalRequests), l: `request · ${usage.days} hari terakhir` },
-          { v: usage.totalTokens.toLocaleString("id-ID"), l: "token total" },
+          { v: String(usage.totalRequests), l: fill(t.requestsDays, { days: usage.days }) },
+          { v: usage.totalTokens.toLocaleString(numLocale), l: t.tokensTotal },
           {
-            v: usage.totalPromptTokens.toLocaleString("id-ID"),
-            l: "token prompt",
+            v: usage.totalPromptTokens.toLocaleString(numLocale),
+            l: t.tokensPrompt,
           },
           {
-            v: usage.totalCompletionTokens.toLocaleString("id-ID"),
-            l: "token completion",
+            v: usage.totalCompletionTokens.toLocaleString(numLocale),
+            l: t.tokensCompletion,
           },
         ].map((s) => (
           <div key={s.l} className="border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
@@ -255,10 +263,10 @@ export default function DashboardClient({
         <div className="mt-4 border-2 border-black bg-yellow-soft p-5 shadow-brutal-sm">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="text-[16px] font-black text-black">
-              Kuota harian · Free plan
+              {t.quotaTitle}
             </h2>
             <span className="font-mono text-[13px] font-bold text-black">
-              {initialQuota.used}/{initialQuota.limit} request hari ini
+              {fill(t.quotaUsed, { used: initialQuota.used, limit: initialQuota.limit })}
             </span>
           </div>
           <div className="mt-3 h-3.5 w-full border-2 border-black bg-white">
@@ -271,21 +279,21 @@ export default function DashboardClient({
           </div>
           <p className="mt-2 font-mono text-[12px] leading-relaxed text-muted">
             {initialQuota.remaining > 0
-              ? `Sisa ${initialQuota.remaining} request. `
-              : "Kuota hari ini habis — request /v1 akan ditolak 429 sampai reset. "}
-            Reset {fmtDateTime(initialQuota.resetsAt)} WIB · berlaku untuk request /v1
-            ber-autentikasi (termasuk /api/ai/chat menggunakan key).
+              ? `${fill(t.quotaRemaining, { n: initialQuota.remaining })} `
+              : `${t.quotaExhausted} `}
+            {fill(t.quotaReset, {
+              date: fmtDateTime(initialQuota.resetsAt, locale, t.neverUsed),
+            })}
           </p>
         </div>
       )}
 
       {/* Per provider */}
       <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
-        <h2 className="text-[16px] font-black text-black">Per provider</h2>
+        <h2 className="text-[16px] font-black text-black">{t.perProvider}</h2>
         {usage.byProvider.length === 0 ? (
           <p className="mt-2 text-[14px] text-muted">
-            Belum ada request tercatat dalam {usage.days} hari terakhir. Buat
-            API key di bawah dan kirim request pertama Anda.
+            {fill(t.noRequests, { days: usage.days })}
           </p>
         ) : (
           <div className="mt-4 space-y-3">
@@ -306,7 +314,8 @@ export default function DashboardClient({
                   />
                 </div>
                 <span className="font-mono text-[12px] text-muted sm:w-40 sm:shrink-0 sm:text-right">
-                  {p.requests} req · {p.tokens.toLocaleString("id-ID")} token
+                  {p.requests} req ·{" "}
+                  {fill(t.tokensCount, { n: p.tokens.toLocaleString(numLocale) })}
                 </span>
               </div>
             ))}
@@ -316,10 +325,10 @@ export default function DashboardClient({
 
       {/* Per model */}
       <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
-        <h2 className="text-[16px] font-black text-black">Per model</h2>
+        <h2 className="text-[16px] font-black text-black">{t.perModel}</h2>
         {initialModelUsage.length === 0 ? (
           <p className="mt-2 text-[14px] text-muted">
-            Belum ada request tercatat dalam {usage.days} hari terakhir.
+            {fill(t.noRequestsShort, { days: usage.days })}
           </p>
         ) : (
           <BreakdownRows
@@ -338,9 +347,9 @@ export default function DashboardClient({
 
       {/* Grafik harian (bar chart CSS murni) */}
       <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
-        <h2 className="text-[16px] font-black text-black">7 hari terakhir</h2>
+        <h2 className="text-[16px] font-black text-black">{t.last7days}</h2>
         {initialDailyUsage.length === 0 ? (
-          <p className="mt-2 text-[14px] text-muted">Belum ada data harian.</p>
+          <p className="mt-2 text-[14px] text-muted">{t.noDailyData}</p>
         ) : (
           <>
             <div className="mt-5 flex h-32 items-end gap-2 sm:gap-3">
@@ -351,7 +360,11 @@ export default function DashboardClient({
                   <div
                     key={d.date}
                     className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5"
-                    title={`${d.date}: ${d.requests} request · ${d.tokens.toLocaleString("id-ID")} token`}
+                    title={fill(t.chartTooltip, {
+                      date: d.date,
+                      requests: d.requests,
+                      tokens: d.tokens.toLocaleString(numLocale),
+                    })}
                   >
                     <span className="font-mono text-[11px] font-bold text-black">
                       {d.requests > 0 ? d.requests : ""}
@@ -370,13 +383,12 @@ export default function DashboardClient({
                   key={d.date}
                   className="min-w-0 flex-1 text-center font-mono text-[10px] font-bold text-faint sm:text-[11px]"
                 >
-                  {fmtDayLabel(d.date)}
+                  {fmtDayLabel(d.date, locale)}
                 </span>
               ))}
             </div>
             <p className="mt-3 font-mono text-[11px] text-faint">
-              Angka di atas bar = jumlah request (WIB). Arahkan kursor ke bar untuk
-              melihat token.
+              {t.chartNote}
             </p>
           </>
         )}
@@ -384,16 +396,16 @@ export default function DashboardClient({
 
       {/* Per API key */}
       <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
-        <h2 className="text-[16px] font-black text-black">Per API key</h2>
+        <h2 className="text-[16px] font-black text-black">{t.perKey}</h2>
         {initialKeyUsage.length === 0 ? (
           <p className="mt-2 text-[14px] text-muted">
-            Belum ada request tercatat dalam {usage.days} hari terakhir.
+            {fill(t.noRequestsShort, { days: usage.days })}
           </p>
         ) : (
           <BreakdownRows
             rows={initialKeyUsage.map((k) => ({
               key: k.apiKeyId,
-              label: k.keyName ?? "key tanpa nama",
+              label: k.keyName ?? t.unnamedKey,
               sub: k.keyPrefix ? `${k.keyPrefix}…` : undefined,
               requests: k.requests,
               tokens: k.tokens,
@@ -406,9 +418,9 @@ export default function DashboardClient({
 
       {/* Request terakhir — kartu di mobile, tabel di sm+ */}
       <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
-        <h2 className="text-[16px] font-black text-black">Request terakhir</h2>
+        <h2 className="text-[16px] font-black text-black">{t.recentTitle}</h2>
         {initialRecent.length === 0 ? (
-          <p className="mt-2 text-[14px] text-muted">Belum ada request tercatat.</p>
+          <p className="mt-2 text-[14px] text-muted">{t.noRecent}</p>
         ) : (
           <>
             <div className="mt-4 flex flex-col gap-3 sm:hidden">
@@ -418,11 +430,11 @@ export default function DashboardClient({
                     {r.model}
                   </p>
                   <p className="mt-1 font-mono text-[11px] leading-relaxed text-faint">
-                    {fmtDateTime(r.createdAt)} · {r.provider}
+                    {fmtDateTime(r.createdAt, locale, t.neverUsed)} · {r.provider}
                   </p>
                   <p className="mt-1 font-mono text-[11px] text-muted">
-                    {r.tokens.toLocaleString("id-ID")} token ·{" "}
-                    {r.latencyMs !== null ? `${r.latencyMs.toLocaleString("id-ID")} ms` : "—"}
+                    {fill(t.tokensCount, { n: r.tokens.toLocaleString(numLocale) })} ·{" "}
+                    {r.latencyMs !== null ? `${r.latencyMs.toLocaleString(numLocale)} ms` : "—"}
                     {r.keyName ? ` · key: ${r.keyName}` : ""}
                   </p>
                 </div>
@@ -432,29 +444,29 @@ export default function DashboardClient({
               <table className="w-full min-w-[640px] text-left text-[14px]">
                 <thead>
                   <tr className="border-b-2 border-black font-mono text-[11px] uppercase tracking-[0.12em] text-black">
-                    <th className="py-2.5 pr-4 font-bold">Waktu</th>
-                    <th className="py-2.5 pr-4 font-bold">Model</th>
-                    <th className="py-2.5 pr-4 font-bold">Provider</th>
-                    <th className="py-2.5 pr-4 font-bold">Token</th>
-                    <th className="py-2.5 pr-4 font-bold">Latensi</th>
-                    <th className="py-2.5 font-bold">Key</th>
+                    <th className="py-2.5 pr-4 font-bold">{t.thTime}</th>
+                    <th className="py-2.5 pr-4 font-bold">{t.thModel}</th>
+                    <th className="py-2.5 pr-4 font-bold">{t.thProvider}</th>
+                    <th className="py-2.5 pr-4 font-bold">{t.thTokens}</th>
+                    <th className="py-2.5 pr-4 font-bold">{t.thLatency}</th>
+                    <th className="py-2.5 font-bold">{t.thKey}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {initialRecent.map((r) => (
                     <tr key={r.id} className="border-b border-neutral-300 last:border-0">
                       <td className="py-3 pr-4 font-mono text-[12px] text-muted">
-                        {fmtDateTime(r.createdAt)}
+                        {fmtDateTime(r.createdAt, locale, t.neverUsed)}
                       </td>
                       <td className="max-w-[220px] truncate py-3 pr-4 font-mono text-[13px] font-bold text-black" title={r.model}>
                         {r.model}
                       </td>
                       <td className="py-3 pr-4 font-mono text-[12px] text-muted">{r.provider}</td>
                       <td className="py-3 pr-4 font-mono text-[12px] text-muted">
-                        {r.tokens.toLocaleString("id-ID")}
+                        {r.tokens.toLocaleString(numLocale)}
                       </td>
                       <td className="py-3 pr-4 font-mono text-[12px] text-muted">
-                        {r.latencyMs !== null ? `${r.latencyMs.toLocaleString("id-ID")} ms` : "—"}
+                        {r.latencyMs !== null ? `${r.latencyMs.toLocaleString(numLocale)} ms` : "—"}
                       </td>
                       <td className="py-3 font-mono text-[12px] text-muted">
                         {r.keyName ?? (r.keyPrefix ? `${r.keyPrefix}…` : "—")}
@@ -472,10 +484,13 @@ export default function DashboardClient({
       <div className="mt-8 border-2 border-black bg-white p-5 shadow-brutal-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-[16px] font-black text-black">
-            API key <span className="font-mono text-[13px] font-bold text-faint">· {activeKeys} aktif</span>
+            {t.keysTitle}{" "}
+            <span className="font-mono text-[13px] font-bold text-faint">
+              · {fill(t.keysActive, { n: activeKeys })}
+            </span>
           </h2>
           <p className="font-mono text-[12px] font-bold text-faint">
-            limit 60 req/menit per key
+            {t.keysLimit}
           </p>
         </div>
 
@@ -487,7 +502,7 @@ export default function DashboardClient({
             onKeyDown={(e) => {
               if (e.key === "Enter") void createKey();
             }}
-            placeholder="Nama key, mis. bot-discord"
+            placeholder={t.keyNamePlaceholder}
             maxLength={64}
             className="h-11 flex-1 border-2 border-black bg-white px-4 text-[16px] text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] sm:text-[14px]"
           />
@@ -496,7 +511,7 @@ export default function DashboardClient({
             disabled={!name.trim() || creating}
             className="btn-press h-11 border-2 border-black bg-yellow px-6 text-[14px] font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {creating ? "Membuat…" : "Buat key baru"}
+            {creating ? t.creating : t.createKey}
           </button>
         </div>
 
@@ -510,7 +525,7 @@ export default function DashboardClient({
         {newKey && (
           <div className="mt-4 border-2 border-black bg-yellow p-4 shadow-brutal-sm">
             <p className="text-[14px] font-bold text-black">
-              Salin key ini sekarang — tidak bisa dilihat lagi sesudahnya.
+              {t.copyNewKey}
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
               <code className="flex-1 break-all border-2 border-black bg-white px-3 py-2.5 font-mono text-[13px] font-bold text-black">
@@ -520,7 +535,7 @@ export default function DashboardClient({
                 onClick={() => void copy(newKey.key)}
                 className="btn-press h-10 shrink-0 border-2 border-black bg-black px-5 text-[13px] font-bold text-white shadow-brutal-sm"
               >
-                {copied ? "disalin ✓" : "Salin key"}
+                {copied ? t.copiedBtn : t.copyKeyBtn}
               </button>
             </div>
           </div>
@@ -530,7 +545,7 @@ export default function DashboardClient({
             muat di layar HP dan memaksa scroll horizontal untuk revoke). */}
         {keys.length === 0 ? (
           <p className="mt-5 py-4 text-[14px] text-muted">
-            Belum ada API key. Buat satu di atas untuk mulai memakai gateway.
+            {t.noKeys}
           </p>
         ) : (
           <>
@@ -543,18 +558,18 @@ export default function DashboardClient({
                     </span>
                     {k.revokedAt ? (
                       <span className="shrink-0 border-2 border-black bg-white px-2.5 py-1 font-mono text-[11px] font-bold text-faint">
-                        revoked
+                        {t.revoked}
                       </span>
                     ) : (
                       <span className="shrink-0 border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
-                        aktif
+                        {t.active}
                       </span>
                     )}
                   </div>
                   <p className="mt-1.5 break-words text-[14px] font-medium text-muted">{k.name}</p>
                   <p className="mt-1 font-mono text-[11px] leading-relaxed text-faint">
-                    Dibuat {fmtDate(k.createdAt)} · Terakhir dipakai{" "}
-                    {fmtDateTime(k.lastUsedAt)}
+                    {t.createdLabel} {fmtDate(k.createdAt, locale)} · {t.lastUsedLabel}{" "}
+                    {fmtDateTime(k.lastUsedAt, locale, t.neverUsed)}
                   </p>
                   {!k.revokedAt && (
                     <button
@@ -562,7 +577,7 @@ export default function DashboardClient({
                       disabled={revoking === k.id}
                       className="mt-3 h-9 border-2 border-bad bg-white px-4 font-mono text-[12px] font-bold text-bad hover:bg-bad hover:text-white disabled:opacity-50"
                     >
-                      {revoking === k.id ? "…" : "Revoke"}
+                      {revoking === k.id ? "…" : t.revokeBtn}
                     </button>
                   )}
                 </div>
@@ -572,11 +587,11 @@ export default function DashboardClient({
               <table className="w-full min-w-[640px] text-left text-[14px]">
                 <thead>
                   <tr className="border-b-2 border-black font-mono text-[11px] uppercase tracking-[0.12em] text-black">
-                    <th className="py-2.5 pr-4 font-bold">Key</th>
-                    <th className="py-2.5 pr-4 font-bold">Nama</th>
-                    <th className="py-2.5 pr-4 font-bold">Dibuat</th>
-                    <th className="py-2.5 pr-4 font-bold">Terakhir dipakai</th>
-                    <th className="py-2.5 pr-4 font-bold">Status</th>
+                    <th className="py-2.5 pr-4 font-bold">{t.thKey}</th>
+                    <th className="py-2.5 pr-4 font-bold">{t.thName}</th>
+                    <th className="py-2.5 pr-4 font-bold">{t.thCreated}</th>
+                    <th className="py-2.5 pr-4 font-bold">{t.thLastUsed}</th>
+                    <th className="py-2.5 pr-4 font-bold">{t.thStatus}</th>
                     <th className="py-2.5 font-bold" />
                   </tr>
                 </thead>
@@ -588,19 +603,19 @@ export default function DashboardClient({
                       </td>
                       <td className="py-3 pr-4 font-medium text-muted">{k.name}</td>
                       <td className="py-3 pr-4 font-mono text-[12px] text-muted">
-                        {fmtDate(k.createdAt)}
+                        {fmtDate(k.createdAt, locale)}
                       </td>
                       <td className="py-3 pr-4 font-mono text-[12px] text-muted">
-                        {fmtDateTime(k.lastUsedAt)}
+                        {fmtDateTime(k.lastUsedAt, locale, t.neverUsed)}
                       </td>
                       <td className="py-3 pr-4">
                         {k.revokedAt ? (
                           <span className="border-2 border-black bg-white px-2.5 py-1 font-mono text-[11px] font-bold text-faint">
-                            revoked
+                            {t.revoked}
                           </span>
                         ) : (
                           <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
-                            aktif
+                            {t.active}
                           </span>
                         )}
                       </td>
@@ -611,7 +626,7 @@ export default function DashboardClient({
                             disabled={revoking === k.id}
                             className="border-2 border-bad bg-white px-3.5 py-1.5 font-mono text-[12px] font-bold text-bad hover:bg-bad hover:text-white disabled:opacity-50"
                           >
-                            {revoking === k.id ? "…" : "Revoke"}
+                            {revoking === k.id ? "…" : t.revokeBtn}
                           </button>
                         )}
                       </td>
@@ -628,7 +643,7 @@ export default function DashboardClient({
       <div className="shadow-yellow mt-4 overflow-hidden border-2 border-black bg-dark text-ondark shadow-brutal">
         <div className="border-b-2 border-white/25 px-5 py-3.5">
           <span className="font-mono text-[12px] font-bold text-ondark-muted">
-            quickstart — cURL
+            {t.quickstartTitle}
           </span>
         </div>
         <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-relaxed text-ondark">
@@ -640,13 +655,11 @@ export default function DashboardClient({
         </pre>
       </div>
       <p className="mt-3 break-words font-mono text-[12px] leading-relaxed text-faint">
-        Ganti hr_KEY_ANDA dengan API key dari tabel di atas. Model juga bisa
-        berupa id provider (mis. &quot;groq&quot;), id model dari GET{" "}
-        {baseUrl}/api/v1/models, atau model OpenRouter berakhiran &quot;:free&quot;.
-        Streaming didukung: tambahkan{" "}
-        <code className="bg-yellow-soft px-1 font-bold text-black">&quot;stream&quot;: true</code>{" "}
-        dan baca SSE-nya. Kuota Free plan: 100 request/hari, reset 00:00 WIB.
-        Detail lengkap di /docs.
+        {t.quickstartA}
+        {baseUrl}
+        {t.quickstartB}
+        <code className="bg-yellow-soft px-1 font-bold text-black">&quot;stream&quot;: true</code>
+        {t.quickstartC}
       </p>
     </div>
   );

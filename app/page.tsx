@@ -7,71 +7,19 @@
 import Link from "next/link";
 import { getProviderStatus } from "@/lib/free-ai-router";
 import { getBaseUrl } from "@/lib/site-url";
+import { dict, getLocale } from "@/lib/i18n";
+import { fill } from "@/lib/i18n-utils";
 import Navbar from "@/components/navbar";
 import GlobeArt from "@/components/globe-art";
 import CodeWindow from "@/components/code-window";
-import Faq, { type FaqItem } from "@/components/faq";
+import Faq from "@/components/faq";
 import ProviderSection from "@/components/provider-section";
 
 export const dynamic = "force-dynamic";
 
-const STATS = [
-  { value: "9", label: "provider, satu endpoint" },
-  { value: "4", label: "tanpa API key" },
-  { value: "Rp 0", label: "tanpa kartu kredit" },
-  { value: "1", label: "endpoint OpenAI-compatible" },
-];
-
-const STEPS = [
-  {
-    n: "01",
-    title: "Masuk / Daftar",
-    body: "Masuk dengan Google, GitHub, atau email. Akun digunakan untuk dasbor dan API key Anda.",
-  },
-  {
-    n: "02",
-    title: "Buat API key di dasbor",
-    body: "Key diawali hr_, bisa dibuat banyak, dan bisa di-revoke kapan saja.",
-  },
-  {
-    n: "03",
-    title: "Arahkan client ke gateway",
-    body: "Atur base URL ke /api/v1 dan gunakan model hymn/auto — atau pilih provider tertentu.",
-  },
-];
-
-const FAQ_ITEMS: FaqItem[] = [
-  {
-    q: "Apa itu Hymn Router?",
-    a: "Gateway AI OpenAI-compatible yang merutekan request Anda ke 9 endpoint LLM gratis (Groq, NVIDIA, Gemini, OpenRouter, Mistral, Kilo, LLM7, Pollinations, OVH) melalui satu endpoint. Jika satu provider gagal atau mencapai limit, router otomatis beralih ke provider berikutnya.",
-  },
-  {
-    q: "Apakah benar-benar gratis?",
-    a: "Ya. Semua provider yang dipakai adalah tier gratis mereka — tanpa kartu kredit, tanpa saldo, tanpa langganan. Limitnya mengikuti limit gratis tiap provider (mis. Groq 1.000 req/hari, OpenRouter 50 req/hari).",
-  },
-  {
-    q: "Perlu API key provider?",
-    a: "Tidak, untuk mulai. Empat provider (Kilo, LLM7, Pollinations, OVH) bisa dipakai tanpa key sama sekali. Yang Anda butuhkan hanyalah API key Hymn Router (diawali hr_) yang dibuat di dasbor setelah masuk — key tersebut untuk gateway ini, bukan key provider.",
-  },
-  {
-    q: "Bagaimana cara menggunakannya di kode?",
-    a: "Arahkan base URL client OpenAI Anda ke /api/v1, isi API key dari dasbor, dan gunakan model \"hymn/auto\". SDK OpenAI, cURL, dan fetch biasa semuanya dapat digunakan — contoh lengkap tersedia di dokumentasi.",
-  },
-  {
-    q: "Apakah prompt saya disimpan?",
-    a: "Tidak. Prompt dan isi response tidak pernah disimpan di server ini. Yang dicatat hanya jumlah request, token, provider, dan latensi — untuk dasbor pemakaian Anda. Catatan jujur: request tetap diteruskan ke provider gratis pihak ketiga, dan beberapa provider bisa me-log prompt sesuai kebijakannya sendiri. Jangan kirim data sensitif.",
-  },
-  {
-    q: "Mengapa terkadang lambat / gagal?",
-    a: "Provider gratis memiliki limit dan terkadang sibuk. Router otomatis mencoba provider berikutnya jika satu gagal; provider yang terkena 429/5xx masuk cooldown 60 detik. OVH dikenal lambat (sekitar 15 detik). Jika semua provider gagal, responsnya 502 beserta alasan tiap provider agar mudah di-debug.",
-  },
-  {
-    q: "Berapa limitnya?",
-    a: "Anonim (playground dan /api/ai/chat tanpa key): 20 request/menit per IP. Menggunakan API key: 60 request/menit per key. Di atas itu, limit gratis tiap provider tetap berlaku.",
-  },
-];
-
 export default async function Home() {
+  const t = dict[await getLocale()];
+  const h = t.home;
   const providers = getProviderStatus();
   const baseUrl = await getBaseUrl();
   const configured = providers.filter((p) => p.configured).length;
@@ -81,14 +29,12 @@ export default async function Home() {
       {/* 1. Announcement bar — kuning */}
       <div className="border-b-2 border-black bg-yellow">
         <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-center gap-x-3 gap-y-1 px-6 py-2.5 text-center lg:px-8">
-          <span className="text-[13px] font-bold text-black">
-            100% gratis — 9 provider, tanpa kartu kredit
-          </span>
+          <span className="text-[13px] font-bold text-black">{h.announcement}</span>
           <Link
             href="#provider"
             className="font-mono text-[12px] font-bold text-black underline underline-offset-4 hover:text-blue"
           >
-            Lihat provider →
+            {h.announcementLink}
           </Link>
         </div>
       </div>
@@ -100,41 +46,36 @@ export default async function Home() {
         <div className="mx-auto grid w-full max-w-[1280px] items-center gap-12 px-6 py-16 sm:py-20 lg:grid-cols-2 lg:px-8 lg:py-24">
           <div className="min-w-0">
             <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
-              <span className="bg-yellow px-2 py-1">
-                AI Router · Gratis · OpenAI-Compatible
-              </span>
+              <span className="bg-yellow px-2 py-1">{h.heroBadge}</span>
             </p>
             <h1 className="mt-5 text-[44px] font-black leading-[1.05] tracking-[-0.02em] text-black sm:text-[56px] lg:text-[64px]">
-              Satu endpoint untuk semua model AI gratis.
+              {h.heroTitle}
             </h1>
             <p className="mt-6 max-w-[520px] text-[16px] leading-[1.6] text-muted">
-              Sembilan provider LLM gratis di balik satu API. Masuk, buat
-              API key, dan panggil dari kode Anda — tanpa kartu kredit, tanpa
-              saldo.
+              {h.heroSub}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/login"
                 className="btn-press border-2 border-black bg-yellow px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
               >
-                Mulai sekarang
+                {h.ctaStart}
               </Link>
               <Link
                 href="/chat"
                 className="btn-press border-2 border-black bg-white px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
               >
-                Coba chat
+                {h.ctaChat}
               </Link>
               <Link
                 href="/docs"
                 className="px-2 py-3 font-mono text-[13px] font-bold text-blue underline underline-offset-4 hover:text-black"
               >
-                Dokumentasi →
+                {h.ctaDocs}
               </Link>
             </div>
             <p className="mt-6 font-mono text-[12px] text-faint">
-              {configured}/{providers.length} provider aktif saat ini · tanpa
-              key pun langsung dapat digunakan
+              {fill(h.providerLine, { configured, total: providers.length })}
             </p>
           </div>
           <div className="hidden min-w-0 lg:block">
@@ -145,7 +86,7 @@ export default async function Home() {
         {/* Stats row */}
         <div className="border-t-2 border-black">
           <div className="mx-auto grid w-full max-w-[1280px] grid-cols-2 px-6 sm:grid-cols-4 sm:divide-x-2 sm:divide-black lg:px-8">
-            {STATS.map((s) => (
+            {h.stats.map((s) => (
               <div key={s.label} className="px-1 py-7 sm:px-6 sm:first:pl-0">
                 <p className="text-[32px] font-black leading-none tracking-tight text-black">
                   {s.value}
@@ -161,14 +102,13 @@ export default async function Home() {
       <section id="provider" className="scroll-mt-16 border-b-2 border-black bg-yellow-soft">
         <div className="mx-auto w-full max-w-[1280px] px-6 py-24 lg:px-8 lg:py-28">
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
-            <span className="bg-yellow px-2 py-1">Provider</span>
+            <span className="bg-yellow px-2 py-1">{h.providersEyebrow}</span>
           </p>
           <h2 className="mt-4 max-w-[640px] text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-black sm:text-[44px]">
-            Sembilan provider. Satu endpoint.
+            {h.providersTitle}
           </h2>
           <p className="mt-4 max-w-[640px] text-[16px] leading-[1.6] text-muted">
-            Status live dari server — urutan kartu adalah urutan fallback
-            (atas dicoba duluan). Empat provider berfungsi tanpa API key.
+            {h.providersSub}
           </p>
           <div className="mt-12">
             <ProviderSection initial={providers} />
@@ -185,17 +125,16 @@ export default async function Home() {
               area gelap. */}
           <div className="min-w-0">
             <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-yellow">
-              Cara Penggunaan
+              {h.howtoEyebrow}
             </p>
             <h2 className="mt-4 text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-ondark sm:text-[44px]">
-              Ganti base URL. Kode tetap berfungsi.
+              {h.howtoTitle}
             </h2>
             <p className="mt-4 max-w-[520px] text-[16px] leading-[1.6] text-ondark-muted">
-              Gateway memakai format OpenAI API, jadi SDK dan tools yang sudah
-              Anda gunakan tetap berfungsi — yang berubah hanya base URL dan API key.
+              {h.howtoSub}
             </p>
             <ol className="mt-10 space-y-8">
-              {STEPS.map((s) => (
+              {h.steps.map((s) => (
                 <li key={s.n} className="flex gap-5">
                   <span className="font-mono text-[13px] font-bold text-yellow">
                     {s.n}
@@ -211,7 +150,7 @@ export default async function Home() {
             </ol>
             <div className="mt-10">
               <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-ondark-muted">
-                Bisa dipakai di
+                {h.worksWith}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {["OpenAI SDK", "cURL", "fetch"].map((c) => (
@@ -228,8 +167,7 @@ export default async function Home() {
           <div className="min-w-0 lg:pt-24">
             <CodeWindow baseUrl={baseUrl} />
             <p className="mt-4 font-mono text-[12px] leading-relaxed text-ondark-muted">
-              Simpan API key di environment variable. Streaming didukung
-              melalui SSE — lihat dokumentasi.
+              {h.codeNote}
             </p>
           </div>
         </div>
@@ -240,30 +178,16 @@ export default async function Home() {
         <div className="mx-auto grid w-full max-w-[1280px] gap-12 px-6 py-24 lg:grid-cols-2 lg:px-8 lg:py-28">
           <div className="min-w-0">
             <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
-              <span className="bg-green px-2 py-1 text-white">Dasbor</span>
+              <span className="bg-green px-2 py-1 text-white">{h.dashboardEyebrow}</span>
             </p>
             <h2 className="mt-4 text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-black sm:text-[44px]">
-              Semua pemakaian Anda, dalam satu dasbor.
+              {h.dashboardTitle}
             </h2>
             <p className="mt-4 max-w-[520px] text-[16px] leading-[1.6] text-muted">
-              Setelah masuk, semua request melalui API key Anda tercatat dan dapat
-              dipantau — tanpa setup apa pun.
+              {h.dashboardSub}
             </p>
             <ul className="mt-10 space-y-8">
-              {[
-                {
-                  title: "Pantau request & token per provider",
-                  body: "Jumlah request dan token 7 hari terakhir, dirinci per provider yang benar-benar menjawab.",
-                },
-                {
-                  title: "API key sendiri, bisa revoke",
-                  body: "Buat key per proyek atau per perangkat. Key yang bocor dapat langsung di-revoke — key lainnya tetap berfungsi.",
-                },
-                {
-                  title: "Limit per key",
-                  body: "60 request/menit per API key, terpisah dari limit anonim 20 request/menit per IP.",
-                },
-              ].map((f) => (
+              {h.dashboardFeatures.map((f) => (
                 <li key={f.title} className="border-t-2 border-black pt-6">
                   <h3 className="text-[18px] font-bold text-black">{f.title}</h3>
                   <p className="mt-1 max-w-[480px] text-[15px] leading-relaxed text-muted">
@@ -279,18 +203,14 @@ export default async function Home() {
             <div className="overflow-hidden border-2 border-black bg-white shadow-brutal">
               <div className="flex items-center justify-between border-b-2 border-black px-5 py-3.5">
                 <span className="font-mono text-[12px] font-bold text-muted">
-                  dasbor / pemakaian
+                  {h.mockLabel}
                 </span>
                 <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
-                  ● 4/9 provider aktif
+                  {h.mockActive}
                 </span>
               </div>
               <div className="grid grid-cols-3 divide-x-2 divide-black border-b-2 border-black">
-                {[
-                  { v: "1.284", l: "request · 7 hari" },
-                  { v: "96,4K", l: "token" },
-                  { v: "3", l: "API key aktif" },
-                ].map((s) => (
+                {h.mockStats.map((s) => (
                   <div key={s.l} className="px-4 py-4">
                     <p className="text-[22px] font-black leading-none tracking-tight text-black">
                       {s.v}
@@ -323,12 +243,12 @@ export default async function Home() {
                 <span className="min-w-0 truncate font-mono text-[12px] text-muted">
                   hr_4f8a2c1e9b3d… · bot-discord
                 </span>
-                <span className="shrink-0 font-mono text-[11px] font-bold text-green">aktif</span>
+                <span className="shrink-0 font-mono text-[11px] font-bold text-green">
+                  {h.mockActiveLabel}
+                </span>
               </div>
             </div>
-            <p className="mt-3 font-mono text-[12px] text-faint">
-              Ilustrasi dasbor. Nama dan angka hanya contoh.
-            </p>
+            <p className="mt-3 font-mono text-[12px] text-faint">{h.mockCaption}</p>
           </div>
         </div>
       </section>
@@ -337,29 +257,13 @@ export default async function Home() {
       <section className="bg-blue text-white">
         <div className="mx-auto w-full max-w-[1280px] px-6 py-24 lg:px-8">
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-yellow">
-            Kenapa Hymn Router
+            {h.whyEyebrow}
           </p>
           <h2 className="mt-4 max-w-[720px] text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-white sm:text-[44px]">
-            Semua model gratis, dalam satu akun.
+            {h.whyTitle}
           </h2>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {[
-              {
-                big: "9",
-                title: "provider",
-                body: "Satu endpoint untuk semuanya. Fallback otomatis jika satu provider gagal atau mencapai limit.",
-              },
-              {
-                big: "Rp 0",
-                title: "tanpa kartu kredit",
-                body: "Tidak ada saldo, tidak ada langganan, tidak ada tagihan kejutan. Gratis berarti gratis.",
-              },
-              {
-                big: "4",
-                title: "keyless",
-                body: "Kilo, LLM7, Pollinations, dan OVH langsung berfungsi tanpa API key provider apa pun.",
-              },
-            ].map((c) => (
+            {h.whyCards.map((c) => (
               <div
                 key={c.title}
                 className="border-2 border-black bg-white p-6 shadow-brutal"
@@ -373,10 +277,7 @@ export default async function Home() {
             ))}
           </div>
           <p className="mt-12 max-w-[720px] text-[15px] leading-relaxed text-white/90">
-            Soal privasi: prompt dan response tidak pernah disimpan di server
-            ini. Yang dicatat hanya jumlah request, token, dan provider —
-            untuk dasbor Anda sendiri. Request tetap diteruskan ke provider
-            gratis pihak ketiga, jadi jangan kirim data sensitif.
+            {h.whyPrivacy}
           </p>
         </div>
       </section>
@@ -385,17 +286,16 @@ export default async function Home() {
       <section id="faq" className="scroll-mt-16 border-b-2 border-black bg-green-soft">
         <div className="mx-auto w-full max-w-[1280px] px-6 py-24 lg:px-8 lg:py-28">
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
-            <span className="bg-green px-2 py-1 text-white">FAQ</span>
+            <span className="bg-green px-2 py-1 text-white">{h.faqEyebrow}</span>
           </p>
           <h2 className="mt-4 text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-black sm:text-[44px]">
-            Pertanyaan yang sering muncul.
+            {h.faqTitle}
           </h2>
           <p className="mt-4 max-w-[640px] text-[16px] leading-[1.6] text-muted">
-            Gratis, limit, privasi, dan cara penggunaan. Detail lain ada di
-            dokumentasi.
+            {h.faqSub}
           </p>
           <div className="mt-10">
-            <Faq items={FAQ_ITEMS} />
+            <Faq items={h.faqItems} />
           </div>
         </div>
       </section>
@@ -405,11 +305,10 @@ export default async function Home() {
         <div className="mx-auto flex w-full max-w-[1280px] flex-col items-start gap-6 px-6 py-20 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
             <h2 className="text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-ondark sm:text-[44px]">
-              Mulai gunakan hari ini.
+              {h.ctaTitle}
             </h2>
             <p className="mt-3 max-w-[520px] text-[16px] leading-[1.6] text-ondark-muted">
-              Masuk, buat API key pertama Anda, dan kirim request pertama
-              dalam waktu kurang dari semenit.
+              {h.ctaSub}
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -417,13 +316,13 @@ export default async function Home() {
               href="/login"
               className="btn-press shadow-green border-2 border-black bg-yellow px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
             >
-              Mulai sekarang
+              {h.ctaStart}
             </Link>
             <Link
               href="/chat"
               className="btn-press shadow-yellow border-2 border-white bg-dark px-6 py-3 text-[15px] font-bold text-ondark shadow-brutal-sm"
             >
-              Coba chat
+              {h.ctaChat}
             </Link>
           </div>
         </div>

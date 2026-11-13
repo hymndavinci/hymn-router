@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Navbar from "@/components/navbar";
 import ChatPageClient from "@/components/chat-page-client";
+import { dict, getLocale } from "@/lib/i18n";
 
-export const metadata: Metadata = {
-  title: "Chat — Hymn Router",
-  description:
-    "Playground chat Hymn Router: coba 9 provider LLM gratis tanpa login, tanpa API key.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = dict[await getLocale()];
+  return { title: t.meta.chatTitle, description: t.meta.chatDescription };
+}
 
 export default function ChatPage() {
   return (

@@ -10,6 +10,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/components/locale-provider";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -22,6 +23,8 @@ export default function LoginForm({
   initialMode: Mode;
   next: string | null;
 }) {
+  const { dict } = useLocale();
+  const t = dict.login;
   const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,15 +43,15 @@ export default function LoginForm({
 
     const trimmedEmail = email.trim();
     if (!EMAIL_RE.test(trimmedEmail)) {
-      setError("Format email tidak valid.");
+      setError(t.invalidEmail);
       return;
     }
     if (mode === "signup" && password.length < 8) {
-      setError("Password minimal 8 karakter.");
+      setError(t.passwordShort);
       return;
     }
     if (mode === "login" && password.length === 0) {
-      setError("Password wajib diisi.");
+      setError(t.passwordRequired);
       return;
     }
 
@@ -93,7 +96,7 @@ export default function LoginForm({
               mode === m ? "bg-yellow" : "bg-white hover:bg-yellow-soft"
             } ${m === "login" ? "border-r-2 border-black" : ""}`}
           >
-            {m === "login" ? "Masuk" : "Daftar"}
+            {m === "login" ? t.modeLogin : t.modeSignup}
           </button>
         ))}
       </div>
@@ -105,7 +108,7 @@ export default function LoginForm({
               htmlFor="login-name"
               className="mb-1.5 block text-[13px] font-bold text-black"
             >
-              Nama <span className="font-medium text-muted">(opsional)</span>
+              {t.nameLabel} <span className="font-medium text-muted">{t.optional}</span>
             </label>
             <input
               id="login-name"
@@ -113,7 +116,7 @@ export default function LoginForm({
               autoComplete="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Nama Anda"
+              placeholder={t.namePlaceholder}
               maxLength={100}
               className={inputClass}
             />
@@ -124,7 +127,7 @@ export default function LoginForm({
             htmlFor="login-email"
             className="mb-1.5 block text-[13px] font-bold text-black"
           >
-            Email
+            {t.emailLabel}
           </label>
           <input
             id="login-email"
@@ -132,7 +135,7 @@ export default function LoginForm({
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="nama@email.com"
+            placeholder={t.emailPlaceholder}
             maxLength={254}
             required
             className={inputClass}
@@ -143,9 +146,9 @@ export default function LoginForm({
             htmlFor="login-password"
             className="mb-1.5 block text-[13px] font-bold text-black"
           >
-            Password{" "}
+            {t.passwordLabel}{" "}
             {mode === "signup" && (
-              <span className="font-medium text-muted">(minimal 8 karakter)</span>
+              <span className="font-medium text-muted">{t.passwordHint}</span>
             )}
           </label>
           <input
@@ -173,16 +176,16 @@ export default function LoginForm({
           className="btn-press h-12 w-full border-2 border-black bg-yellow text-[15px] font-bold text-black shadow-brutal-sm disabled:cursor-wait disabled:opacity-60"
         >
           {loading
-            ? "Memproses…"
+            ? t.processing
             : mode === "signup"
-              ? "Buat akun"
-              : "Masuk"}
+              ? t.submitSignup
+              : t.submitLogin}
         </button>
       </form>
 
       {mode === "signup" && (
         <p className="mt-4 text-[13px] leading-relaxed text-muted">
-          Belum ada verifikasi email — akun langsung aktif setelah daftar.
+          {t.signupNote}
         </p>
       )}
     </div>

@@ -109,7 +109,7 @@ export function getProviders(): ProviderConfig[] {
     },
     {
       id: "gemini",
-      baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
+      baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
       model: env("GEMINI_MODEL") ?? "gemini-3.5-flash-lite",
       apiKey: env("GEMINI_API_KEY"),
       needsKey: true,
@@ -242,7 +242,7 @@ async function callProvider(
   opts.signal?.addEventListener("abort", onAbort, { once: true });
 
   try {
-    const res = await fetch(`${p.baseUrl}/chat/completions`, {
+    const res = await fetch(`${p.baseUrl.replace(/\/+$/, "")}/chat/completions`, {
       method: "POST",
       headers: providerHeaders(p),
       body: JSON.stringify({

@@ -1,8 +1,10 @@
 /** Footer putih neo-brutalism — brand, link produk/resource, catatan privasi. */
 
 import Link from "next/link";
+import { dict, getLocale } from "@/lib/i18n";
 
-export default function Footer() {
+export default async function Footer() {
+  const t = dict[await getLocale()];
   return (
     <footer className="border-t-2 border-black bg-white">
       <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
@@ -16,39 +18,38 @@ export default function Footer() {
             </span>
           </div>
           <p className="mt-4 max-w-[260px] text-[14px] leading-relaxed text-muted">
-            Satu endpoint untuk semua model AI gratis. Masuk, buat API
-            key, dan panggil dari kode apa pun.
+            {t.footer.tagline}
           </p>
         </div>
 
         <div>
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-black">
-            Produk
+            {t.footer.products}
           </p>
           <ul className="mt-4 space-y-2.5 text-[14px] font-medium text-muted">
             <li>
               <Link href="/#provider" className="hover:text-blue">
-                Provider
+                {t.nav.provider}
               </Link>
             </li>
             <li>
               <Link href="/models" className="hover:text-blue">
-                Model
+                {t.nav.models}
               </Link>
             </li>
             <li>
               <Link href="/chat" className="hover:text-blue">
-                Chat
+                {t.nav.chat}
               </Link>
             </li>
             <li>
               <Link href="/docs" className="hover:text-blue">
-                API Docs
+                {t.nav.apiDocs}
               </Link>
             </li>
             <li>
               <Link href="/dashboard" className="hover:text-blue">
-                Dasbor
+                {t.nav.dashboard}
               </Link>
             </li>
           </ul>
@@ -56,7 +57,7 @@ export default function Footer() {
 
         <div>
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-black">
-            Resource
+            {t.footer.resources}
           </p>
           <ul className="mt-4 space-y-2.5 text-[14px] font-medium text-muted">
             <li>
@@ -89,13 +90,10 @@ export default function Footer() {
 
         <div>
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-black">
-            Privasi
+            {t.footer.privacy}
           </p>
           <p className="mt-4 text-[14px] leading-relaxed text-muted">
-            Prompt dan isi response tidak disimpan. Yang dicatat hanya jumlah
-            request, token, dan provider — untuk dasbor pemakaian Anda.
-            Free tier berubah-ubah; jangan kirim data sensitif melalui
-            endpoint gratis.
+            {t.footer.privacyText}
           </p>
         </div>
       </div>
@@ -103,9 +101,7 @@ export default function Footer() {
       <div className="border-t-2 border-black">
         <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-between gap-2 px-6 py-5 lg:px-8">
           <p className="font-mono text-[12px] font-bold text-black">© 2026 Hymn Router</p>
-          <p className="font-mono text-[12px] text-muted">
-            9 provider gratis · 1 endpoint · Rp 0
-          </p>
+          <p className="font-mono text-[12px] text-muted">{t.footer.bottom}</p>
         </div>
       </div>
     </footer>

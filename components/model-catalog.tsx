@@ -4,11 +4,16 @@
  * Bagian 2: model :free OpenRouter (data live, bisa dicari).
  * Context window hanya ditampilkan kalau ada datanya dari OpenRouter;
  * kalau tidak ada, tulis "tidak diketahui" — jangan mengarang angka.
+ *
+ * Catatan free tier per provider diterjemahkan di UI dari kamus
+ * (lookup by provider id, fallback ke teks dari API).
  */
 
 "use client";
 
 import { useMemo, useState } from "react";
+import type { Dict, Locale } from "@/lib/i18n";
+import { dateLocaleOf, fill, useLocale } from "@/components/locale-provider";
 import CopyButton from "./copy-button";
 
 export type RouterModelInfo = {
@@ -28,19 +33,21 @@ export type FreeModelInfo = {
   description: string | null;
 };
 
-function formatContext(n: number | null): string {
-  if (n === null) return "tidak diketahui";
-  return `${n.toLocaleString("id-ID")} token`;
+function formatContext(n: number | null, t: Dict["models"], locale: Locale): string {
+  if (n === null) return t.unknownContext;
+  return fill(t.contextTokens, { n: n.toLocaleString(dateLocaleOf(locale)) });
 }
 
 function StatusBadge({ configured }: { configured: boolean }) {
+  const { dict } = useLocale();
+  const t = dict.models;
   return (
     <span
       className={`shrink-0 border-2 border-black px-2.5 py-1 font-mono text-[11px] font-bold ${
         configured ? "bg-green text-white" : "bg-yellow text-black"
       }`}
     >
-      {configured ? "aktif" : "butuh key"}
+      {configured ? t.statusActive : t.statusNeedsKey}
     </span>
   );
 }
@@ -67,6 +74,8 @@ export default function ModelCatalog({
   catalogOk: boolean;
   openRouterConfigured: boolean;
 }) {
+  const { locale, dict } = useLocale();
+  const t = dict.models;
   const [query, setQuery] = useState("");
 
   const filteredFree = useMemo(() => {
@@ -82,17 +91,20 @@ export default function ModelCatalog({
       {/* ---- model router ---- */}
       <section>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-[22px] font-black tracking-tight text-black">Model Router</h2>
+          <h2 className="text-[22px] font-black tracking-tight text-black">{t.routerTitle}</h2>
           <p className="font-mono text-[12px] text-muted">
-            {routerModels.filter((m) => m.configured).length}/{routerModels.length} aktif
+            {fill(t.routerActive, {
+              configured: routerModels.filter((m) => m.configured).length,
+              total: routerModels.length,
+            })}
           </p>
         </div>
         <p className="mt-1 max-w-[720px] text-[14px] leading-relaxed text-muted">
-          Model default tiap provider. Gunakan{" "}
+          {t.routerIntroA}{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">hymn/auto</code>{" "}
-          untuk fallback otomatis, id provider (mis.{" "}
-          <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">groq</code>) untuk
-          memprioritaskan satu provider, atau id model persis seperti di bawah.
+          {t.routerIntroB}{" "}
+          <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">groq</code>
+          {t.routerIntroC}
         </p>
 
         {/* hymn/auto — kartu sorot */}
@@ -101,12 +113,11 @@ export default function ModelCatalog({
             <div className="min-w-0">
               <h3 className="font-mono text-[16px] font-black text-black">hymn/auto</h3>
               <p className="mt-1 text-[14px] leading-relaxed text-black">
-                Router otomatis — mencoba 9 provider berurutan sampai ada yang berhasil.
-                Pilihan default jika Anda belum yakin model apa yang akan digunakan.
+                {t.autoDesc}
               </p>
             </div>
             <span className="shrink-0 border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
-              rekomendasi
+              {t.recommended}
             </span>
           </div>
           <div className="mt-4 flex items-center gap-2 border-t-2 border-black pt-3">
@@ -137,18 +148,20 @@ export default function ModelCatalog({
 
               <dl className="mt-3 space-y-1.5 font-mono text-[12px] leading-relaxed">
                 <div className="flex gap-2">
-                  <dt className="shrink-0 text-faint">konteks</dt>
-                  <dd className="min-w-0 font-bold text-black">{formatContext(m.contextLength)}</dd>
+                  <dt className="shrink-0 text-faint">{t.contextLabel}</dt>
+                  <dd className="min-w-0 font-bold text-black">{formatContext(m.contextLength, t, locale)}</dd>
                 </div>
                 <div className="flex gap-2">
-                  <dt className="shrink-0 text-faint">akses</dt>
+                  <dt className="shrink-0 text-faint">{t.accessLabel}</dt>
                   <dd className="min-w-0 text-black">
-                    {m.needsKey ? "butuh API key server" : "tanpa key"}
+                    {m.needsKey ? t.needsServerKey : t.noKey}
                   </dd>
                 </div>
               </dl>
 
-              <p className="mt-3 flex-1 text-[13px] leading-relaxed text-muted">{m.freeTier}</p>
+              <p className="mt-3 flex-1 text-[13px] leading-relaxed text-muted">
+                {dict.providers.notes[m.provider] ?? m.freeTier}
+              </p>
 
               <ModelString model={m.id} />
             </div>
@@ -159,37 +172,36 @@ export default function ModelCatalog({
       {/* ---- model :free OpenRouter ---- */}
       <section>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="text-[22px] font-black tracking-tight text-black">Model :free OpenRouter</h2>
+          <h2 className="text-[22px] font-black tracking-tight text-black">{t.freeTitle}</h2>
           <span
             className={`border-2 border-black px-2.5 py-1 font-mono text-[11px] font-bold ${
               openRouterConfigured ? "bg-green text-white" : "bg-yellow text-black"
             }`}
           >
-            OpenRouter {openRouterConfigured ? "terkonfigurasi" : "belum ada key"}
+            OpenRouter {openRouterConfigured ? t.orConfigured : t.orNotConfigured}
           </span>
         </div>
         <p className="mt-1 max-w-[720px] text-[14px] leading-relaxed text-muted">
-          Model gratis dari OpenRouter — kirim id-nya persis seperti di bawah ke field{" "}
+          {t.freeIntroA}{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">model</code>{" "}
-          di /v1 dan router meneruskannya ke OpenRouter. Hanya model berakhiran{" "}
+          {t.freeIntroB}{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">:free</code>{" "}
-          yang diizinkan. Daftar ini live dari OpenRouter (cache 1 jam) dan bisa berubah
-          sewaktu-waktu.
+          {t.freeIntroC}
           {!openRouterConfigured && (
             <>
               {" "}
-              Saat ini server belum mengonfigurasi{" "}
-              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">OPENROUTER_API_KEY</code>,
-              jadi model-model ini belum bisa dipakai.
+              {t.freeNotConfiguredA}{" "}
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">OPENROUTER_API_KEY</code>
+              {t.freeNotConfiguredB}
             </>
           )}
         </p>
 
         {!catalogOk ? (
           <div className="mt-6 border-2 border-black bg-yellow-soft p-5 text-[14px] leading-relaxed text-black shadow-brutal-sm">
-            <p className="font-bold">Katalog OpenRouter tidak bisa dimuat saat ini.</p>
+            <p className="font-bold">{t.catalogErrorTitle}</p>
             <p className="mt-1 text-muted">
-              Silakan muat ulang halaman nanti. Model router di atas tetap bisa dipakai seperti biasa.
+              {t.catalogErrorBody}
             </p>
           </div>
         ) : (
@@ -199,14 +211,14 @@ export default function ModelCatalog({
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={`Cari dari ${freeModels.length} model :free…`}
-                aria-label="Cari model :free"
+                placeholder={fill(t.searchPlaceholder, { n: freeModels.length })}
+                aria-label={t.searchAria}
                 className="h-11 w-full border-2 border-black bg-white px-4 text-[16px] text-black shadow-brutal-sm outline-none placeholder:text-faint focus:bg-yellow-soft"
               />
             </div>
             {filteredFree.length === 0 ? (
               <p className="mt-6 font-mono text-[14px] text-muted">
-                Tidak ada model yang cocok dengan &ldquo;{query}&rdquo;.
+                {fill(t.noMatch, { q: query })}
               </p>
             ) : (
               <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -222,7 +234,7 @@ export default function ModelCatalog({
                       {m.name}
                     </p>
                     <p className="mt-3 font-mono text-[12px] text-black">
-                      konteks: <span className="font-bold">{formatContext(m.contextLength)}</span>
+                      {t.contextLabel}: <span className="font-bold">{formatContext(m.contextLength, t, locale)}</span>
                     </p>
                     {m.description && (
                       <p className="mt-2 flex-1 text-[13px] leading-relaxed text-muted">

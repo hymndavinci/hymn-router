@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ProviderStatus } from "@/lib/free-ai-router";
+import { fill, useLocale } from "@/components/locale-provider";
 
 type ChatMsg = {
   id: string;
@@ -20,6 +21,8 @@ function uid(): string {
 }
 
 export default function ChatPlayground({ providers }: { providers: ProviderStatus[] | null }) {
+  const { dict } = useLocale();
+  const t = dict.chat;
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [input, setInput] = useState("");
@@ -141,7 +144,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
         {
           id: uid(),
           role: "assistant",
-          content: data.content ?? "(respons kosong)",
+          content: data.content ?? t.emptyResponse,
           provider: data.provider,
           model: data.model,
           latencyMs: Date.now() - started,
@@ -271,14 +274,14 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
           setMessages((prev) =>
             prev.map((m) =>
               m.id === assistantId
-                ? { ...m, content: `${m.content}\n\n(dihentikan)`, latencyMs: Date.now() - started }
+                ? { ...m, content: `${m.content}\n\n${t.stopped}`, latencyMs: Date.now() - started }
                 : m,
             ),
           );
         } else {
           setMessages((prev) => [
             ...prev,
-            { id: uid(), role: "assistant", content: "(dihentikan)" },
+            { id: uid(), role: "assistant", content: t.stopped },
           ]);
         }
       } else if (!streamed) {
@@ -294,7 +297,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
         setMessages((prev) =>
           prev.map((m) =>
             m.id === assistantId
-              ? { ...m, content: `${m.content}\n\n(stream terputus)`, latencyMs: Date.now() - started }
+              ? { ...m, content: `${m.content}\n\n${t.streamInterrupted}`, latencyMs: Date.now() - started }
               : m,
           ),
         );
@@ -305,7 +308,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
       setStreaming(false);
       abortRef.current = null;
     }
-  }, [input, sending, messages, systemPrompt, temperature, maxTokens, provider]);
+  }, [input, sending, messages, systemPrompt, temperature, maxTokens, provider, t]);
 
   const configured = (providers ?? []).filter((p) => p.configured);
   const selectable = providers ?? [];
@@ -315,17 +318,17 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
       {/* Kontrol */}
       <div className="flex flex-wrap items-end gap-3 border-2 border-black bg-yellow-soft p-3 shadow-brutal-sm">
         <label className="flex min-w-0 w-full flex-col gap-1 sm:w-auto">
-          <span className="text-[11px] font-bold uppercase tracking-wide text-black">Provider</span>
+          <span className="text-[11px] font-bold uppercase tracking-wide text-black">{t.providerLabel}</span>
           <select
             value={provider}
             onChange={(e) => setProvider(e.target.value)}
             className="h-10 w-full max-w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-auto sm:max-w-[320px] sm:text-sm"
           >
-            <option value="auto">Auto (fallback chain)</option>
+            <option value="auto">{t.autoOption}</option>
             {selectable.map((p) => (
               <option key={p.id} value={p.id} disabled={!p.configured}>
                 {p.id} — {p.model}
-                {!p.configured ? " (butuh key)" : ""}
+                {!p.configured ? t.needsKeySuffix : ""}
               </option>
             ))}
           </select>
@@ -333,7 +336,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
 
         <label className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-none">
           <span className="text-[11px] font-bold uppercase tracking-wide text-black">
-            Temperature · {temperature.toFixed(1)}
+            {fill(t.temperatureLabel, { t: temperature.toFixed(1) })}
           </span>
           <input
             type="range"
@@ -347,7 +350,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
         </label>
 
         <label className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-none">
-          <span className="text-[11px] font-bold uppercase tracking-wide text-black">Max tokens</span>
+          <span className="text-[11px] font-bold uppercase tracking-wide text-black">{t.maxTokensLabel}</span>
           <input
             type="number"
             min={1}
@@ -363,7 +366,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
             onClick={() => setShowSystem((v) => !v)}
             className="h-10 flex-1 border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft sm:flex-none"
           >
-            {showSystem ? "Sembunyikan system prompt" : "System prompt"}
+            {showSystem ? t.systemHide : t.systemShow}
           </button>
           <button
             onClick={() => {
@@ -373,7 +376,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
             className="h-10 flex-1 border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft disabled:opacity-50 sm:flex-none"
             disabled={messages.length === 0}
           >
-            Hapus riwayat
+            {t.clearHistory}
           </button>
         </div>
 
@@ -381,7 +384,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
           <input
             value={systemPrompt}
             onChange={(e) => setSystemPrompt(e.target.value)}
-            placeholder="System prompt (opsional), mis. Jawab singkat dalam Bahasa Indonesia."
+            placeholder={t.systemPlaceholder}
             className="h-10 w-full border-2 border-black bg-white px-2 text-base text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] sm:text-sm"
           />
         )}
@@ -389,8 +392,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
 
       {providers !== null && configured.length === 0 && (
         <div className="border-2 border-black bg-yellow p-3 text-sm font-medium text-black shadow-brutal-sm">
-          Belum ada provider yang terkonfigurasi — hal ini seharusnya tidak terjadi, karena Kilo &amp;
-          LLM7 keyless selalu aktif. Periksa bagian Provider di beranda.
+          {t.noProvidersWarning}
         </div>
       )}
 
@@ -398,11 +400,9 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
       <div className="flex min-h-[320px] flex-col gap-3 border-2 border-black bg-white p-3 shadow-brutal-sm">
         {messages.length === 0 && !sending && (
           <div className="m-auto max-w-md py-10 text-center">
-            <p className="font-mono text-sm font-bold text-black">Belum ada pesan.</p>
+            <p className="font-mono text-sm font-bold text-black">{t.emptyTitle}</p>
             <p className="mt-1 text-sm text-faint">
-              Ketik pesan di bawah untuk menguji router. Tanpa API key pun dapat langsung
-              digunakan melalui Kilo &amp; LLM7 — masuk dan gunakan API key dari dasbor
-              jika menginginkan limit yang lebih besar (60 req/menit).
+              {t.emptyBody}
             </p>
           </div>
         )}
@@ -420,7 +420,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
                   m.role === "user" ? "text-blue" : "text-green"
                 }`}
               >
-                {m.role === "user" ? "Anda" : "asisten"}
+                {m.role === "user" ? t.youLabel : t.assistantLabel}
               </span>
               {m.provider && (
                 <span className="break-all border border-black bg-white px-1.5 py-0.5 font-mono text-[11px] font-bold text-muted">
@@ -447,10 +447,10 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
         {sending && !streaming && (
           <div className="border-2 border-black bg-white px-3 py-2">
             <span className="font-mono text-[11px] font-bold uppercase tracking-wide text-green">
-              asisten
+              {t.assistantLabel}
             </span>
             <p className="text-sm text-muted">
-              menunggu jawaban… {(elapsed / 1000).toFixed(1)}s
+              {t.waiting} {(elapsed / 1000).toFixed(1)}s
               <span className="animate-blink ml-1">▌</span>
             </p>
           </div>
@@ -478,20 +478,20 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
             }
           }}
           rows={3}
-          placeholder="Tulis pesan… (Enter untuk kirim, Shift+Enter untuk baris baru)"
+          placeholder={t.composerPlaceholder}
           className="w-full resize-none border-2 border-black bg-white px-3 py-2 text-base text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] disabled:opacity-60 sm:text-sm"
           disabled={sending}
         />
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="font-mono text-[11px] font-bold text-black">
-            {configured.length}/{selectable.length || 9} provider aktif · POST /api/ai/chat
+            {fill(t.footerStats, { configured: configured.length, total: selectable.length || 9 })}
           </span>
           {sending ? (
             <button
               onClick={stop}
               className="h-10 border-2 border-bad bg-white px-5 text-sm font-bold text-bad hover:bg-bad hover:text-white"
             >
-              Stop
+              {t.stopBtn}
             </button>
           ) : (
             <button
@@ -499,7 +499,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
               disabled={input.trim() === ""}
               className="btn-press h-10 border-2 border-black bg-yellow px-5 text-sm font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-40"
             >
-              Kirim
+              {t.sendBtn}
             </button>
           )}
         </div>

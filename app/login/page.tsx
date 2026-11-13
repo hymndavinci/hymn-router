@@ -11,33 +11,23 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSessionUser, isSafeNextPath } from "@/lib/auth";
+import { dict, getLocale } from "@/lib/i18n";
 import Navbar from "@/components/navbar";
 import LoginForm from "@/components/login-form";
 
-export const metadata: Metadata = {
-  title: "Masuk — Hymn Router",
-  description:
-    "Masuk ke Hymn Router dengan email, Google, atau GitHub untuk membuat API key dan memakai gateway AI gratis.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = dict[await getLocale()];
+  return { title: t.meta.loginTitle, description: t.meta.loginDescription };
+}
 
 export const dynamic = "force-dynamic";
-
-const ERROR_MESSAGES: Record<string, string> = {
-  github_not_configured:
-    "Login GitHub belum dikonfigurasi di server. Silakan gunakan Google atau email.",
-  github_no_email:
-    "Akun GitHub Anda tidak membagikan alamat email (periksa Settings → Emails di GitHub). Silakan gunakan Google atau email.",
-  github_failed:
-    "Login GitHub gagal — silakan coba lagi, atau gunakan Google / email.",
-  oauth_only:
-    "Akun ini dibuat melalui Google/GitHub. Silakan masuk menggunakan tombol di atas.",
-};
 
 export default async function LoginPage({
   searchParams,
 }: {
   searchParams: Promise<{ next?: string; mode?: string; error?: string }>;
 }) {
+  const t = dict[await getLocale()];
   const { next, mode, error } = await searchParams;
   const safeNext = isSafeNextPath(next) ? next : null;
 
@@ -48,20 +38,20 @@ export default async function LoginPage({
 
   const githubConfigured = !!process.env.GITHUB_CLIENT_ID?.trim();
   const nextQuery = safeNext ? `?next=${encodeURIComponent(safeNext)}` : "";
-  const errorMsg = error ? (ERROR_MESSAGES[error] ?? null) : null;
+  const errorMsg = error ? (t.login.errors[error] ?? null) : null;
 
   return (
     <div className="flex-1">
       <Navbar />
       <div className="mx-auto w-full max-w-[480px] px-4 py-12 sm:px-6 sm:py-16">
         <p className="text-center font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
-          <span className="bg-yellow px-2 py-1">Akun Hymn Router</span>
+          <span className="bg-yellow px-2 py-1">{t.login.badge}</span>
         </p>
         <h1 className="mt-4 text-center text-[32px] font-black leading-tight tracking-tight text-black">
-          Masuk ke Hymn Router
+          {t.login.title}
         </h1>
         <p className="mt-2 text-center text-[15px] leading-relaxed text-muted">
-          Satu akun untuk API key, dasbor pemakaian, dan gateway /v1.
+          {t.login.subtitle}
         </p>
 
         {errorMsg && (
@@ -79,7 +69,7 @@ export default async function LoginPage({
               <span className="flex h-6 w-6 items-center justify-center border-2 border-black bg-yellow font-mono text-[12px] font-black text-black">
                 G
               </span>
-              Lanjutkan dengan Google
+              {t.login.googleBtn}
             </Link>
             {githubConfigured && (
               <Link
@@ -89,7 +79,7 @@ export default async function LoginPage({
                 <span className="flex h-6 w-6 items-center justify-center border-2 border-white bg-black font-mono text-[12px] font-black text-white">
                   {"</>"}
                 </span>
-                Lanjutkan dengan GitHub
+                {t.login.githubBtn}
               </Link>
             )}
           </div>
@@ -97,7 +87,7 @@ export default async function LoginPage({
           <div className="my-6 flex items-center gap-3">
             <span className="h-[2px] flex-1 bg-black" />
             <span className="font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-muted">
-              atau lanjut dengan email
+              {t.login.divider}
             </span>
             <span className="h-[2px] flex-1 bg-black" />
           </div>
@@ -109,9 +99,7 @@ export default async function LoginPage({
         </div>
 
         <p className="mt-6 text-center text-[13px] leading-relaxed text-muted">
-          Dengan masuk, Anda menggunakan gateway AI gratis ini untuk keperluan
-          pribadi. Password disimpan sebagai hash scrypt — password asli
-          tidak pernah disimpan.
+          {t.login.footnote}
         </p>
       </div>
     </div>

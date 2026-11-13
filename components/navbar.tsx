@@ -7,17 +7,20 @@
 
 import Link from "next/link";
 import { getSessionUser } from "@/lib/auth";
+import { dict, getLocale } from "@/lib/i18n";
 import MobileMenu from "@/components/mobile-menu";
-
-const NAV_LINKS = [
-  { href: "/#provider", label: "Provider" },
-  { href: "/models", label: "Model" },
-  { href: "/#cara-pakai", label: "Cara Penggunaan" },
-  { href: "/docs", label: "API" },
-  { href: "/#faq", label: "FAQ" },
-];
+import LocaleToggle from "@/components/locale-toggle";
 
 export default async function Navbar() {
+  const t = dict[await getLocale()];
+  const NAV_LINKS = [
+    { href: "/#provider", label: t.nav.provider },
+    { href: "/models", label: t.nav.models },
+    { href: "/#cara-pakai", label: t.nav.howto },
+    { href: "/docs", label: t.nav.api },
+    { href: "/#faq", label: t.nav.faq },
+  ];
+
   // Kalau DB gagal sesaat, navbar tampil sebagai belum login — jangan
   // sampai seluruh halaman ikut crash gara-gara session check.
   const user = await getSessionUser().catch(() => null);
@@ -46,8 +49,9 @@ export default async function Navbar() {
           ))}
         </nav>
 
-        {/* Desktop: tombol auth lengkap */}
+        {/* Desktop: toggle bahasa + tombol auth lengkap */}
         <div className="hidden items-center gap-3 md:flex">
+          <LocaleToggle />
           {user ? (
             <>
               <Link
@@ -75,14 +79,14 @@ export default async function Navbar() {
                 href="/dashboard"
                 className="btn-press border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-sm"
               >
-                Dasbor
+                {t.nav.dashboard}
               </Link>
               <form action="/api/auth/logout" method="POST" className="flex">
                 <button
                   type="submit"
                   className="text-[13px] font-semibold text-muted transition-colors hover:text-black"
                 >
-                  Keluar
+                  {t.nav.signOut}
                 </button>
               </form>
             </>
@@ -92,13 +96,13 @@ export default async function Navbar() {
                 href="/login"
                 className="text-[14px] font-bold text-black transition-colors hover:text-blue"
               >
-                Masuk
+                {t.nav.signIn}
               </Link>
               <Link
                 href="/login"
                 className="btn-press border-2 border-black bg-yellow px-5 py-2.5 text-[14px] font-bold text-black shadow-brutal-sm"
               >
-                Mulai
+                {t.nav.start}
               </Link>
             </>
           )}
@@ -110,7 +114,7 @@ export default async function Navbar() {
             href={user ? "/dashboard" : "/login"}
             className="border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-sm"
           >
-            {user ? "Dasbor" : "Mulai"}
+            {user ? t.nav.dashboard : t.nav.start}
           </Link>
           <MobileMenu user={user} />
         </div>

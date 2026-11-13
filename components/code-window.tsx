@@ -7,6 +7,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/components/locale-provider";
 
 type TabId = "curl" | "python" | "typescript";
 
@@ -56,6 +57,7 @@ console.log(res.choices[0].message.content);`,
 }
 
 export default function CodeWindow({ baseUrl }: { baseUrl: string }) {
+  const { dict } = useLocale();
   const [tab, setTab] = useState<TabId>("curl");
   const [copied, setCopied] = useState(false);
   const code = snippets(baseUrl)[tab];
@@ -97,7 +99,7 @@ export default function CodeWindow({ baseUrl }: { baseUrl: string }) {
           onClick={() => void copy()}
           className="shrink-0 border-2 border-white/40 px-2.5 py-1.5 font-mono text-[11px] font-bold text-ondark-muted transition-colors hover:border-white hover:text-ondark sm:px-3 sm:text-[12px]"
         >
-          {copied ? "disalin ✓" : "salin"}
+          {copied ? dict.common.copied : dict.common.copy}
         </button>
       </div>
       <pre className="overflow-x-auto p-4 font-mono text-[13px] leading-relaxed text-ondark">

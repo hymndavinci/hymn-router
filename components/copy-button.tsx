@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "@/components/locale-provider";
 
 /** Tombol salin kecil neo-brutalism. Teks berubah jadi "Disalin!" 1,5 detik. */
 export default function CopyButton({
   text,
-  label = "Salin",
+  label,
 }: {
   text: string;
   label?: string;
 }) {
+  const { dict } = useLocale();
   const [copied, setCopied] = useState(false);
+  const shownLabel = label ?? dict.common.copyLabel;
 
   async function onCopy() {
     try {
@@ -36,7 +39,7 @@ export default function CopyButton({
         copied ? "bg-green text-white" : "bg-white text-black"
       }`}
     >
-      {copied ? "Disalin!" : label}
+      {copied ? dict.common.copiedLabel : shownLabel}
     </button>
   );
 }

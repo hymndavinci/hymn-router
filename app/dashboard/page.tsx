@@ -17,23 +17,23 @@ import {
   getUsageSummary,
 } from "@/lib/usage";
 import { getBaseUrl } from "@/lib/site-url";
+import { dict, getLocale } from "@/lib/i18n";
 import Navbar from "@/components/navbar";
 import DashboardClient from "@/components/dashboard-client";
 
 export const dynamic = "force-dynamic";
 
-function DbErrorView() {
+async function DbErrorView() {
+  const t = dict[await getLocale()];
   return (
     <div className="flex-1">
       <Navbar />
       <div className="mx-auto w-full max-w-[1280px] px-6 py-10 lg:px-8">
         <h1 className="text-[28px] font-black leading-tight tracking-tight text-black">
-          Database sedang bermasalah
+          {t.dashboard.dbErrorTitle}
         </h1>
         <p className="mt-2 max-w-[640px] text-[15px] leading-relaxed text-muted">
-          Dasbor tidak dapat memuat data Anda saat ini — kemungkinan koneksi ke
-          database sedang gagal sesaat. Silakan muat ulang halaman ini sebentar
-          lagi; sesi login Anda tidak hilang.
+          {t.dashboard.dbErrorBody}
         </p>
       </div>
     </div>

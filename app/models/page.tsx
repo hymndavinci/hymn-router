@@ -3,18 +3,19 @@ import Navbar from "@/components/navbar";
 import ModelCatalog, { type RouterModelInfo } from "@/components/model-catalog";
 import { getProviders, getProviderStatus } from "@/lib/free-ai-router";
 import { findContextLength, getOpenRouterCatalog } from "@/lib/openrouter-catalog";
+import { dict, getLocale } from "@/lib/i18n";
 
-export const metadata: Metadata = {
-  title: "Model — Hymn Router",
-  description:
-    "Katalog model Hymn Router: model gratis 9 provider + model :free OpenRouter, dengan context window dan limit free tier.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = dict[await getLocale()];
+  return { title: t.meta.modelsTitle, description: t.meta.modelsDescription };
+}
 
 // Katalog OpenRouter di-cache 1 jam di lib; halaman ini dinamis supaya
 // status provider (configured) selalu dari env saat ini.
 export const dynamic = "force-dynamic";
 
 export default async function ModelsPage() {
+  const t = dict[await getLocale()];
   const [status, catalog] = await Promise.all([
     Promise.resolve(getProviderStatus()),
     getOpenRouterCatalog(),
@@ -52,18 +53,17 @@ export default async function ModelsPage() {
       <Navbar />
       <div className="mx-auto w-full max-w-[1280px] px-6 py-10 lg:px-8">
         <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
-          <span className="bg-yellow px-2 py-1">Katalog Model</span>
+          <span className="bg-yellow px-2 py-1">{t.models.badge}</span>
         </p>
         <h1 className="mt-3 text-[32px] font-black leading-tight tracking-tight text-black">
-          Model
+          {t.models.title}
         </h1>
         <p className="mt-2 max-w-[640px] text-[15px] leading-relaxed text-muted">
-          Semua model yang dapat digunakan melalui Hymn Router — gratis. Salin id model
-          ke field{" "}
+          {t.models.introA}{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">model</code>{" "}
-          di <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">/api/v1/chat/completions</code>.
-          Context window diambil dari data OpenRouter; jika tidak ada datanya, tertulis
-          &ldquo;tidak diketahui&rdquo;.
+          {t.models.introB}{" "}
+          <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">/api/v1/chat/completions</code>
+          {t.models.introC}
         </p>
         <div className="mt-8">
           <ModelCatalog

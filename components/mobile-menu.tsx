@@ -11,19 +11,22 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { SessionUser } from "@/lib/auth";
-
-const LINKS = [
-  { href: "/#provider", label: "Provider" },
-  { href: "/models", label: "Model" },
-  { href: "/#cara-pakai", label: "Cara Penggunaan" },
-  { href: "/chat", label: "Chat" },
-  { href: "/docs", label: "API Docs" },
-  { href: "/dashboard", label: "Dasbor" },
-  { href: "/#faq", label: "FAQ" },
-];
+import { useLocale } from "@/components/locale-provider";
+import LocaleToggle from "@/components/locale-toggle";
 
 export default function MobileMenu({ user }: { user: SessionUser | null }) {
+  const { dict } = useLocale();
   const [open, setOpen] = useState(false);
+
+  const LINKS = [
+    { href: "/#provider", label: dict.nav.provider },
+    { href: "/models", label: dict.nav.models },
+    { href: "/#cara-pakai", label: dict.nav.howto },
+    { href: "/chat", label: dict.nav.chat },
+    { href: "/docs", label: dict.nav.apiDocs },
+    { href: "/dashboard", label: dict.nav.dashboard },
+    { href: "/#faq", label: dict.nav.faq },
+  ];
 
   return (
     <div>
@@ -31,7 +34,7 @@ export default function MobileMenu({ user }: { user: SessionUser | null }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label={open ? "Tutup menu" : "Buka menu"}
+        aria-label={open ? dict.nav.closeMenu : dict.nav.openMenu}
         className="flex h-10 w-10 items-center justify-center border-2 border-black bg-white text-[18px] font-bold leading-none text-black shadow-brutal-xs"
       >
         {open ? "✕" : "☰"}
@@ -53,6 +56,12 @@ export default function MobileMenu({ user }: { user: SessionUser | null }) {
           </nav>
 
           <div className="mt-2 flex flex-col gap-2 border-t-2 border-black pt-4">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono text-[12px] font-bold uppercase tracking-[0.15em] text-muted">
+                {dict.nav.changeLanguage}
+              </span>
+              <LocaleToggle />
+            </div>
             {user ? (
               <>
                 <p className="truncate font-mono text-[12px] text-muted">
@@ -63,7 +72,7 @@ export default function MobileMenu({ user }: { user: SessionUser | null }) {
                     type="submit"
                     className="flex h-11 w-full items-center justify-center border-2 border-black bg-white text-[14px] font-bold text-black shadow-brutal-sm"
                   >
-                    Keluar
+                    {dict.nav.signOut}
                   </button>
                 </form>
               </>
@@ -73,7 +82,7 @@ export default function MobileMenu({ user }: { user: SessionUser | null }) {
                 onClick={() => setOpen(false)}
                 className="flex h-11 items-center justify-center border-2 border-black bg-yellow text-[14px] font-bold text-black shadow-brutal-sm"
               >
-                Masuk / Daftar
+                {dict.nav.signInUp}
               </Link>
             )}
           </div>
