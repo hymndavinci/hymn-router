@@ -235,6 +235,31 @@ export default function DashboardClient({
         </div>
       </div>
 
+      {/* Banner panduan — hanya untuk user baru (0 API key aktif):
+          langkah berikutnya yang jelas + tombol langsung ke form buat key. */}
+      {activeKeys === 0 && (
+        <div className="mt-8 border-2 border-black bg-yellow p-5 shadow-brutal-sm">
+          <h2 className="text-[18px] font-black text-black">{t.guideTitle}</h2>
+          <p className="mt-2 max-w-[640px] text-[14px] leading-relaxed text-black/80">
+            {t.guideBody}
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <a
+              href="#api-keys"
+              className="btn-press inline-block border-2 border-black bg-black px-6 py-2.5 text-[14px] font-bold text-white shadow-brutal-sm"
+            >
+              {t.guideCta} ↓
+            </a>
+            <a
+              href="/chat"
+              className="px-2 py-2 font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
+            >
+              {t.guideChatLink}
+            </a>
+          </div>
+        </div>
+      )}
+
       {/* Ringkasan usage */}
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[
@@ -292,9 +317,19 @@ export default function DashboardClient({
       <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
         <h2 className="text-[16px] font-black text-black">{t.perProvider}</h2>
         {usage.byProvider.length === 0 ? (
-          <p className="mt-2 text-[14px] text-muted">
-            {fill(t.noRequests, { days: usage.days })}
-          </p>
+          <div className="mt-2">
+            <p className="text-[14px] text-muted">
+              {fill(t.noRequests, { days: usage.days })}
+            </p>
+            {activeKeys === 0 && (
+              <a
+                href="#api-keys"
+                className="mt-3 inline-block border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-xs"
+              >
+                {t.guideCta} ↓
+              </a>
+            )}
+          </div>
         ) : (
           <div className="mt-4 space-y-3">
             {usage.byProvider.map((p) => (
@@ -481,7 +516,7 @@ export default function DashboardClient({
       </div>
 
       {/* API keys */}
-      <div className="mt-8 border-2 border-black bg-white p-5 shadow-brutal-sm sm:p-6">
+      <div id="api-keys" className="mt-8 scroll-mt-20 border-2 border-black bg-white p-5 shadow-brutal-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-[16px] font-black text-black">
             {t.keysTitle}{" "}

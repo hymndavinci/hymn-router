@@ -16,7 +16,10 @@ export default async function Navbar() {
   const NAV_LINKS = [
     { href: "/#provider", label: t.nav.provider },
     { href: "/models", label: t.nav.models },
+    { href: "/images", label: t.nav.images },
+    { href: "/status", label: t.nav.status },
     { href: "/#cara-pakai", label: t.nav.howto },
+    { href: "/docs#quickstart", label: t.nav.guide },
     { href: "/docs", label: t.nav.api },
     { href: "/#faq", label: t.nav.faq },
   ];
@@ -37,7 +40,9 @@ export default async function Navbar() {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 md:flex">
+        {/* Delapan link tidak muat di breakpoint md — nav desktop mulai
+            dari lg, di bawah itu pakai hamburger. */}
+        <nav className="hidden items-center gap-7 lg:flex">
           {NAV_LINKS.map((l) => (
             <Link
               key={l.href}
@@ -50,7 +55,7 @@ export default async function Navbar() {
         </nav>
 
         {/* Desktop: toggle bahasa + tombol auth lengkap */}
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           <LocaleToggle />
           {user ? (
             <>
@@ -109,7 +114,7 @@ export default async function Navbar() {
         </div>
 
         {/* Mobile: satu CTA utama + hamburger (link lain di dalam menu) */}
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-2 lg:hidden">
           <Link
             href={user ? "/dashboard" : "/login"}
             className="border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-sm"

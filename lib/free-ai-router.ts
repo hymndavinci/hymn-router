@@ -32,6 +32,8 @@ export type ChatMessage = {
   content: string;
 };
 
+import { stripThinkBlocks, ThinkStripper } from "./think-strip";
+
 export type ProviderConfig = {
   /** id unik, dipakai di log & status */
   id: string;
@@ -230,6 +232,33 @@ function resolveModel(p: ProviderConfig, opts: { modelOverride?: string }): stri
   return p.id === "openrouter" && opts.modelOverride ? opts.modelOverride : p.model;
 }
 
+/**
+ * Parameter penyembunyian reasoning per provider — HANYA untuk provider
+ * yang mendokumentasikannya (diverifikasi dari dokumentasi resmi,
+ * 2026-11-14). Provider lain tidak dikirimi field ini: server yang ketat
+ * bisa menolak field yang tidak dikenal (HTTP 400).
+ *
+ * - Groq (gpt-oss-120b): `include_reasoning: false`. reasoning_format
+ *   TIDAK didukung gpt-oss (docs Groq tegas soal ini) dan saling
+ *   eksklusif dengan include_reasoning — jangan kirim keduanya.
+ * - NVIDIA (nemotron-3-ultra): `chat_template_kwargs.enable_thinking:
+ *   false` — model menjawab langsung tanpa reasoning (docs model card
+ *   build.nvidia.com; juga memperbaiki respons kosong saat max_tokens
+ *   kecil karena reasoning memakan jatah token).
+ * - OpenRouter: `reasoning: { exclude: true }` — model tetap berpikir
+ *   internal, tapi reasoning tidak dikembalikan (docs OpenRouter).
+ * - Gemini / Mistral / Kilo / LLM7 / Pollinations / OVH: tidak ada
+ *   parameter terdokumentasi — andalkan strip blok <think> di bawah.
+ */
+function reasoningParams(p: ProviderConfig): Record<string, unknown> {
+  if (p.id === "groq") return { include_reasoning: false };
+  if (p.id === "nvidia") {
+    return { chat_template_kwargs: { enable_thinking: false } };
+  }
+  if (p.id === "openrouter") return { reasoning: { exclude: true } };
+  return {};
+}
+
 async function callProvider(
   p: ProviderConfig,
   messages: ChatMessage[],
@@ -250,6 +279,7 @@ async function callProvider(
         messages,
         temperature: opts.temperature ?? 0.7,
         max_tokens: opts.maxTokens ?? 1024,
+        ...reasoningParams(p),
       }),
       signal: controller.signal,
     });
@@ -260,13 +290,15 @@ async function callProvider(
     }
 
     const data = (await res.json()) as {
-      choices?: { message?: { content?: string | null; reasoning?: string } }[];
+      choices?: { message?: { content?: string | null } }[];
       usage?: ChatResult["usage"];
     };
     const choice = data.choices?.[0]?.message;
-    // Beberapa model reasoning (mis. lewat Kilo) mengembalikan reasoning
-    // dan content null — pakai reasoning sebagai fallback terakhir.
-    const content = choice?.content ?? choice?.reasoning ?? "";
+    // HANYA content yang dipakai — field reasoning/reasoning_content
+    // TIDAK PERNAH ditampilkan ke user (itu chain-of-thought internal).
+    // Blok <think> yang bocor ke content dipotong; kalau setelah dipotong
+    // konten jadi kosong, provider dianggap gagal (fallback ke berikutnya).
+    const content = stripThinkBlocks(choice?.content ?? "");
     if (!content) throw new Error("empty response from provider");
     return { content, usage: data.usage };
   } catch (err) {
@@ -402,10 +434,11 @@ function estimateTokens(text: string): number {
 
 type SseChunk = {
   choices?: {
+    // HANYA delta.content yang dibaca — delta.reasoning_content /
+    // delta.reasoning adalah chain-of-thought dan tidak pernah
+    // ditampilkan ke user.
     delta?: {
       content?: string | null;
-      reasoning_content?: string | null;
-      reasoning?: string | null;
     };
     finish_reason?: string | null;
   }[];
@@ -436,18 +469,33 @@ function createSsePump(
   const waiters: ((r: { done: boolean; value?: string }) => void)[] = [];
   let finished = false;
   let idleTimer: ReturnType<typeof setTimeout> | null = null;
+  // Blok <think> yang bocor ke delta dipotong secara streaming (tahan
+  // tag yang terbelah antar chunk).
+  const stripper = new ThinkStripper();
 
   const finish = () => {
     if (finished) return;
+    // Keluarkan sisa buffer stripper SEBELUM menandai selesai, supaya
+    // teks jawaban yang tertahan di akhir stream tidak hilang.
+    const tail = stripper.flush();
+    if (tail) {
+      state.fullText += tail;
+      const w = waiters.shift();
+      if (w) w({ done: false, value: tail });
+      else queue.push(tail);
+    }
     finished = true;
     if (idleTimer) clearTimeout(idleTimer);
     onFinish();
     for (const w of waiters.splice(0)) w({ done: true });
   };
-  const push = (text: string) => {
+  const push = (text: string): string => {
+    const clean = stripper.push(text);
+    if (!clean) return "";
     const w = waiters.shift();
-    if (w) w({ done: false, value: text });
-    else queue.push(text);
+    if (w) w({ done: false, value: clean });
+    else queue.push(clean);
+    return clean;
   };
   const armIdle = () => {
     if (idleTimer) clearTimeout(idleTimer);
@@ -491,11 +539,12 @@ function createSsePump(
           if (!choice) continue;
           if (choice.finish_reason) state.finishReason = choice.finish_reason;
           const delta = choice.delta ?? {};
-          const text =
-            delta.content ?? delta.reasoning_content ?? delta.reasoning ?? "";
+          // HANYA delta.content — reasoning tidak pernah diteruskan.
+          const text = delta.content ?? "";
           if (text) {
-            state.fullText += text;
-            push(text);
+            // fullText mengakumulasi teks BERSIH (setelah strip) supaya
+            // estimasi token & getFullText tidak menghitung reasoning.
+            state.fullText += push(text);
           }
         }
       }
@@ -577,6 +626,7 @@ async function attemptStream(
       temperature: opts.temperature ?? 0.7,
       max_tokens: opts.maxTokens ?? 1024,
       stream: true,
+      ...reasoningParams(p),
     };
     if (INCLUDE_USAGE_PROVIDERS.has(p.id)) {
       body.stream_options = { include_usage: true };
@@ -606,7 +656,7 @@ async function attemptStream(
   // Provider mengabaikan stream:true dan membalas JSON biasa.
   if (!contentType.includes("text/event-stream")) {
     const data = (await res.json().catch(() => null)) as {
-      choices?: { message?: { content?: string | null; reasoning?: string } }[];
+      choices?: { message?: { content?: string | null } }[];
       usage?: ChatResult["usage"];
       error?: { message?: string } | string;
     } | null;
@@ -618,7 +668,9 @@ async function attemptStream(
       );
     }
     const choice = data.choices?.[0]?.message;
-    const content = choice?.content ?? choice?.reasoning ?? "";
+    // Sama seperti callProvider: hanya content, strip blok <think>,
+    // kosong setelah strip = provider gagal (fallback ke berikutnya).
+    const content = stripThinkBlocks(choice?.content ?? "");
     if (!content) throw new Error("empty response from provider");
     state.reportedUsage = data.usage;
     state.finishReason = "stop";

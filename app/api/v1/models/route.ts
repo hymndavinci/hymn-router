@@ -3,11 +3,12 @@
  *
  * id model = model id tiap provider, plus "hymn/auto" untuk router
  * otomatis (fallback chain). Model yang dipakai dua provider
- * (mis. gpt-oss-20b) hanya muncul sekali.
+ * (mis. gpt-oss-20b) hanya muncul sekali. Model gambar (flux / turbo)
+ * ditandai type "image" dan dipakai di /api/v1/images/generations.
  *
  * Field tambahan per item (di luar bentuk OpenAI standar, aman
  * diabaikan client OpenAI): provider, providers (kalau dipakai >1
- * provider), configured, needs_key, free_tier.
+ * provider), configured, needs_key, free_tier, type.
  */
 
 import { NextResponse } from "next/server";
@@ -24,6 +25,8 @@ type ModelItem = {
   configured: boolean;
   needs_key: boolean;
   free_tier: string;
+  /** "chat" untuk /v1/chat/completions, "image" untuk /v1/images/generations */
+  type: "chat" | "image";
 };
 
 export async function GET() {
@@ -40,6 +43,7 @@ export async function GET() {
       configured: anyConfigured,
       needs_key: false,
       free_tier: "Fallback chain 9 provider. Free plan: 100 request/hari per user.",
+      type: "chat",
     },
   ];
 
@@ -62,9 +66,26 @@ export async function GET() {
       configured: !p.needsKey || !!p.apiKey,
       needs_key: p.needsKey,
       free_tier: p.notes,
+      type: "chat",
     };
     seen.set(p.model, item);
     data.push(item);
+  }
+
+  // Model gambar (Pollinations, tanpa key) — endpoint terpisah:
+  // POST /api/v1/images/generations (bukan /chat/completions).
+  for (const id of ["flux", "turbo"] as const) {
+    data.push({
+      id,
+      object: "model",
+      owned_by: "pollinations",
+      provider: "pollinations",
+      configured: true,
+      needs_key: false,
+      free_tier:
+        "Image generation gratis via Pollinations. Ukuran: 1024x1024, 512x512, 1024x1792, 1792x1024. Satu gambar = 1 unit kuota harian.",
+      type: "image",
+    });
   }
   return NextResponse.json({ object: "list", data });
 }

@@ -170,6 +170,55 @@ export default function ModelCatalog({
         </div>
       </section>
 
+      {/* ---- model gambar ---- */}
+      <section>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-[22px] font-black tracking-tight text-black">{t.imageTitle}</h2>
+          <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
+            Pollinations · {t.statusActive}
+          </span>
+        </div>
+        <p className="mt-1 max-w-[720px] text-[14px] leading-relaxed text-muted">
+          {t.imageIntroA}{" "}
+          <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">POST /api/v1/images/generations</code>{" "}
+          {t.imageIntroB}
+        </p>
+        <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {[
+            { id: "flux", desc: t.fluxDesc },
+            { id: "turbo", desc: t.turboDesc },
+          ].map((m, i) => (
+            <Reveal key={m.id} delay={Math.min(i * 50, 150)}>
+              <div className="flex h-full min-w-0 flex-col border-2 border-black bg-white p-5 shadow-brutal-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <h3 className="truncate font-mono text-[14px] font-bold text-black" title={m.id}>
+                      {m.id}
+                    </h3>
+                    <p className="mt-1 font-mono text-[12px] text-muted">
+                      provider: <span className="font-bold text-black">pollinations</span>
+                    </p>
+                  </div>
+                  <StatusBadge configured />
+                </div>
+                <dl className="mt-3 space-y-1.5 font-mono text-[12px] leading-relaxed">
+                  <div className="flex gap-2">
+                    <dt className="shrink-0 text-faint">{t.sizesLabel}</dt>
+                    <dd className="min-w-0 font-bold text-black">1024×1024 · 512×512 · 1024×1792 · 1792×1024</dd>
+                  </div>
+                  <div className="flex gap-2">
+                    <dt className="shrink-0 text-faint">{t.accessLabel}</dt>
+                    <dd className="min-w-0 text-black">{t.noKey}</dd>
+                  </div>
+                </dl>
+                <p className="mt-3 flex-1 text-[13px] leading-relaxed text-muted">{m.desc}</p>
+                <ModelString model={m.id} />
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* ---- model :free OpenRouter ---- */}
       <section>
         <div className="flex flex-wrap items-baseline justify-between gap-2">

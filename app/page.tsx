@@ -99,6 +99,43 @@ export default async function Home() {
         </Reveal>
       </section>
 
+      {/* 3b. Mulai dalam 3 langkah — kuning (panduan pemula, menonjol di atas) */}
+      <section className="border-b-2 border-black bg-yellow">
+        <div className="mx-auto w-full max-w-[1280px] px-6 py-16 lg:px-8 lg:py-20">
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
+            <span className="bg-white px-2 py-1">{h.quickstartEyebrow}</span>
+          </p>
+          <h2 className="mt-4 max-w-[640px] text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-black sm:text-[44px]">
+            {h.quickstartTitle}
+          </h2>
+          <p className="mt-4 max-w-[640px] text-[16px] leading-[1.6] text-black/70">
+            {h.quickstartSub}
+          </p>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {h.quickstartSteps.map((s, i) => {
+              const hrefs = ["/login", "/dashboard", "/chat"];
+              return (
+                <Reveal key={s.n} delay={Math.min(i * 50, 150)}>
+                  <div className="flex h-full min-w-0 flex-col border-2 border-black bg-white p-6 shadow-brutal">
+                    <p className="text-[48px] font-black leading-none tracking-tight text-black">
+                      {s.n}
+                    </p>
+                    <h3 className="mt-3 text-[18px] font-bold text-black">{s.title}</h3>
+                    <p className="mt-2 flex-1 text-[15px] leading-relaxed text-muted">{s.body}</p>
+                    <Link
+                      href={hrefs[i] ?? "/"}
+                      className="btn-press mt-5 inline-block self-start border-2 border-black bg-yellow px-5 py-2.5 text-[14px] font-bold text-black shadow-brutal-sm"
+                    >
+                      {s.cta} →
+                    </Link>
+                  </div>
+                </Reveal>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* 4. Provider — kuning lembut */}
       <section id="provider" className="scroll-mt-16 border-b-2 border-black bg-yellow-soft">
         <div className="mx-auto w-full max-w-[1280px] px-6 py-24 lg:px-8 lg:py-28">

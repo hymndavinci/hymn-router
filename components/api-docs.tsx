@@ -80,13 +80,17 @@ function Section({
   eyebrow,
   title,
   children,
+  id,
+  className,
 }: {
   eyebrow: string;
   title: string;
   children: React.ReactNode;
+  id?: string;
+  className?: string;
 }) {
   return (
-    <Reveal as="section">
+    <Reveal as="section" id={id} className={className}>
       <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
         {eyebrow}
       </p>
@@ -227,9 +231,27 @@ const RESPONSE_JSON = `{
 
 const CURL_STATUS = `curl <domain>/api/ai/chat`;
 
+const IMAGES_CURL = `curl <domain>/api/v1/images/generations \\
+  -H "Authorization: Bearer hr_KEY_ANDA" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "prompt": "seekor kucing oranye duduk di jendela saat hujan",
+    "model": "flux",
+    "size": "1024x1024"
+  }'
+
+# -> { "created": 1794569000, "data": [
+#      { "url": "https://image.pollinations.ai/prompt/...",
+#        "revised_prompt": "seekor kucing oranye...",
+#        "b64_json": "/9j/4AAQSkZJRgABAQ..." } ] }
+# Satu gambar = 1 unit kuota harian. Gambar di atas ~3 MB hanya
+# mengembalikan url (tanpa b64_json).`;
+
 export default function ApiDocs() {
   const { dict } = useLocale();
   const t = dict.docs;
+  // href tiap langkah quickstart (urut dengan kamus quickstartSteps).
+  const quickstartHrefs = ["/login", "/dashboard", "/chat"];
 
   return (
     <div className="flex flex-col gap-12">
@@ -238,6 +260,31 @@ export default function ApiDocs() {
         <code className="font-bold text-muted">&lt;domain&gt;</code>{" "}
         {t.domainNoteB}
       </p>
+
+      <Section
+        eyebrow={t.quickstartEyebrow}
+        title={t.quickstartTitle}
+        id="quickstart"
+        className="scroll-mt-20"
+      >
+        <div className="grid gap-4 md:grid-cols-3">
+          {t.quickstartSteps.map((s, i) => (
+            <div
+              key={s.title}
+              className="flex min-w-0 flex-col border-2 border-black bg-white p-5 shadow-brutal-sm"
+            >
+              <h3 className="text-[16px] font-black text-black">{s.title}</h3>
+              <p className="mt-2 flex-1 text-[14px] leading-relaxed text-muted">{s.body}</p>
+              <a
+                href={quickstartHrefs[i] ?? "/"}
+                className="mt-4 inline-block self-start border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-xs"
+              >
+                {s.cta} →
+              </a>
+            </div>
+          ))}
+        </div>
+      </Section>
 
       <Section eyebrow={t.loginEyebrow} title={t.loginTitle}>
         <InfoCard
@@ -264,6 +311,14 @@ export default function ApiDocs() {
         />
         <CodeBlock title={t.streamCodeTitles[0]} code={V1_STREAM_CURL} />
         <CodeBlock title={t.streamCodeTitles[1]} code={V1_STREAM_PYTHON} />
+      </Section>
+
+      <Section eyebrow={t.imagesEyebrow} title={t.imagesTitle}>
+        <InfoCard
+          title={t.imagesCardTitle}
+          items={t.imagesItems.map((it, i) => renderRich(it, i))}
+        />
+        <CodeBlock title={t.imagesCodeTitles[0]} code={IMAGES_CURL} />
       </Section>
 
       <Section eyebrow={t.errorsEyebrow} title={t.errorsTitle}>

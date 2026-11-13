@@ -21,8 +21,11 @@ export default function MobileMenu({ user }: { user: SessionUser | null }) {
   const LINKS = [
     { href: "/#provider", label: dict.nav.provider },
     { href: "/models", label: dict.nav.models },
+    { href: "/images", label: dict.nav.images },
+    { href: "/status", label: dict.nav.status },
     { href: "/#cara-pakai", label: dict.nav.howto },
     { href: "/chat", label: dict.nav.chat },
+    { href: "/docs#quickstart", label: dict.nav.guide },
     { href: "/docs", label: dict.nav.apiDocs },
     { href: "/dashboard", label: dict.nav.dashboard },
     { href: "/#faq", label: dict.nav.faq },

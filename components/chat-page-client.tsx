@@ -1,6 +1,7 @@
 /**
- * ChatPageClient — halaman /chat: fetch status provider lalu render
- * ChatPlayground. Riwayat chat tetap di localStorage browser.
+ * ChatPageClient — halaman /chat: fetch status provider + status login,
+ * lalu render ChatPlayground. Riwayat chat user login tersimpan di
+ * server (sidebar); user anonim memakai localStorage browser.
  */
 
 "use client";
@@ -14,6 +15,7 @@ export default function ChatPageClient() {
   const { dict } = useLocale();
   const t = dict.chat;
   const [providers, setProviders] = useState<ProviderStatus[] | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -31,6 +33,21 @@ export default function ChatPageClient() {
     return () => clearInterval(timer);
   }, [fetchStatus]);
 
+  // Status login (untuk sidebar riwayat tersimpan). 401 = anonim.
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/auth/me")
+      .then((res) => {
+        if (!cancelled) setLoggedIn(res.ok);
+      })
+      .catch(() => {
+        // Tetap anonim.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const configured = (providers ?? []).filter((p) => p.configured).length;
 
   return (
@@ -46,6 +63,9 @@ export default function ChatPageClient() {
           <p className="mt-2 max-w-[560px] text-[15px] leading-relaxed text-muted">
             {t.sub}
           </p>
+          <p className="mt-3 max-w-[640px] border-2 border-black bg-yellow-soft p-3 text-[14px] leading-relaxed text-black shadow-brutal-sm">
+            {t.tryLiveNote}
+          </p>
         </div>
         <span className="border-2 border-black bg-white px-3.5 py-1.5 font-mono text-[12px] font-bold text-black shadow-brutal-xs">
           {providers === null
@@ -54,7 +74,7 @@ export default function ChatPageClient() {
         </span>
       </div>
       <div className="mt-8">
-        <ChatPlayground providers={providers} />
+        <ChatPlayground providers={providers} loggedIn={loggedIn} />
       </div>
     </div>
   );

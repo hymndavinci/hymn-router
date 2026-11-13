@@ -38,8 +38,23 @@ export default async function Footer() {
               </Link>
             </li>
             <li>
+              <Link href="/images" className="hover:text-blue">
+                {t.nav.images}
+              </Link>
+            </li>
+            <li>
+              <Link href="/status" className="hover:text-blue">
+                {t.nav.status}
+              </Link>
+            </li>
+            <li>
               <Link href="/chat" className="hover:text-blue">
                 {t.nav.chat}
+              </Link>
+            </li>
+            <li>
+              <Link href="/docs#quickstart" className="hover:text-blue">
+                {t.nav.guide}
               </Link>
             </li>
             <li>

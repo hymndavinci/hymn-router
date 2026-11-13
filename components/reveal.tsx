@@ -17,12 +17,15 @@ export default function Reveal({
   delay = 0,
   className = "",
   as = "div",
+  id,
 }: {
   children: React.ReactNode;
   /** transition-delay dalam ms, untuk stagger (maks ~150). */
   delay?: number;
   className?: string;
   as?: RevealTag;
+  /** id anchor (mis. untuk link /docs#quickstart). */
+  id?: string;
 }) {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(false);
@@ -56,6 +59,7 @@ export default function Reveal({
       ref={(el: HTMLElement | null) => {
         ref.current = el;
       }}
+      id={id}
       className={`reveal${visible ? " reveal-visible" : ""}${className ? ` ${className}` : ""}`}
       style={delay > 0 ? { transitionDelay: `${delay}ms` } : undefined}
     >
