@@ -2,10 +2,13 @@
  * POST /api/ai/chat — endpoint chat AI Router gratis.
  * GET  /api/ai/chat — status provider (tanpa key, aman dibuka).
  *
- * Taruh file ini di project Next.js (App Router) lu, mis. portfolio:
- *   app/api/ai/chat/route.ts
- * dan lib-nya di:
- *   lib/free-ai-router.ts
+ * Perilaku anonim tidak berubah: tanpa Authorization, rate limit 20
+ * req/menit per IP (AI_ROUTER_IP_RPM).
+ *
+ * Kalau ada header Authorization: Bearer <API key user>:
+ *   - key valid → request diatribusikan ke user itu, limit 60 req/menit
+ *     per key (AI_ROUTER_KEY_RPM), pemakaian dicatat ke dashboard.
+ *   - key tidak valid → 401 (tidak diam-diam fallback ke anonim).
  *
  * Request:
  *   POST /api/ai/chat
@@ -20,35 +23,24 @@
  *   502 { "error": "all providers failed: ..." }
  *
  * Keamanan:
- * - Semua key hanya dibaca server-side (process.env). Jangan pernah
- *   expose key ke client / NEXT_PUBLIC_*.
- * - Rate limit sederhana per IP (in-memory) supaya kuota gratis tidak
- *   dikuras satu orang. Untuk produksi serius, ganti dengan Upstash
- *   Redis / middleware rate limit.
+ * - Semua key hanya dibaca server-side (process.env / DB hash). Jangan
+ *   pernah expose key ke client / NEXT_PUBLIC_*.
+ * - Rate limit in-memory per proses. Untuk produksi serius, ganti dengan
+ *   Upstash Redis / middleware rate limit.
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { chat, getProviderStatus, type ChatMessage } from "@/lib/free-ai-router";
+import { isDbConfigured } from "@/lib/db";
+import { logUsage, validateApiKey } from "@/lib/api-keys";
+import { rateLimited } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 // Router bisa memakan waktu kalau harus fallback beberapa provider.
 export const maxDuration = 60;
 
-// ---- rate limit per IP (in-memory, per proses server) ----
-const WINDOW_MS = 60_000;
-const MAX_PER_WINDOW = Number(process.env.AI_ROUTER_IP_RPM ?? 20);
-const hits = new Map<string, { count: number; resetAt: number }>();
-
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const h = hits.get(ip);
-  if (!h || h.resetAt <= now) {
-    hits.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return false;
-  }
-  h.count += 1;
-  return h.count > MAX_PER_WINDOW;
-}
+const IP_RPM = Number(process.env.AI_ROUTER_IP_RPM ?? 20);
+const KEY_RPM = Number(process.env.AI_ROUTER_KEY_RPM ?? 60);
 
 function clientIp(req: NextRequest): string {
   return (
@@ -63,12 +55,40 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const ip = clientIp(req);
-  if (rateLimited(ip)) {
-    return NextResponse.json(
-      { error: `rate limited: max ${MAX_PER_WINDOW} requests/minute per IP` },
-      { status: 429 },
-    );
+  // Auth opsional: Bearer key user → limit per key + catat usage.
+  // Bearer yang tidak valid ditolak 401, bukan fallback anonim.
+  const auth = req.headers.get("authorization");
+  const rawKey = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  let keyInfo: { userId: string; keyId: string } | null = null;
+
+  if (rawKey) {
+    if (!isDbConfigured()) {
+      return NextResponse.json(
+        { error: "API key tidak bisa divalidasi — DATABASE_URL belum dikonfigurasi di server." },
+        { status: 401 },
+      );
+    }
+    keyInfo = await validateApiKey(rawKey);
+    if (!keyInfo) {
+      return NextResponse.json(
+        { error: "API key tidak valid atau sudah di-revoke." },
+        { status: 401 },
+      );
+    }
+    if (rateLimited(`key:${keyInfo.keyId}`, KEY_RPM)) {
+      return NextResponse.json(
+        { error: `rate limited: max ${KEY_RPM} requests/minute per API key` },
+        { status: 429 },
+      );
+    }
+  } else {
+    const ip = clientIp(req);
+    if (rateLimited(`ip:${ip}`, IP_RPM)) {
+      return NextResponse.json(
+        { error: `rate limited: max ${IP_RPM} requests/minute per IP` },
+        { status: 429 },
+      );
+    }
   }
 
   let body: unknown;
@@ -113,12 +133,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "maxTokens must be 1–8192" }, { status: 400 });
   }
 
+  const started = Date.now();
   try {
     const result = await chat(messages as ChatMessage[], {
       temperature: temperature as number | undefined,
       maxTokens: maxTokens as number | undefined,
       preferProvider: typeof preferProvider === "string" ? preferProvider : undefined,
     });
+    if (keyInfo) {
+      void logUsage({
+        userId: keyInfo.userId,
+        apiKeyId: keyInfo.keyId,
+        provider: result.provider,
+        model: result.model,
+        promptTokens: result.usage?.prompt_tokens ?? 0,
+        completionTokens: result.usage?.completion_tokens ?? 0,
+        latencyMs: Date.now() - started,
+      });
+    }
     return NextResponse.json(result);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

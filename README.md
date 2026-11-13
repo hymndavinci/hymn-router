@@ -1,25 +1,50 @@
 # Hymn Router
 
-Chat AI lewat **9 endpoint LLM gratis** — satu API, $0. Kalau satu provider kena
-429 / 5xx / timeout, router otomatis fallback ke provider berikutnya.
+Gateway AI **OpenAI-compatible** untuk **9 endpoint LLM gratis** — satu
+API, Rp 0. Login dengan Google, buat API key, tembak dari kode apa pun.
+Kalau satu provider kena 429 / 5xx / timeout, router otomatis fallback ke
+provider berikutnya.
 
-**Tanpa API key pun langsung jalan** lewat Kilo + LLM7 (keyless). Tambah key
-gratis kalau mau kapasitas & model lebih bagus.
+**Tanpa API key pun langsung jalan** lewat Kilo + LLM7 (keyless). Tambah
+key gratis kalau mau kapasitas & model lebih bagus.
+
+Live: **https://hymn-router.vercel.app**
+
+## Arsitektur
+
+```
+client (SDK OpenAI / cURL / fetch)
+        │  POST /api/v1/chat/completions
+        │  Authorization: Bearer hr_...
+        ▼
+Hymn Router (Next.js, Vercel)
+  ├─ validasi API key (hash SHA-256, Neon Postgres)
+  ├─ rate limit 60 req/menit per key
+  ├─ router fallback chain (lib/free-ai-router.ts)
+  └─ catat usage (request, token, provider) ──► dashboard
+        │
+        ▼
+9 provider gratis: Groq → NVIDIA → Gemini → OpenRouter
+→ Mistral → Kilo → LLM7 → Pollinations → OVH
+```
 
 ## Isi web
 
-- **Chat** — playground: pilih provider (Auto = fallback chain) atau paksa satu
-  provider, atur temperature & max tokens, system prompt opsional. Tiap jawaban
-  menunjukkan provider + model + latensi + jejak fallback. Riwayat tersimpan di
-  localStorage browser.
-- **Providers** — status 9 provider: model, limit gratis, request/sukses/error,
-  cooldown, dan link untuk dapat key gratis.
-- **API Docs** — cara pakai endpoint dari luar (curl + JSON).
+- **`/`** — landing page (gaya Dahono): hero + stats, grid provider live,
+  cara pakai + contoh kode, FAQ.
+- **`/chat`** — playground: pilih provider (Auto = fallback chain) atau
+  paksa satu provider, atur temperature & max tokens, system prompt
+  opsional. Tiap jawaban menunjukkan provider + model + latensi + jejak
+  fallback. Riwayat tersimpan di localStorage browser. Anonim, tanpa login.
+- **`/docs`** — dokumentasi API: gateway `/api/v1` + endpoint `/api/ai/chat`.
+- **`/dashboard`** — login Google wajib: ringkasan pemakaian (7 hari,
+  per provider), daftar API key + buat key baru + revoke, quickstart
+  snippet.
 
 ## Endpoint gratis yang dipakai
 
-Diverifikasi live 2026-11-13 (✅ = dites langsung, 📄 = dari dokumentasi resmi
-Okt–Nov 2026).
+Diverifikasi live 2026-11-13 (✅ = dites langsung, 📄 = dari dokumentasi
+resmi Okt–Nov 2026).
 
 | Provider | Model default | Key | Limit gratis | Status |
 |---|---|---|---|---|
@@ -37,6 +62,62 @@ Urutan fallback: Groq → NVIDIA → Gemini → OpenRouter → Mistral → Kilo 
 LLM7 → Pollinations → OVH. Provider ber-key yang key-nya kosong di-skip
 otomatis.
 
+## API
+
+### Gateway v1 (OpenAI-compatible, pakai API key dari dashboard)
+
+```bash
+# daftar model (tanpa auth)
+curl https://hymn-router.vercel.app/api/v1/models
+
+# chat — model bisa "hymn/auto", id provider ("groq"), atau id model
+curl https://hymn-router.vercel.app/api/v1/chat/completions \
+  -H "Authorization: Bearer hr_KEY_LU" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "hymn/auto", "messages": [{"role": "user", "content": "Halo!"}]}'
+```
+
+Response bentuk OpenAI: `{ id, object: "chat.completion", created, model,
+choices: [{ message: { role: "assistant", content }, finish_reason: "stop" }],
+usage }`. Streaming belum didukung (`stream: true` → 400). Rate limit 60
+req/menit per key (`AI_ROUTER_KEY_RPM`).
+
+Pakai OpenAI SDK (Python):
+
+```python
+from openai import OpenAI
+client = OpenAI(
+    api_key="hr_KEY_LU",
+    base_url="https://hymn-router.vercel.app/api/v1",
+)
+res = client.chat.completions.create(
+    model="hymn/auto",
+    messages=[{"role": "user", "content": "Halo!"}],
+)
+```
+
+### Endpoint sederhana /api/ai/chat
+
+```bash
+# status provider
+curl http://localhost:3000/api/ai/chat
+
+# chat anonim (20 req/menit per IP)
+curl -X POST http://localhost:3000/api/ai/chat \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"halo, jawab singkat"}]}'
+
+# chat dengan API key (60 req/menit per key, tercatat di dashboard)
+curl -X POST http://localhost:3000/api/ai/chat \
+  -H "Authorization: Bearer hr_KEY_LU" \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"halo"}]}'
+```
+
+Response sukses: `{ provider, model, content, tried, usage }`. Kalau semua
+provider gagal: 502 + alasan tiap provider. Bearer yang tidak valid → 401
+(tidak diam-diam fallback anonim).
+
 ## Jalankan lokal
 
 ```bash
@@ -51,21 +132,33 @@ Tes provider keyless dari terminal:
 npm run test:keyless
 ```
 
-## API
+### Aktifkan login + dashboard + /v1 (lokal)
+
+Ikuti **[docs/setup.md](docs/setup.md)**: buat Google OAuth client +
+project Neon gratis, isi `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`,
+`SESSION_SECRET`, `DATABASE_URL` di `.env.local`, lalu:
 
 ```bash
-# status provider
-curl http://localhost:3000/api/ai/chat
-
-# chat
-curl -X POST http://localhost:3000/api/ai/chat \
-  -H "Content-Type: application/json" \
-  -d '{"messages":[{"role":"user","content":"halo, jawab singkat"}]}'
+npm run migrate   # buat tabel users, api_keys, usage
 ```
 
-Response sukses: `{ provider, model, content, tried, usage }`. Kalau semua
-provider gagal: 502 + alasan tiap provider. Rate limit default 20 req/menit
-per IP (`AI_ROUTER_IP_RPM`).
+Tanpa 4 variabel itu, login/dashboard/API key tidak aktif — tapi landing,
+playground anonim, dan `/api/ai/chat` tetap jalan normal.
+
+## Environment variable
+
+| Variabel | Wajib? | Keterangan |
+|---|---|---|
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Untuk login | Google Cloud Console → OAuth client ID (Web) |
+| `SESSION_SECRET` | Untuk login | Min 32 karakter acak, penanda session cookie |
+| `DATABASE_URL` | Untuk login/key | Neon Postgres connection string |
+| `GROQ_API_KEY`, `GEMINI_API_KEY`, `NVIDIA_API_KEY`, `OPENROUTER_API_KEY`, `MISTRAL_API_KEY` | Opsional | Key gratis tiap provider (kapasitas lebih besar) |
+| `KILO_API_KEY`, `LLM7_API_KEY` | Opsional | Token opsional untuk limit lebih longgar |
+| `GEMINI_MODEL`, `OPENROUTER_MODEL` | Opsional | Ganti model default |
+| `AI_ROUTER_IP_RPM` | Opsional | Limit anonim per IP (default 20/menit) |
+| `AI_ROUTER_KEY_RPM` | Opsional | Limit per API key (default 60/menit) |
+| `SITE_URL`, `SITE_TITLE` | Opsional | Referer/title untuk OpenRouter |
+| `PORT` | Opsional | Port `npm run start` (default 3000) |
 
 ## Cara dapat key gratis
 
@@ -78,15 +171,12 @@ per IP (`AI_ROUTER_IP_RPM`).
 
 ## Deploy
 
-### Vercel (paling gampang)
+### Vercel (dipakai sekarang — Git-linked, auto-deploy tiap push main)
 
-```bash
-npm i -g vercel
-vercel
-```
-
-Lalu isi env di dashboard Vercel (Project → Settings → Environment Variables).
-`maxDuration` API route diset 60 detik.
+Isi env di dashboard Vercel (Project → Settings → Environment Variables),
+lalu redeploy. `maxDuration` API route diset 60 detik. Jangan lupa
+`npm run migrate` sekali setelah `DATABASE_URL` diisi (dari lokal, dengan
+`DATABASE_URL` yang sama).
 
 ### Railway / VPS
 
@@ -99,8 +189,8 @@ npm run start   # PORT dari env, default 3000
 ### Pterodactyl (Node.js egg)
 
 - Startup: `npm run start` (atau `node node_modules/next/dist/bin/next start -p {{SERVER_PORT}}`)
-- Build dulu sekali: `npm install && npm run build` (bisa lewat startup command
-  sekali jalan, lalu ganti ke start saja)
+- Build dulu sekali: `npm install && npm run build` (bisa lewat startup
+  command sekali jalan, lalu ganti ke start saja)
 - Env di panel: `PORT={{SERVER_PORT}}` + key-key di atas
 - Node 20+
 
@@ -108,26 +198,61 @@ npm run start   # PORT dari env, default 3000
 
 ```
 app/
-  page.tsx                  # header + tabs (Chat / Providers / API Docs)
-  layout.tsx, globals.css   # shell + design tokens (dark, dense, tanpa blur/gradient)
-  api/ai/chat/route.ts      # POST chat (rate limit per IP) + GET status
+  page.tsx                  # landing page (hero, provider, cara pakai, FAQ, CTA)
+  chat/page.tsx             # playground chat
+  docs/page.tsx             # dokumentasi API
+  dashboard/page.tsx        # dashboard (login wajib)
+  auth/error/page.tsx       # pesan error login Google
+  layout.tsx, globals.css   # shell + design tokens (light, Dahono-style)
+  api/
+    ai/chat/route.ts        # POST chat (anonim/IP + Bearer/key) + GET status
+    v1/chat/completions/route.ts   # gateway OpenAI-compatible (Bearer wajib)
+    v1/models/route.ts      # GET daftar model (tanpa auth)
+    auth/google/route.ts    # mulai OAuth Google
+    auth/callback/google/route.ts  # terima code, buat session
+    auth/logout/route.ts    # hapus session
+    auth/me/route.ts        # user yang login
+    dashboard/keys/route.ts # GET daftar key, POST buat key
+    dashboard/keys/[id]/revoke/route.ts
+    dashboard/usage/route.ts
 components/
+  navbar.tsx, footer.tsx    # header (baca session) + footer
+  globe-art.tsx             # motif globe SVG (hero)
+  code-window.tsx           # contoh kode tab cURL/Python/TS
+  faq.tsx                   # accordion FAQ
+  provider-section.tsx      # wrapper grid provider (refresh 30 detik)
   chat-playground.tsx       # playground chat
   providers-panel.tsx       # kartu status provider
-  api-docs.tsx              # dokumentasi endpoint + contoh curl
+  api-docs.tsx              # dokumentasi endpoint + contoh
+  dashboard-client.tsx      # dashboard interaktif (key + usage)
+  chat-page-client.tsx      # halaman /chat
 lib/
   free-ai-router.ts         # fallback chain 9 provider (tanpa dependency)
+  db.ts                     # client Neon (lazy, null kalau belum dikonfigurasi)
+  auth.ts                   # session cookie HMAC-SHA256
+  api-keys.ts               # buat/validasi/revoke key + log usage
+  usage.ts                  # agregasi pemakaian dashboard
+  rate-limit.ts             # fixed-window limiter in-memory
+  site-url.ts               # base URL dari header request
+db/migrations/001_init.sql  # users, api_keys, usage
 scripts/
+  migrate.mjs               # jalankan migrasi (npm run migrate)
   test-keyless.mjs          # tes 4 provider keyless dari terminal
+docs/
+  setup.md                  # setup Google OAuth + Neon + Vercel
 ```
 
 ## Yang perlu lu tahu
 
-- **Free tier berubah-ubah.** Model `:free` OpenRouter median umurnya ~75 hari.
-  Jangan jadikan ini satu-satunya fondasi untuk sesuatu yang kritikal.
-- **Bukan untuk data sensitif.** Prompt di free tier bisa dipakai provider untuk
-  improve produk / di-log. Jangan kirim password, token, atau data pribadi.
+- **Free tier berubah-ubah.** Model `:free` OpenRouter median umurnya ~75
+  hari. Jangan jadikan ini satu-satunya fondasi untuk sesuatu yang kritikal.
+- **Bukan untuk data sensitif.** Prompt di free tier bisa dipakai provider
+  untuk improve produk / di-log. Jangan kirim password, token, atau data
+  pribadi. Server ini tidak menyimpan prompt/response — yang dicatat hanya
+  jumlah request, token, provider, dan latensi.
 - **Batasan ToS.** OpenRouter melarang resell API / bikin layanan kompetitor.
   NVIDIA free endpoint hanya untuk trial/eval, bukan produksi.
-- **Statistik per proses server**, reset saat restart. Untuk histori permanen,
-  simpan log ke database.
+- **Statistik provider per proses server**, reset saat restart. Histori
+  pemakaian per user (dashboard) tersimpan permanen di database.
+- **API key user disimpan sebagai hash SHA-256**, bukan plaintext. Key utuh
+  hanya tampil sekali saat dibuat.
