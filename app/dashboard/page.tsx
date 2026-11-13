@@ -7,7 +7,14 @@
 import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
 import { listApiKeys } from "@/lib/api-keys";
-import { getUsageSummary } from "@/lib/usage";
+import {
+  getDailyUsage,
+  getKeyBreakdown,
+  getModelBreakdown,
+  getRecentRequests,
+  getTodayQuota,
+  getUsageSummary,
+} from "@/lib/usage";
 import { getBaseUrl } from "@/lib/site-url";
 import Navbar from "@/components/navbar";
 import DashboardClient from "@/components/dashboard-client";
@@ -45,13 +52,19 @@ export default async function DashboardPage() {
   const data = await Promise.all([
     listApiKeys(user.id),
     getUsageSummary(user.id, 7),
+    getModelBreakdown(user.id, 7),
+    getDailyUsage(user.id, 7),
+    getRecentRequests(user.id, 15),
+    getKeyBreakdown(user.id, 7),
+    getTodayQuota(user.id),
     getBaseUrl(),
   ]).catch((err) => {
     console.error("[dashboard] gagal memuat data:", err);
     return null;
   });
   if (!data) return <DbErrorView />;
-  const [keys, usage, baseUrl] = data;
+  const [keys, usage, modelUsage, dailyUsage, recent, keyUsage, quota, baseUrl] =
+    data;
 
   return (
     <div className="flex-1">
@@ -60,6 +73,11 @@ export default async function DashboardPage() {
         user={user}
         initialKeys={keys}
         initialUsage={usage}
+        initialModelUsage={modelUsage}
+        initialDailyUsage={dailyUsage}
+        initialRecent={recent}
+        initialKeyUsage={keyUsage}
+        initialQuota={quota}
         baseUrl={baseUrl}
       />
     </div>

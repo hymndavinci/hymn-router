@@ -9,7 +9,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { SessionUser } from "@/lib/auth";
 import type { ApiKeyInfo, CreatedApiKey } from "@/lib/api-keys";
-import type { UsageSummary } from "@/lib/usage";
+import type {
+  DailyQuota,
+  DailyUsage,
+  KeyUsage,
+  ModelUsage,
+  RecentRequest,
+  UsageSummary,
+} from "@/lib/usage";
 
 function fmtDate(iso: string | null): string {
   if (!iso) return "—";
@@ -30,15 +37,77 @@ function fmtDateTime(iso: string | null): string {
   });
 }
 
+/** Label hari untuk grafik harian, mis. "Jum 13". Parse manual supaya
+    tidak bergeser zona waktu (string YYYY-MM-DD diparse sebagai UTC). */
+function fmtDayLabel(date: string): string {
+  const [y, m, d] = date.split("-").map(Number);
+  const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
+  const weekday = dt
+    .toLocaleDateString("id-ID", { weekday: "short" })
+    .replace(".", "");
+  return `${weekday} ${d}`;
+}
+
+/** Bar horizontal reuse untuk breakdown (per provider / per model / per key). */
+function BreakdownRows({
+  rows,
+  totalRequests,
+  barClass,
+}: {
+  rows: { key: string; label: string; sub?: string; requests: number; tokens: number }[];
+  totalRequests: number;
+  barClass: string;
+}) {
+  return (
+    <div className="mt-4 space-y-3">
+      {rows.map((r) => (
+        <div key={r.key} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+          <span className="min-w-0 font-mono text-[13px] font-bold text-muted sm:w-56 sm:shrink-0">
+            <span className="block truncate text-black" title={r.label}>
+              {r.label}
+            </span>
+            {r.sub && (
+              <span className="block truncate text-[11px] font-normal text-faint" title={r.sub}>
+                {r.sub}
+              </span>
+            )}
+          </span>
+          <div className="h-2.5 w-full border border-black bg-neutral-200 sm:w-auto sm:flex-1">
+            <div
+              className={`h-full ${barClass}`}
+              style={{
+                width: `${totalRequests > 0 ? Math.max(4, Math.round((r.requests / totalRequests) * 100)) : 0}%`,
+              }}
+            />
+          </div>
+          <span className="font-mono text-[12px] text-muted sm:w-40 sm:shrink-0 sm:text-right">
+            {r.requests} req · {r.tokens.toLocaleString("id-ID")} token
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function DashboardClient({
   user,
   initialKeys,
   initialUsage,
+  initialModelUsage,
+  initialDailyUsage,
+  initialRecent,
+  initialKeyUsage,
+  initialQuota,
   baseUrl,
 }: {
   user: SessionUser;
   initialKeys: ApiKeyInfo[];
   initialUsage: UsageSummary;
+  initialModelUsage: ModelUsage[];
+  initialDailyUsage: DailyUsage[];
+  initialRecent: RecentRequest[];
+  initialKeyUsage: KeyUsage[];
+  initialQuota: DailyQuota | null;
   baseUrl: string;
 }) {
   const router = useRouter();
@@ -174,6 +243,35 @@ export default function DashboardClient({
         ))}
       </div>
 
+      {/* Kuota harian gratis */}
+      {initialQuota && (
+        <div className="mt-4 border-2 border-black bg-yellow-soft p-5 shadow-brutal-sm">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h2 className="text-[16px] font-black text-black">
+              Kuota harian · Free plan
+            </h2>
+            <span className="font-mono text-[13px] font-bold text-black">
+              {initialQuota.used}/{initialQuota.limit} request hari ini
+            </span>
+          </div>
+          <div className="mt-3 h-3.5 w-full border-2 border-black bg-white">
+            <div
+              className={`h-full ${initialQuota.remaining <= 0 ? "bg-bad" : initialQuota.remaining <= 20 ? "bg-yellow" : "bg-green"}`}
+              style={{
+                width: `${Math.min(100, Math.round((initialQuota.used / initialQuota.limit) * 100))}%`,
+              }}
+            />
+          </div>
+          <p className="mt-2 font-mono text-[12px] leading-relaxed text-muted">
+            {initialQuota.remaining > 0
+              ? `Sisa ${initialQuota.remaining} request. `
+              : "Kuota hari ini habis — request /v1 akan ditolak 429 sampai reset. "}
+            Reset {fmtDateTime(initialQuota.resetsAt)} WIB · berlaku untuk request /v1
+            ber-autentikasi (termasuk /api/ai/chat pakai key).
+          </p>
+        </div>
+      )}
+
       {/* Per provider */}
       <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
         <h2 className="text-[16px] font-black text-black">Per provider</h2>
@@ -206,6 +304,160 @@ export default function DashboardClient({
               </div>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* Per model */}
+      <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+        <h2 className="text-[16px] font-black text-black">Per model</h2>
+        {initialModelUsage.length === 0 ? (
+          <p className="mt-2 text-[14px] text-muted">
+            Belum ada request tercatat dalam {usage.days} hari terakhir.
+          </p>
+        ) : (
+          <BreakdownRows
+            rows={initialModelUsage.map((m) => ({
+              key: `${m.provider}:${m.model}`,
+              label: m.model,
+              sub: m.provider,
+              requests: m.requests,
+              tokens: m.tokens,
+            }))}
+            totalRequests={usage.totalRequests}
+            barClass="bg-green"
+          />
+        )}
+      </div>
+
+      {/* Grafik harian (bar chart CSS murni) */}
+      <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+        <h2 className="text-[16px] font-black text-black">7 hari terakhir</h2>
+        {initialDailyUsage.length === 0 ? (
+          <p className="mt-2 text-[14px] text-muted">Belum ada data harian.</p>
+        ) : (
+          <>
+            <div className="mt-5 flex h-32 items-end gap-2 sm:gap-3">
+              {initialDailyUsage.map((d) => {
+                const max = Math.max(1, ...initialDailyUsage.map((x) => x.requests));
+                const pct = Math.round((d.requests / max) * 100);
+                return (
+                  <div
+                    key={d.date}
+                    className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5"
+                    title={`${d.date}: ${d.requests} request · ${d.tokens.toLocaleString("id-ID")} token`}
+                  >
+                    <span className="font-mono text-[11px] font-bold text-black">
+                      {d.requests > 0 ? d.requests : ""}
+                    </span>
+                    <div
+                      className="w-full max-w-[48px] border-2 border-black bg-yellow"
+                      style={{ height: `${Math.max(d.requests > 0 ? 8 : 2, pct)}%` }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-2 flex gap-2 border-t-2 border-black pt-2 sm:gap-3">
+              {initialDailyUsage.map((d) => (
+                <span
+                  key={d.date}
+                  className="min-w-0 flex-1 text-center font-mono text-[10px] font-bold text-faint sm:text-[11px]"
+                >
+                  {fmtDayLabel(d.date)}
+                </span>
+              ))}
+            </div>
+            <p className="mt-3 font-mono text-[11px] text-faint">
+              Angka di atas bar = jumlah request (WIB). Arahkan kursor ke bar untuk
+              melihat token.
+            </p>
+          </>
+        )}
+      </div>
+
+      {/* Per API key */}
+      <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+        <h2 className="text-[16px] font-black text-black">Per API key</h2>
+        {initialKeyUsage.length === 0 ? (
+          <p className="mt-2 text-[14px] text-muted">
+            Belum ada request tercatat dalam {usage.days} hari terakhir.
+          </p>
+        ) : (
+          <BreakdownRows
+            rows={initialKeyUsage.map((k) => ({
+              key: k.apiKeyId,
+              label: k.keyName ?? "key tanpa nama",
+              sub: k.keyPrefix ? `${k.keyPrefix}…` : undefined,
+              requests: k.requests,
+              tokens: k.tokens,
+            }))}
+            totalRequests={usage.totalRequests}
+            barClass="bg-yellow"
+          />
+        )}
+      </div>
+
+      {/* Request terakhir — kartu di mobile, tabel di sm+ */}
+      <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+        <h2 className="text-[16px] font-black text-black">Request terakhir</h2>
+        {initialRecent.length === 0 ? (
+          <p className="mt-2 text-[14px] text-muted">Belum ada request tercatat.</p>
+        ) : (
+          <>
+            <div className="mt-4 flex flex-col gap-3 sm:hidden">
+              {initialRecent.map((r) => (
+                <div key={r.id} className="border-2 border-black bg-white p-3 shadow-brutal-xs">
+                  <p className="truncate font-mono text-[13px] font-bold text-black" title={r.model}>
+                    {r.model}
+                  </p>
+                  <p className="mt-1 font-mono text-[11px] leading-relaxed text-faint">
+                    {fmtDateTime(r.createdAt)} · {r.provider}
+                  </p>
+                  <p className="mt-1 font-mono text-[11px] text-muted">
+                    {r.tokens.toLocaleString("id-ID")} token ·{" "}
+                    {r.latencyMs !== null ? `${r.latencyMs.toLocaleString("id-ID")} ms` : "—"}
+                    {r.keyName ? ` · key: ${r.keyName}` : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 hidden overflow-x-auto sm:block">
+              <table className="w-full min-w-[640px] text-left text-[14px]">
+                <thead>
+                  <tr className="border-b-2 border-black font-mono text-[11px] uppercase tracking-[0.12em] text-black">
+                    <th className="py-2.5 pr-4 font-bold">Waktu</th>
+                    <th className="py-2.5 pr-4 font-bold">Model</th>
+                    <th className="py-2.5 pr-4 font-bold">Provider</th>
+                    <th className="py-2.5 pr-4 font-bold">Token</th>
+                    <th className="py-2.5 pr-4 font-bold">Latensi</th>
+                    <th className="py-2.5 font-bold">Key</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {initialRecent.map((r) => (
+                    <tr key={r.id} className="border-b border-neutral-300 last:border-0">
+                      <td className="py-3 pr-4 font-mono text-[12px] text-muted">
+                        {fmtDateTime(r.createdAt)}
+                      </td>
+                      <td className="max-w-[220px] truncate py-3 pr-4 font-mono text-[13px] font-bold text-black" title={r.model}>
+                        {r.model}
+                      </td>
+                      <td className="py-3 pr-4 font-mono text-[12px] text-muted">{r.provider}</td>
+                      <td className="py-3 pr-4 font-mono text-[12px] text-muted">
+                        {r.tokens.toLocaleString("id-ID")}
+                      </td>
+                      <td className="py-3 pr-4 font-mono text-[12px] text-muted">
+                        {r.latencyMs !== null ? `${r.latencyMs.toLocaleString("id-ID")} ms` : "—"}
+                      </td>
+                      <td className="py-3 font-mono text-[12px] text-muted">
+                        {r.keyName ?? (r.keyPrefix ? `${r.keyPrefix}…` : "—")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </div>
 
@@ -382,8 +634,12 @@ export default function DashboardClient({
       </div>
       <p className="mt-3 break-words font-mono text-[12px] leading-relaxed text-faint">
         Ganti hr_KEY_LU dengan API key dari tabel di atas. Model juga bisa
-        berupa id provider (mis. &quot;groq&quot;) atau id model dari GET{" "}
-        {baseUrl}/api/v1/models. Streaming belum didukung.
+        berupa id provider (mis. &quot;groq&quot;), id model dari GET{" "}
+        {baseUrl}/api/v1/models, atau model OpenRouter berakhiran &quot;:free&quot;.
+        Streaming didukung: tambah{" "}
+        <code className="bg-yellow-soft px-1 font-bold text-black">&quot;stream&quot;: true</code>{" "}
+        dan baca SSE-nya. Kuota Free plan: 100 request/hari, reset 00:00 WIB.
+        Detail lengkap di /docs.
       </p>
     </div>
   );

@@ -13,14 +13,21 @@
  * Request:
  *   POST /api/ai/chat
  *   { "messages": [{ "role": "user", "content": "halo" }],
- *     "temperature": 0.7, "maxTokens": 1024 }
+ *     "temperature": 0.7, "maxTokens": 1024, "stream": false }
  *
- * Response sukses:
+ * Response sukses (non-stream):
  *   { "provider": "groq", "model": "openai/gpt-oss-120b",
  *     "content": "...", "tried": [], "usage": {...} }
  *
+ * Response sukses (stream:true): SSE OpenAI-compatible (chunk
+ * choices[0].delta, diakhiri [DONE]), diawali satu `event: meta`
+ * berisi { provider, model, tried } untuk playground.
+ *
  * Response gagal (semua provider down):
  *   502 { "error": "all providers failed: ..." }
+ *
+ * Pemakaian (request ber-autentikasi) dicatat ke DB lewat after()
+ * supaya dijamin jalan di serverless.
  *
  * Keamanan:
  * - Semua key hanya dibaca server-side (process.env / DB hash). Jangan
@@ -29,8 +36,15 @@
  *   Upstash Redis / middleware rate limit.
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { chat, getProviderStatus, type ChatMessage } from "@/lib/free-ai-router";
+import { after, NextRequest, NextResponse } from "next/server";
+import {
+  chat,
+  chatStream,
+  getProviderStatus,
+  type ChatMessage,
+  type StreamUsage,
+} from "@/lib/free-ai-router";
+import { buildSseResponse } from "@/lib/sse";
 import { isDbConfigured } from "@/lib/db";
 import { logUsage, validateApiKey } from "@/lib/api-keys";
 import { rateLimited } from "@/lib/rate-limit";
@@ -98,13 +112,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
   }
 
-  const { messages, temperature, maxTokens, preferProvider } = (body ?? {}) as {
+  const { messages, temperature, maxTokens, preferProvider, stream } = (body ?? {}) as {
     messages?: unknown;
     temperature?: unknown;
     maxTokens?: unknown;
     preferProvider?: unknown;
+    stream?: unknown;
   };
 
+  if (stream !== undefined && typeof stream !== "boolean") {
+    return NextResponse.json({ error: "stream harus boolean" }, { status: 400 });
+  }
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > 50) {
     return NextResponse.json(
       { error: "messages must be a non-empty array (max 50)" },
@@ -134,21 +152,63 @@ export async function POST(req: NextRequest) {
   }
 
   const started = Date.now();
-  try {
-    const result = await chat(messages as ChatMessage[], {
-      temperature: temperature as number | undefined,
-      maxTokens: maxTokens as number | undefined,
-      preferProvider: typeof preferProvider === "string" ? preferProvider : undefined,
-    });
-    if (keyInfo) {
-      void logUsage({
-        userId: keyInfo.userId,
-        apiKeyId: keyInfo.keyId,
+  const chatOpts = {
+    temperature: temperature as number | undefined,
+    maxTokens: maxTokens as number | undefined,
+    preferProvider: typeof preferProvider === "string" ? preferProvider : undefined,
+    signal: req.signal,
+  };
+
+  // ---- streaming (SSE, diawali event meta untuk playground) ----
+  if (stream === true) {
+    let result: Awaited<ReturnType<typeof chatStream>>;
+    try {
+      result = await chatStream(messages as ChatMessage[], chatOpts);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      return NextResponse.json({ error: msg }, { status: 502 });
+    }
+    let finalUsage: StreamUsage | undefined;
+    const sseResponse = buildSseResponse(result, {
+      meta: {
         provider: result.provider,
         model: result.model,
-        promptTokens: result.usage?.prompt_tokens ?? 0,
-        completionTokens: result.usage?.completion_tokens ?? 0,
-        latencyMs: Date.now() - started,
+        tried: result.tried,
+      },
+      onFinish: (info) => {
+        finalUsage = info.usage;
+      },
+    });
+    if (keyInfo) {
+      after(async () => {
+        await logUsage({
+          userId: keyInfo.userId,
+          apiKeyId: keyInfo.keyId,
+          provider: result.provider,
+          model: result.model,
+          promptTokens: finalUsage?.promptTokens ?? 0,
+          completionTokens: finalUsage?.completionTokens ?? 0,
+          latencyMs: Date.now() - started,
+        });
+      });
+    }
+    return sseResponse;
+  }
+
+  // ---- non-streaming ----
+  try {
+    const result = await chat(messages as ChatMessage[], chatOpts);
+    if (keyInfo) {
+      after(async () => {
+        await logUsage({
+          userId: keyInfo.userId,
+          apiKeyId: keyInfo.keyId,
+          provider: result.provider,
+          model: result.model,
+          promptTokens: result.usage?.prompt_tokens ?? 0,
+          completionTokens: result.usage?.completion_tokens ?? 0,
+          latencyMs: Date.now() - started,
+        });
       });
     }
     return NextResponse.json(result);

@@ -29,6 +29,8 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
   const [temperature, setTemperature] = useState(0.7);
   const [maxTokens, setMaxTokens] = useState(1024);
   const [sending, setSending] = useState(false);
+  /** true sejak delta pertama stream diterima (sembunyikan "menunggu…"). */
+  const [streaming, setStreaming] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -73,10 +75,14 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
       return;
     }
     if (messages.length > prevCountRef.current || sending) {
-      bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      // Saat stream mengalir, scroll instan (smooth tiap delta bikin lag).
+      bottomRef.current?.scrollIntoView({
+        behavior: streaming ? "auto" : "smooth",
+        block: "end",
+      });
     }
     prevCountRef.current = messages.length;
-  }, [messages, sending, loaded]);
+  }, [messages, sending, streaming, loaded]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -92,6 +98,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
     const history = [...messages, userMsg];
     setMessages(history);
     setSending(true);
+    setStreaming(false);
     setElapsed(0);
 
     const started = Date.now();
@@ -105,16 +112,20 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
         : [];
     for (const m of history) apiMessages.push({ role: m.role, content: m.content });
 
-    try {
+    const baseBody = {
+      messages: apiMessages,
+      temperature,
+      maxTokens,
+      ...(provider !== "auto" ? { preferProvider: provider } : {}),
+    };
+
+    // Fallback non-stream: dipakai kalau streaming gagal SEBELUM token
+    // pertama (mis. server/proxy tidak mendukung SSE).
+    const sendNonStream = async () => {
       const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: apiMessages,
-          temperature,
-          maxTokens,
-          ...(provider !== "auto" ? { preferProvider: provider } : {}),
-        }),
+        body: JSON.stringify(baseBody),
         signal: controller.signal,
       });
       const data = (await res.json()) as {
@@ -125,28 +136,173 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
         error?: string;
       };
       if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
-      const assistantMsg: ChatMsg = {
-        id: uid(),
-        role: "assistant",
-        content: data.content ?? "(respon kosong)",
-        provider: data.provider,
-        model: data.model,
-        latencyMs: Date.now() - started,
-        tried: data.tried,
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-    } catch (err) {
-      if (err instanceof Error && err.name === "AbortError") {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: uid(),
+          role: "assistant",
+          content: data.content ?? "(respon kosong)",
+          provider: data.provider,
+          model: data.model,
+          latencyMs: Date.now() - started,
+          tried: data.tried,
+        },
+      ]);
+    };
+
+    // Pesan asisten diisi token demi token saat stream mengalir.
+    const assistantId = uid();
+    let streamed = false;
+    let meta: { provider?: string; model?: string; tried?: ChatMsg["tried"] } = {};
+
+    const appendDelta = (delta: string) => {
+      if (!streamed) {
+        streamed = true;
+        setStreaming(true);
         setMessages((prev) => [
           ...prev,
-          { id: uid(), role: "assistant", content: "(dihentikan)" },
+          {
+            id: assistantId,
+            role: "assistant",
+            content: delta,
+            provider: meta.provider,
+            model: meta.model,
+            tried: meta.tried,
+          },
         ]);
       } else {
-        setError(err instanceof Error ? err.message : String(err));
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId ? { ...m, content: m.content + delta } : m,
+          ),
+        );
+      }
+    };
+
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...baseBody, stream: true }),
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        // Error validasi / rate limit / semua provider gagal — fallback
+        // non-stream akan mengembalikan error yang sama, jadi langsung
+        // lempar saja.
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? `HTTP ${res.status}`);
+      }
+      const contentType = res.headers.get("content-type") ?? "";
+      if (!contentType.includes("text/event-stream") || !res.body) {
+        // Server membalas JSON (mis. deploy lama belum support stream).
+        await sendNonStream();
+        return;
+      }
+
+      // Parse SSE: event `meta` di awal, lalu chunk delta OpenAI.
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let currentEvent = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (line === "") {
+            currentEvent = "";
+            continue;
+          }
+          if (line.startsWith(":")) continue;
+          if (line.startsWith("event:")) {
+            currentEvent = line.slice(6).trim();
+            continue;
+          }
+          if (!line.startsWith("data:")) continue;
+          const data = line.slice(5).trim();
+          if (data === "[DONE]") continue;
+          let parsed: {
+            provider?: string;
+            model?: string;
+            tried?: ChatMsg["tried"];
+            choices?: { delta?: { content?: string | null } }[];
+          };
+          try {
+            parsed = JSON.parse(data) as typeof parsed;
+          } catch {
+            continue;
+          }
+          if (currentEvent === "meta") {
+            meta = { provider: parsed.provider, model: parsed.model, tried: parsed.tried };
+            continue;
+          }
+          const delta = parsed.choices?.[0]?.delta?.content ?? "";
+          if (delta) appendDelta(delta);
+        }
+      }
+
+      if (streamed) {
+        // Lengkapi metadata + latensi pada pesan yang sudah mengalir.
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? {
+                  ...m,
+                  latencyMs: Date.now() - started,
+                  provider: meta.provider ?? m.provider,
+                  model: meta.model ?? m.model,
+                  tried: meta.tried ?? m.tried,
+                }
+              : m,
+          ),
+        );
+      } else {
+        // Stream selesai tanpa satu pun delta — coba non-stream sekali.
+        await sendNonStream();
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        if (streamed) {
+          // Teks yang sudah terkirim tetap disimpan.
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, content: `${m.content}\n\n(dihentikan)`, latencyMs: Date.now() - started }
+                : m,
+            ),
+          );
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            { id: uid(), role: "assistant", content: "(dihentikan)" },
+          ]);
+        }
+      } else if (!streamed) {
+        // Gagal sebelum token pertama (mis. SSE diblokir proxy): coba
+        // non-stream sekali sebelum menampilkan error.
+        try {
+          await sendNonStream();
+        } catch (err2) {
+          setError(err2 instanceof Error ? err2.message : String(err2));
+        }
+      } else {
+        // Gagal di tengah stream: simpan teks parsial + tandai.
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, content: `${m.content}\n\n(stream terputus)`, latencyMs: Date.now() - started }
+              : m,
+          ),
+        );
       }
     } finally {
       if (timerRef.current) clearInterval(timerRef.current);
       setSending(false);
+      setStreaming(false);
       abortRef.current = null;
     }
   }, [input, sending, messages, systemPrompt, temperature, maxTokens, provider]);
@@ -288,7 +444,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
           </div>
         ))}
 
-        {sending && (
+        {sending && !streaming && (
           <div className="border-2 border-black bg-white px-3 py-2">
             <span className="font-mono text-[11px] font-bold uppercase tracking-wide text-green">
               asisten

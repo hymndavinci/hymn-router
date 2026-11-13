@@ -11,6 +11,7 @@ import MobileMenu from "@/components/mobile-menu";
 
 const NAV_LINKS = [
   { href: "/#provider", label: "Provider" },
+  { href: "/models", label: "Model" },
   { href: "/#cara-pakai", label: "Cara Pakai" },
   { href: "/docs", label: "API" },
   { href: "/#faq", label: "FAQ" },

@@ -32,6 +32,11 @@ export default function Footer() {
               </Link>
             </li>
             <li>
+              <Link href="/models" className="hover:text-blue">
+                Model
+              </Link>
+            </li>
+            <li>
               <Link href="/chat" className="hover:text-blue">
                 Chat
               </Link>
