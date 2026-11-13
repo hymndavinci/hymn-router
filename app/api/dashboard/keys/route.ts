@@ -15,7 +15,10 @@ export const runtime = "nodejs";
 
 function notConfigured() {
   return NextResponse.json(
-    { error: "Database belum dikonfigurasi — isi DATABASE_URL dan jalankan npm run migrate." },
+    {
+      error: "Database belum dikonfigurasi — isi DATABASE_URL dan jalankan npm run migrate.",
+      code: "server_not_configured",
+    },
     { status: 503 },
   );
 }
@@ -23,7 +26,7 @@ function notConfigured() {
 function dbError(err: unknown) {
   console.error("[dashboard/keys] database error:", err);
   return NextResponse.json(
-    { error: "database_error: gagal mengakses database, silakan coba lagi sebentar" },
+    { error: "database_error: gagal mengakses database, silakan coba lagi sebentar", code: "database_error" },
     { status: 503 },
   );
 }
@@ -32,7 +35,8 @@ export async function GET(req: NextRequest) {
   if (!isDbConfigured()) return notConfigured();
   try {
     const user = await getSessionUserFromRequest(req);
-    if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    if (!user)
+      return NextResponse.json({ error: "unauthorized", code: "unauthorized" }, { status: 401 });
     return NextResponse.json({ keys: await listApiKeys(user.id) });
   } catch (err) {
     return dbError(err);
@@ -47,18 +51,19 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     return dbError(err);
   }
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "unauthorized", code: "unauthorized" }, { status: 401 });
 
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
+    return NextResponse.json({ error: "invalid JSON body", code: "invalid_json" }, { status: 400 });
   }
   const name = (body as { name?: unknown })?.name;
   if (typeof name !== "string" || name.trim().length === 0 || name.trim().length > 64) {
     return NextResponse.json(
-      { error: "name wajib diisi (1–64 karakter)" },
+      { error: "name wajib diisi (1–64 karakter)", code: "invalid_name" },
       { status: 400 },
     );
   }

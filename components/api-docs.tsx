@@ -241,7 +241,7 @@ const IMAGES_CURL = `curl <domain>/api/v1/images/generations \\
   }'
 
 # -> { "created": 1794569000, "data": [
-#      { "url": "https://image.pollinations.ai/prompt/...",
+#      { "url": "https://...",
 #        "revised_prompt": "seekor kucing oranye...",
 #        "b64_json": "/9j/4AAQSkZJRgABAQ..." } ] }
 # Satu gambar = 1 unit kuota harian. Gambar di atas ~3 MB hanya

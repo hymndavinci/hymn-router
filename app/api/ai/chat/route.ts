@@ -24,7 +24,11 @@
  * berisi { provider, model, tried } untuk playground.
  *
  * Response gagal (semua provider down):
- *   502 { "error": "all providers failed: ..." }
+ *   502 { "error": "all providers failed: ...", "code": "all_providers_failed" }
+ *
+ * Setiap respons error juga membawa `code` yang stabil (mesin) di samping
+ * `error` (teks manusia, tidak diterjemahkan). Playground memetakan `code`
+ * ke pesan lokal — jangan tampilkan `error` mentah ke pengguna.
  *
  * Pemakaian (request ber-autentikasi) dicatat ke DB lewat after()
  * supaya dijamin jalan di serverless.
@@ -78,20 +82,23 @@ export async function POST(req: NextRequest) {
   if (rawKey) {
     if (!isDbConfigured()) {
       return NextResponse.json(
-        { error: "API key tidak bisa divalidasi — DATABASE_URL belum dikonfigurasi di server." },
+        {
+          error: "API key tidak bisa divalidasi — DATABASE_URL belum dikonfigurasi di server.",
+          code: "server_not_configured",
+        },
         { status: 401 },
       );
     }
     keyInfo = await validateApiKey(rawKey);
     if (!keyInfo) {
       return NextResponse.json(
-        { error: "API key tidak valid atau sudah di-revoke." },
+        { error: "API key tidak valid atau sudah di-revoke.", code: "invalid_key" },
         { status: 401 },
       );
     }
     if (rateLimited(`key:${keyInfo.keyId}`, KEY_RPM)) {
       return NextResponse.json(
-        { error: `rate limited: max ${KEY_RPM} requests/minute per API key` },
+        { error: `rate limited: max ${KEY_RPM} requests/minute per API key`, code: "rate_limited" },
         { status: 429 },
       );
     }
@@ -99,7 +106,7 @@ export async function POST(req: NextRequest) {
     const ip = clientIp(req);
     if (rateLimited(`ip:${ip}`, IP_RPM)) {
       return NextResponse.json(
-        { error: `rate limited: max ${IP_RPM} requests/minute per IP` },
+        { error: `rate limited: max ${IP_RPM} requests/minute per IP`, code: "rate_limited" },
         { status: 429 },
       );
     }
@@ -109,7 +116,7 @@ export async function POST(req: NextRequest) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "invalid JSON body" }, { status: 400 });
+    return NextResponse.json({ error: "invalid JSON body", code: "invalid_json" }, { status: 400 });
   }
 
   const { messages, temperature, maxTokens, preferProvider, stream } = (body ?? {}) as {
@@ -121,11 +128,11 @@ export async function POST(req: NextRequest) {
   };
 
   if (stream !== undefined && typeof stream !== "boolean") {
-    return NextResponse.json({ error: "stream harus boolean" }, { status: 400 });
+    return NextResponse.json({ error: "stream harus boolean", code: "invalid_request" }, { status: 400 });
   }
   if (!Array.isArray(messages) || messages.length === 0 || messages.length > 50) {
     return NextResponse.json(
-      { error: "messages must be a non-empty array (max 50)" },
+      { error: "messages must be a non-empty array (max 50)", code: "invalid_request" },
       { status: 400 },
     );
   }
@@ -139,16 +146,19 @@ export async function POST(req: NextRequest) {
       msg.content.length > 20_000
     ) {
       return NextResponse.json(
-        { error: "each message needs role (system/user/assistant) and content (1–20000 chars)" },
+        {
+          error: "each message needs role (system/user/assistant) and content (1–20000 chars)",
+          code: "invalid_request",
+        },
         { status: 400 },
       );
     }
   }
   if (temperature !== undefined && (typeof temperature !== "number" || temperature < 0 || temperature > 2)) {
-    return NextResponse.json({ error: "temperature must be 0–2" }, { status: 400 });
+    return NextResponse.json({ error: "temperature must be 0–2", code: "invalid_request" }, { status: 400 });
   }
   if (maxTokens !== undefined && (typeof maxTokens !== "number" || maxTokens < 1 || maxTokens > 8192)) {
-    return NextResponse.json({ error: "maxTokens must be 1–8192" }, { status: 400 });
+    return NextResponse.json({ error: "maxTokens must be 1–8192", code: "invalid_request" }, { status: 400 });
   }
 
   const started = Date.now();
@@ -166,7 +176,7 @@ export async function POST(req: NextRequest) {
       result = await chatStream(messages as ChatMessage[], chatOpts);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      return NextResponse.json({ error: msg }, { status: 502 });
+      return NextResponse.json({ error: msg, code: "all_providers_failed" }, { status: 502 });
     }
     let finalUsage: StreamUsage | undefined;
     const sseResponse = buildSseResponse(result, {
@@ -214,6 +224,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(result);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ error: msg }, { status: 502 });
+    return NextResponse.json({ error: msg, code: "all_providers_failed" }, { status: 502 });
   }
 }

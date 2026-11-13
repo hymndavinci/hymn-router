@@ -78,12 +78,12 @@ export async function GET() {
     data.push({
       id,
       object: "model",
-      owned_by: "pollinations",
-      provider: "pollinations",
+      owned_by: "hymn-router",
+      provider: "hymn-router",
       configured: true,
       needs_key: false,
       free_tier:
-        "Image generation gratis via Pollinations. Ukuran: 1024x1024, 512x512, 1024x1792, 1792x1024. Satu gambar = 1 unit kuota harian.",
+        "Image generation gratis. Ukuran: 1024x1024, 512x512, 1024x1792, 1792x1024. Satu gambar = 1 unit kuota harian.",
       type: "image",
     });
   }

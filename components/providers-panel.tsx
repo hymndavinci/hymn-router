@@ -54,9 +54,13 @@ export default function ProvidersPanel({
   const t = dict.providers;
 
   if (error) {
+    // Hanya tampilkan detail mentah kalau netral bahasa ("HTTP 500").
+    // Pesan error jaringan/API (Inggris/Indonesia) tidak ditampilkan.
+    const technical = /^HTTP \d+$/.test(error) ? error : null;
     return (
       <div className="border-2 border-black bg-white p-5 text-[15px] font-medium text-bad shadow-brutal-sm">
-        {t.loadError} <span className="font-mono text-[13px]">{error}</span>
+        {t.loadError}
+        {technical && <span className="font-mono text-[13px]"> {technical}</span>}
         <div className="mt-4">
           <button
             onClick={onRefresh}

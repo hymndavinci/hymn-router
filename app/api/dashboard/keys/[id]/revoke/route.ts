@@ -16,7 +16,10 @@ export async function POST(
 ) {
   if (!isDbConfigured()) {
     return NextResponse.json(
-      { error: "Database belum dikonfigurasi — isi DATABASE_URL dan jalankan npm run migrate." },
+      {
+        error: "Database belum dikonfigurasi — isi DATABASE_URL dan jalankan npm run migrate.",
+        code: "server_not_configured",
+      },
       { status: 503 },
     );
   }
@@ -26,11 +29,12 @@ export async function POST(
   } catch (err) {
     console.error("[dashboard/revoke] database error:", err);
     return NextResponse.json(
-      { error: "database_error: gagal mengakses database, silakan coba lagi sebentar" },
+      { error: "database_error: gagal mengakses database, silakan coba lagi sebentar", code: "database_error" },
       { status: 503 },
     );
   }
-  if (!user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  if (!user)
+    return NextResponse.json({ error: "unauthorized", code: "unauthorized" }, { status: 401 });
   const { id } = await params;
   let ok;
   try {
@@ -38,13 +42,13 @@ export async function POST(
   } catch (err) {
     console.error("[dashboard/revoke] database error:", err);
     return NextResponse.json(
-      { error: "database_error: gagal mengakses database, silakan coba lagi sebentar" },
+      { error: "database_error: gagal mengakses database, silakan coba lagi sebentar", code: "database_error" },
       { status: 503 },
     );
   }
   if (!ok) {
     return NextResponse.json(
-      { error: "key tidak ditemukan, bukan milik Anda, atau sudah di-revoke" },
+      { error: "key tidak ditemukan, bukan milik Anda, atau sudah di-revoke", code: "key_not_found" },
       { status: 404 },
     );
   }

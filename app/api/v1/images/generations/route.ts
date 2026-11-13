@@ -194,7 +194,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: {
-            message: `Pollinations gagal (HTTP ${res.status} ${text.slice(0, 200)})`,
+            message: `Layanan gambar gagal (HTTP ${res.status} ${text.slice(0, 200)})`,
             type: "server_error",
             code: "image_generation_failed",
           },
@@ -207,7 +207,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: {
-            message: "Pollinations mengembalikan respons bukan gambar.",
+            message: "Layanan gambar mengembalikan respons bukan gambar.",
             type: "server_error",
             code: "image_generation_failed",
           },
@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error: {
-            message: `Pollinations timeout setelah ${FETCH_TIMEOUT_MS / 1000} detik.`,
+            message: `Layanan gambar timeout setelah ${FETCH_TIMEOUT_MS / 1000} detik.`,
             type: "server_error",
             code: "image_generation_failed",
           },
@@ -235,11 +235,13 @@ export async function POST(req: NextRequest) {
   }
 
   // 1 unit kuota: dicatat ke tabel usage seperti request chat.
+  // provider dicatat sebagai "image" (bukan nama upstream): sumber
+  // model gambar sengaja tidak ditampilkan di halaman mana pun.
   after(async () => {
     await logUsage({
       userId: keyInfo.userId,
       apiKeyId: keyInfo.keyId,
-      provider: "pollinations",
+      provider: "image",
       model: imageModel,
       promptTokens: 0,
       completionTokens: 0,

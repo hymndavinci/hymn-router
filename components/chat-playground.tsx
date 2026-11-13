@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type { ProviderStatus } from "@/lib/free-ai-router";
+import type { Dict } from "@/lib/i18n";
+import { codedError, errorCode } from "@/lib/api-error";
 import { fill, useLocale } from "@/components/locale-provider";
 import { stripThinkBlocks, ThinkStripper } from "@/lib/think-strip";
 
@@ -57,6 +59,29 @@ type RunCallbacks = {
 };
 
 /**
+ * Petakan error request chat ke pesan lokal. Pesan mentah API sengaja
+ * tidak ditampilkan: teksnya campuran Indonesia/Inggris dan tidak
+ * diterjemahkan (keputusan lama) — `code` stabil yang dipakai.
+ */
+function chatErrorText(err: unknown, t: Dict["chat"]): string {
+  switch (errorCode(err)) {
+    case "rate_limited":
+      return t.rateLimited;
+    case "invalid_key":
+      return t.invalidKey;
+    case "server_not_configured":
+      return t.serverNotConfigured;
+    case "all_providers_failed":
+      return t.allProvidersFailed;
+    case "invalid_json":
+    case "invalid_request":
+      return t.invalidRequest;
+    default:
+      return t.sendFailed;
+  }
+}
+
+/**
  * Satu request chat ke /api/ai/chat (SSE + fallback non-stream).
  * Mengembalikan isi jawaban lengkap + metadata. Melempar Error kalau
  * gagal. Delta yang masuk sudah dipotong blok <think>-nya (jaring
@@ -99,8 +124,9 @@ async function runChatRequest(
       content?: string;
       tried?: { provider: string; error: string }[];
       error?: string;
+      code?: string;
     };
-    if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
+    if (!res.ok) throw codedError(data.error ?? `HTTP ${res.status}`, data.code);
     const content = stripThinkBlocks(data.content ?? "");
     return {
       content,
@@ -117,8 +143,8 @@ async function runChatRequest(
     signal: opts.signal,
   });
   if (!res.ok) {
-    const data = (await res.json().catch(() => ({}))) as { error?: string };
-    throw new Error(data.error ?? `HTTP ${res.status}`);
+    const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string };
+    throw codedError(data.error ?? `HTTP ${res.status}`, data.code);
   }
   const contentType = res.headers.get("content-type") ?? "";
   if (!contentType.includes("text/event-stream") || !res.body) {
@@ -418,10 +444,10 @@ export default function ChatPlayground({
         setActive(id);
         setHistoryOpen(false);
       } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
+        setError(t.historyError);
       }
     },
-    [setActive],
+    [setActive, t],
   );
 
   const deleteConversation = useCallback(
@@ -436,10 +462,10 @@ export default function ChatPlayground({
           setActive(null);
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : String(err));
+        setError(t.deleteFailed);
       }
     },
-    [setActive],
+    [setActive, t],
   );
 
   // ---- kirim (mode normal) ----
@@ -584,7 +610,7 @@ export default function ChatPlayground({
         );
         finalContent = `${finalContent}\n\n${t.streamInterrupted}`;
       } else {
-        setError(err instanceof Error ? err.message : String(err));
+        setError(chatErrorText(err, t));
       }
     } finally {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -674,7 +700,7 @@ export default function ChatPlayground({
         } else {
           updatePanel(side, {
             content: content || t.compareNoAnswer,
-            error: err instanceof Error ? err.message : String(err),
+            error: chatErrorText(err, t),
             done: true,
           });
         }
@@ -1039,7 +1065,7 @@ export default function ChatPlayground({
 
         {error && (
           <div className="border-2 border-black bg-white p-3 text-sm font-medium text-bad shadow-brutal-sm">
-            <span className="font-mono text-[11px] font-bold uppercase tracking-wide">error · </span>
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wide">{t.errorLabel} · </span>
             <span className="break-words font-mono text-xs">{error}</span>
           </div>
         )}

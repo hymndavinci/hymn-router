@@ -17,7 +17,8 @@ import type {
   RecentRequest,
   UsageSummary,
 } from "@/lib/usage";
-import type { Locale } from "@/lib/i18n";
+import type { Dict, Locale } from "@/lib/i18n";
+import { codedError, errorCode } from "@/lib/api-error";
 import { dateLocaleOf, fill, useLocale } from "@/components/locale-provider";
 
 function fmtDate(iso: string | null, locale: Locale): string {
@@ -94,6 +95,31 @@ function BreakdownRows({
   );
 }
 
+/**
+ * Petakan error API key ke pesan lokal. Pesan mentah API sengaja tidak
+ * ditampilkan: teksnya campuran Indonesia/Inggris dan tidak
+ * diterjemahkan (keputusan lama) — `code` stabil yang dipakai.
+ */
+function keyErrorText(
+  err: unknown,
+  t: Dict["dashboard"],
+  action: "create" | "revoke",
+): string {
+  switch (errorCode(err)) {
+    case "invalid_name":
+      return t.keyInvalidName;
+    case "key_not_found":
+      return t.keyNotFound;
+    case "unauthorized":
+      return t.sessionExpired;
+    case "server_not_configured":
+    case "database_error":
+      return t.serverError;
+    default:
+      return action === "create" ? t.keyCreateFailed : t.keyRevokeFailed;
+  }
+}
+
 export default function DashboardClient({
   user,
   loginMethods,
@@ -151,8 +177,8 @@ export default function DashboardClient({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmed }),
       });
-      const data = (await res.json()) as { key?: CreatedApiKey; error?: string };
-      if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
+      const data = (await res.json()) as { key?: CreatedApiKey; error?: string; code?: string };
+      if (!res.ok) throw codedError(data.error ?? `HTTP ${res.status}`, data.code);
       if (data.key) {
         setNewKey(data.key);
         setName("");
@@ -160,7 +186,7 @@ export default function DashboardClient({
         router.refresh();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(keyErrorText(err, t, "create"));
     } finally {
       setCreating(false);
     }
@@ -172,8 +198,8 @@ export default function DashboardClient({
     setError(null);
     try {
       const res = await fetch(`/api/dashboard/keys/${id}/revoke`, { method: "POST" });
-      const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? `HTTP ${res.status}`);
+      const data = (await res.json()) as { error?: string; code?: string };
+      if (!res.ok) throw codedError(data.error ?? `HTTP ${res.status}`, data.code);
       setKeys((prev) =>
         prev.map((k) =>
           k.id === id ? { ...k, revokedAt: new Date().toISOString() } : k,
@@ -181,7 +207,7 @@ export default function DashboardClient({
       );
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(keyErrorText(err, t, "revoke"));
     } finally {
       setRevoking(null);
     }

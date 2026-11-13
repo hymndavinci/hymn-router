@@ -178,7 +178,7 @@ export default function ModelCatalog({
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-[22px] font-black tracking-tight text-black">{t.imageTitle}</h2>
           <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
-            Pollinations · {t.statusActive}
+            {t.statusActive}
           </span>
         </div>
         <p className="mt-1 max-w-[720px] text-[14px] leading-relaxed text-muted">
@@ -198,9 +198,6 @@ export default function ModelCatalog({
                     <h3 className="truncate font-mono text-[14px] font-bold text-black" title={m.id}>
                       {m.id}
                     </h3>
-                    <p className="mt-1 font-mono text-[12px] text-muted">
-                      provider: <span className="font-bold text-black">pollinations</span>
-                    </p>
                   </div>
                   <StatusBadge configured />
                 </div>
@@ -289,7 +286,14 @@ export default function ModelCatalog({
                       {t.contextLabel}: <span className="font-bold">{formatContext(m.contextLength, t, locale)}</span>
                     </p>
                     {m.description && (
-                      <p className="mt-2 flex-1 text-[13px] leading-relaxed text-muted">
+                      // Deskripsi dari katalog OpenRouter (data eksternal,
+                      // selalu Inggris — sama seperti pesan API, tidak
+                      // diterjemahkan). data-external-text menandainya
+                      // untuk language-leak sweep.
+                      <p
+                        data-external-text
+                        className="mt-2 flex-1 text-[13px] leading-relaxed text-muted"
+                      >
                         {m.description.length > 160
                           ? `${m.description.slice(0, 160)}…`
                           : m.description}

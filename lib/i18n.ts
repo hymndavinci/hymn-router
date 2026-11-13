@@ -57,7 +57,7 @@ const id = {
       "Katalog model Hymn Router: model gratis {total} provider + model :free OpenRouter, dengan context window dan limit free tier.",
     imagesTitle: "Gambar — Hymn Router",
     imagesDescription:
-      "Playground image generation gratis Hymn Router: buat gambar dengan Flux atau Turbo dari Pollinations, tanpa login.",
+      "Playground image generation gratis Hymn Router: buat gambar dengan Flux atau Turbo, tanpa login.",
     statusTitle: "Status — Hymn Router",
     statusDescription:
       "Status provider Hymn Router: konfigurasi, request 24 jam terakhir, dan latensi rata-rata.",
@@ -468,11 +468,19 @@ const id = {
       "Mode banding mengirim prompt Anda ke dua model sekaligus — memakai 2 unit kuota per kirim (untuk pengguna yang masuk).",
     compareNoAnswer: "(tidak ada jawaban)",
     saveFailedNote: "Pesan terkirim, tetapi gagal disimpan ke riwayat.",
+    errorLabel: "Kesalahan",
+    sendFailed: "Pesan gagal dikirim — periksa koneksi Anda, lalu coba lagi.",
+    rateLimited: "Terlalu banyak permintaan — mohon tunggu sebentar sebelum mencoba lagi.",
+    invalidKey: "API key tidak valid atau sudah dicabut.",
+    serverNotConfigured: "Layanan belum dikonfigurasi di server.",
+    allProvidersFailed: "Semua provider gagal merespons — silakan coba lagi sebentar.",
+    invalidRequest: "Permintaan tidak valid.",
+    deleteFailed: "Percakapan gagal dihapus.",
   },
   images: {
     badge: "Playground",
     title: "Buat gambar gratis.",
-    sub: "Tulis prompt, pilih model dan ukuran — gambar dibuat langsung oleh Pollinations (Flux / Turbo), tanpa login dan tanpa API key.",
+    sub: "Tulis prompt, pilih model dan ukuran — gambar dibuat langsung (Flux / Turbo), tanpa login dan tanpa API key.",
     promptLabel: "Prompt",
     promptPlaceholder:
       "Jelaskan gambar yang diinginkan, contoh: seekor kucing oranye duduk di jendela saat hujan, gaya lukisan cat air.",
@@ -489,9 +497,9 @@ const id = {
     newImage: "Gambar baru",
     emptyPrompt: "Prompt belum diisi — tulis dulu gambar seperti apa yang Anda inginkan.",
     failed:
-      "Gambar gagal dibuat. Pollinations mungkin sedang sibuk — silakan coba lagi sebentar.",
+      "Gambar gagal dibuat. Layanan gambar mungkin sedang sibuk — silakan coba lagi sebentar.",
     directNote:
-      "Playground ini memanggil Pollinations langsung dari browser Anda. Untuk memakai image generation dari kode, gunakan endpoint /api/v1/images/generations dengan API key — lihat dokumentasi.",
+      "Playground ini membuat gambar langsung dari browser Anda. Untuk memakai image generation dari kode, gunakan endpoint /api/v1/images/generations dengan API key — lihat dokumentasi.",
     loadingImage: "Memuat gambar…",
   },
   status: {
@@ -605,7 +613,7 @@ const id = {
         { t: " (mis. " },
         { c: "google/gemma-4-26b-a4b-it:free" },
         {
-          t: "). Model tidak dikenal → 404. Daftar lengkap (live, bisa berubah) ada di halaman /models.",
+          t: "). Model tidak dikenal → 404. Daftar lengkap (live, bisa berubah) ada di halaman Model.",
         },
       ],
       [
@@ -689,7 +697,7 @@ const id = {
       [
         { t: "Endpoint " },
         { c: "POST /api/v1/images/generations" },
-        { t: " membuat gambar lewat Pollinations (gratis, tanpa key provider). Model: " },
+        { t: " membuat gambar (gratis, tanpa key provider). Model: " },
         { c: "flux" },
         { t: " (kualitas terbaik) atau " },
         { c: "turbo" },
@@ -720,10 +728,10 @@ const id = {
         { t: " sekaligus — gambar di atas ~3 MB hanya mengembalikan url." },
       ],
       [
-        { t: "Satu gambar = 1 unit kuota harian (100 request/hari) dan tercatat di dasbor sebagai provider pollinations. Rate limit: 60 request/menit per key." },
+        { t: "Satu gambar = 1 unit kuota harian (100 request/hari) dan tercatat di dasbor. Rate limit: 60 request/menit per key." },
       ],
       [
-        { t: "Playground /images memanggil Pollinations langsung dari browser (tanpa key) — untuk mencoba prompt tanpa menghabiskan kuota." },
+        { t: "Playground /images membuat gambar langsung dari browser (tanpa key) — untuk mencoba prompt tanpa menghabiskan kuota." },
       ],
     ] as Rich[],
     imagesCodeTitles: ["POST /api/v1/images/generations — cURL"],
@@ -885,7 +893,7 @@ const id = {
     searchAria: "Cari model :free",
     noMatch: "Tidak ada model yang cocok dengan “{q}”.",
     imageTitle: "Model Gambar",
-    imageIntroA: "Model image generation dari Pollinations — dipakai di",
+    imageIntroA: "Model image generation — dipakai di",
     imageIntroB: "dan playground /images. Satu gambar = 1 unit kuota harian.",
     fluxDesc: "Kualitas terbaik, sedikit lebih lambat. Cocok untuk gambar detail.",
     turboDesc: "Paling cepat, kualitas baik. Cocok untuk iterasi cepat.",
@@ -964,6 +972,12 @@ const id = {
       "Anda belum punya API key — tanpa key, gateway /v1 belum bisa dipakai dari kode. Buat satu di bawah (gratis, 1 menit), lalu salin ke kode Anda. Atau coba dulu tanpa key di playground chat.",
     guideCta: "Buat API Key",
     guideChatLink: "Coba chat tanpa key →",
+    keyCreateFailed: "API key gagal dibuat — silakan coba lagi sebentar.",
+    keyRevokeFailed: "API key gagal dicabut — silakan coba lagi sebentar.",
+    keyInvalidName: "Nama key wajib diisi (1–64 karakter).",
+    keyNotFound: "API key tidak ditemukan atau sudah dicabut.",
+    sessionExpired: "Sesi Anda telah berakhir — silakan masuk kembali.",
+    serverError: "Terjadi kesalahan server — silakan coba lagi sebentar.",
   },
   common: {
     copy: "salin",
@@ -996,7 +1010,7 @@ const en: Dict = {
       "Hymn Router model catalog: free models from {total} providers plus OpenRouter :free models, with context windows and free-tier limits.",
     imagesTitle: "Images — Hymn Router",
     imagesDescription:
-      "Hymn Router free image generation playground: create images with Flux or Turbo from Pollinations, no sign-in needed.",
+      "Hymn Router free image generation playground: create images with Flux or Turbo, no sign-in needed.",
     statusTitle: "Status — Hymn Router",
     statusDescription:
       "Hymn Router provider status: configuration, requests in the last 24 hours, and average latency.",
@@ -1410,11 +1424,19 @@ const en: Dict = {
       "Compare mode sends your prompt to two models at once — it uses 2 quota units per send (for signed-in users).",
     compareNoAnswer: "(no answer)",
     saveFailedNote: "Your message was sent, but it could not be saved to history.",
+    errorLabel: "Error",
+    sendFailed: "The message could not be sent — please check your connection and try again.",
+    rateLimited: "Too many requests — please wait a moment before trying again.",
+    invalidKey: "The API key is invalid or has been revoked.",
+    serverNotConfigured: "The service is not configured on the server.",
+    allProvidersFailed: "All providers failed to respond — please try again in a moment.",
+    invalidRequest: "The request is not valid.",
+    deleteFailed: "The conversation could not be deleted.",
   },
   images: {
     badge: "Playground",
     title: "Create free images.",
-    sub: "Write a prompt, pick a model and size — the image is generated directly by Pollinations (Flux / Turbo), with no sign-in and no API key.",
+    sub: "Write a prompt, pick a model and size — the image is generated directly (Flux / Turbo), with no sign-in and no API key.",
     promptLabel: "Prompt",
     promptPlaceholder:
       "Describe the image you want, e.g. an orange cat sitting by a window in the rain, watercolor painting style.",
@@ -1431,9 +1453,9 @@ const en: Dict = {
     newImage: "New image",
     emptyPrompt: "The prompt is empty — please describe the image you want first.",
     failed:
-      "The image could not be generated. Pollinations may be busy — please try again in a moment.",
+      "The image could not be generated. The image service may be busy — please try again in a moment.",
     directNote:
-      "This playground calls Pollinations directly from your browser. To use image generation from code, use the /api/v1/images/generations endpoint with an API key — see the documentation.",
+      "This playground generates images directly from your browser. To use image generation from code, use the /api/v1/images/generations endpoint with an API key — see the documentation.",
     loadingImage: "Loading image…",
   },
   status: {
@@ -1630,7 +1652,7 @@ const en: Dict = {
       [
         { t: "The " },
         { c: "POST /api/v1/images/generations" },
-        { t: " endpoint creates images through Pollinations (free, no provider key). Models: " },
+        { t: " endpoint creates images (free, no provider key). Models: " },
         { c: "flux" },
         { t: " (best quality) or " },
         { c: "turbo" },
@@ -1661,10 +1683,10 @@ const en: Dict = {
         { t: " — images over ~3 MB return only the url." },
       ],
       [
-        { t: "One image = 1 unit of daily quota (100 requests/day) and is recorded in the dashboard as the pollinations provider. Rate limit: 60 requests/minute per key." },
+        { t: "One image = 1 unit of daily quota (100 requests/day) and is recorded in the dashboard. Rate limit: 60 requests/minute per key." },
       ],
       [
-        { t: "The /images playground calls Pollinations directly from the browser (no key) — for trying prompts without spending quota." },
+        { t: "The /images playground generates images directly from the browser (no key) — for trying prompts without spending quota." },
       ],
     ] as Rich[],
     imagesCodeTitles: ["POST /api/v1/images/generations — cURL"],
@@ -1829,7 +1851,7 @@ const en: Dict = {
     searchAria: "Search :free models",
     noMatch: "No models match “{q}”.",
     imageTitle: "Image Models",
-    imageIntroA: "Image generation models from Pollinations — used in",
+    imageIntroA: "Image generation models — used in",
     imageIntroB: "and the /images playground. One image = 1 unit of daily quota.",
     fluxDesc: "Best quality, slightly slower. Good for detailed images.",
     turboDesc: "Fastest, good quality. Good for quick iterations.",
@@ -1907,6 +1929,12 @@ const en: Dict = {
       "You do not have an API key yet — without one, the /v1 gateway cannot be used from code. Create one below (free, 1 minute), then paste it into your code. Or try the chat playground first without a key.",
     guideCta: "Create API Key",
     guideChatLink: "Try the chat without a key →",
+    keyCreateFailed: "The API key could not be created — please try again in a moment.",
+    keyRevokeFailed: "The API key could not be revoked — please try again in a moment.",
+    keyInvalidName: "The key name is required (1–64 characters).",
+    keyNotFound: "The API key was not found or has already been revoked.",
+    sessionExpired: "Your session has ended — please sign in again.",
+    serverError: "A server error occurred — please try again in a moment.",
   },
   common: {
     copy: "copy",
