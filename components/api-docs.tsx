@@ -1,6 +1,6 @@
 /**
  * ApiDocs — dokumentasi lengkap: gateway /api/v1 (OpenAI-compatible)
- * + endpoint sederhana /api/ai/chat. Code window gelap gaya Dahono.
+ * + endpoint sederhana /api/ai/chat. Code window hitam neo-brutalism.
  */
 
 "use client";
@@ -28,7 +28,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={() => void copy()}
-      className="shrink-0 rounded-full border border-line-dark px-3 py-1.5 font-mono text-[12px] text-ondark-muted transition-colors hover:text-ondark"
+      className="shrink-0 border-2 border-white/40 px-3 py-1.5 font-mono text-[12px] font-bold text-ondark-muted transition-colors hover:border-white hover:text-ondark"
     >
       {copied ? "disalin ✓" : "salin"}
     </button>
@@ -37,9 +37,9 @@ function CopyButton({ text }: { text: string }) {
 
 function CodeBlock({ title, code }: { title: string; code: string }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-line-dark bg-dark">
-      <div className="flex items-center justify-between gap-2 border-b border-line-dark px-4 py-2.5">
-        <span className="font-mono text-[12px] text-ondark-muted">{title}</span>
+    <div className="shadow-yellow min-w-0 overflow-hidden border-2 border-black bg-dark shadow-brutal">
+      <div className="flex items-center justify-between gap-2 border-b-2 border-white/25 px-4 py-2.5">
+        <span className="min-w-0 font-mono text-[12px] font-bold text-ondark-muted">{title}</span>
         <CopyButton text={code} />
       </div>
       <pre className="overflow-x-auto p-4 font-mono text-[13px] leading-relaxed text-ondark">
@@ -60,10 +60,10 @@ function Section({
 }) {
   return (
     <section>
-      <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-faint">
+      <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
         {eyebrow}
       </p>
-      <h2 className="mt-2 text-[24px] font-bold leading-tight tracking-tight text-text">
+      <h2 className="mt-2 text-[24px] font-black leading-tight tracking-tight text-black">
         {title}
       </h2>
       <div className="mt-5 flex flex-col gap-4">{children}</div>
@@ -73,9 +73,9 @@ function Section({
 
 function InfoCard({ title, items }: { title: string; items: React.ReactNode[] }) {
   return (
-    <div className="rounded-2xl border border-line bg-panel-2 p-5">
-      <h3 className="text-[16px] font-semibold text-text">{title}</h3>
-      <ul className="mt-3 list-disc space-y-2 pl-5 text-[15px] leading-relaxed text-muted">
+    <div className="border-2 border-black bg-white p-5 shadow-brutal-sm">
+      <h3 className="text-[16px] font-black text-black">{title}</h3>
+      <ul className="mt-3 list-disc space-y-2 break-words pl-5 text-[15px] leading-relaxed text-muted">
         {items.map((it, i) => (
           <li key={i}>{it}</li>
         ))}
@@ -166,7 +166,7 @@ export default function ApiDocs() {
   return (
     <div className="flex flex-col gap-12">
       <p className="-mb-4 font-mono text-[13px] text-faint">
-        Ganti <code className="text-muted">&lt;domain&gt;</code> dengan domain
+        Ganti <code className="font-bold text-muted">&lt;domain&gt;</code> dengan domain
         deploy lu, mis. https://hymn-router.vercel.app
       </p>
 
@@ -176,7 +176,7 @@ export default function ApiDocs() {
           items={[
             <>
               Satu gateway{" "}
-              <code className="font-mono text-[13px] text-text">
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 POST /api/v1/chat/completions
               </code>{" "}
               dengan format request/response OpenAI. SDK OpenAI, cURL, dan
@@ -184,24 +184,24 @@ export default function ApiDocs() {
             </>,
             <>
               Wajib header{" "}
-              <code className="font-mono text-[13px] text-text">
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 Authorization: Bearer hr_...
               </code>{" "}
               dengan API key dari dashboard. Tanpa key / key tidak valid → 401.
             </>,
             <>
-              <code className="font-mono text-[13px] text-text">model</code>{" "}
-              bisa <code className="font-mono text-[13px] text-text">hymn/auto</code>{" "}
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">model</code>{" "}
+              bisa <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">hymn/auto</code>{" "}
               (default, fallback chain penuh), id provider (mis.{" "}
-              <code className="font-mono text-[13px] text-text">groq</code>),
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">groq</code>),
               atau id model (mis.{" "}
-              <code className="font-mono text-[13px] text-text">
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 openai/gpt-oss-120b
               </code>
               ). Model tidak dikenal → 404.
             </>,
             <>
-              <code className="font-mono text-[13px] text-text">stream: true</code>{" "}
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">stream: true</code>{" "}
               belum didukung → 400. Respons selalu dikirim sekaligus.
             </>,
             <>
@@ -225,7 +225,7 @@ export default function ApiDocs() {
           items={[
             <>
               Endpoint sederhana{" "}
-              <code className="font-mono text-[13px] text-text">
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 POST /api/ai/chat
               </code>{" "}
               menembak 9 provider gratis (Groq, NVIDIA, Gemini, OpenRouter,
@@ -234,7 +234,7 @@ export default function ApiDocs() {
             </>,
             <>
               Anonim: rate limit 20 request/menit per IP. Dengan header{" "}
-              <code className="font-mono text-[13px] text-text">
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 Authorization: Bearer hr_...
               </code>
               : limit 60/menit per key + pemakaian tercatat di dashboard.
@@ -269,9 +269,9 @@ export default function ApiDocs() {
           items={[
             <>
               Free tier berubah-ubah: model{" "}
-              <code className="font-mono text-[13px] text-text">:free</code>{" "}
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">:free</code>{" "}
               OpenRouter bisa hilang / jadi berbayar sewaktu-waktu. Cek{" "}
-              <code className="font-mono text-[13px] text-text">
+              <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">
                 https://openrouter.ai/api/v1/models
               </code>{" "}
               kalau ada model yang 404.

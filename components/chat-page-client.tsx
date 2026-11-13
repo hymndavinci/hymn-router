@@ -34,10 +34,10 @@ export default function ChatPageClient() {
     <div className="mx-auto w-full max-w-[1280px] px-6 py-10 lg:px-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-faint">
-            Playground
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
+            <span className="bg-blue px-2 py-1 text-white">Playground</span>
           </p>
-          <h1 className="mt-2 text-[32px] font-bold leading-tight tracking-tight text-text">
+          <h1 className="mt-3 text-[32px] font-black leading-tight tracking-tight text-black">
             Coba router-nya langsung.
           </h1>
           <p className="mt-2 max-w-[560px] text-[15px] leading-relaxed text-muted">
@@ -45,7 +45,7 @@ export default function ChatPageClient() {
             login dan pakai API key untuk limit 60/menit.
           </p>
         </div>
-        <span className="rounded-full border border-line-2 bg-panel-2 px-3.5 py-1.5 font-mono text-[12px] text-muted">
+        <span className="border-2 border-black bg-white px-3.5 py-1.5 font-mono text-[12px] font-bold text-black shadow-brutal-xs">
           {providers === null
             ? "memuat status…"
             : `${configured}/${providers.length} provider aktif`}

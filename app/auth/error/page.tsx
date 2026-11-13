@@ -77,23 +77,23 @@ export default async function AuthErrorPage({
     <div className="flex-1">
       <Navbar />
       <div className="mx-auto w-full max-w-[640px] px-6 py-20">
-        <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-faint">
-          Login Google
+        <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
+          <span className="bg-yellow px-2 py-1">Login Google</span>
         </p>
-        <h1 className="mt-3 text-[32px] font-bold leading-tight tracking-tight text-text">
+        <h1 className="mt-4 text-[32px] font-black leading-tight tracking-tight text-black">
           {msg.title}
         </h1>
         <p className="mt-3 text-[16px] leading-relaxed text-muted">{msg.body}</p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href="/api/auth/google"
-            className="rounded-full bg-dark px-6 py-3 text-[15px] font-medium text-white transition-opacity hover:opacity-85"
+            className="btn-press border-2 border-black bg-yellow px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
           >
             Coba login lagi
           </Link>
           <Link
             href="/"
-            className="rounded-full border border-line-2 bg-panel-2 px-6 py-3 text-[15px] font-medium text-text transition-colors hover:border-faint"
+            className="btn-press border-2 border-black bg-white px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
           >
             Kembali ke beranda
           </Link>

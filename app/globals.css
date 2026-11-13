@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 /*
- * Hymn Router — design tokens, gaya Dahono (dhn.ai.id).
- * Light, monochrome editorial. Tanpa gradient dekoratif, tanpa blur,
- * tanpa animated background.
+ * Hymn Router — NEO-BRUTALISM: kuning / putih / hijau / biru / hitam.
+ * Flat, border hitam tebal, hard shadow offset tanpa blur, sudut tajam.
+ * Tanpa gradient, tanpa blur, tanpa backdrop-filter, tanpa animasi latar.
  */
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
@@ -11,30 +11,78 @@
   --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo,
     Consolas, "Liberation Mono", monospace;
 
-  /* Light */
-  --color-bg: #f4f2ed;
-  --color-panel: #ebe7df;
+  /* Dasar: putih */
+  --color-bg: #ffffff;
+  --color-panel: #ffffff;
   --color-panel-2: #ffffff;
-  --color-beige: #ebe0c4;
-  --color-line: #dddad1;
-  --color-line-2: #c9c5b8;
-  --color-text: #0c0c0c;
-  --color-muted: #55544e;
-  --color-faint: #8a867c;
+  --color-beige: #ffdc00;
 
-  /* Dark section */
+  /* Aksen */
+  --color-yellow: #ffdc00;
+  --color-yellow-soft: #fff6ad;
+  --color-green: #00c853;
+  --color-green-soft: #dcfce7;
+  --color-blue: #2563eb;
+  --color-blue-soft: #dbeafe;
+
+  /* Border & teks: hitam pekat */
+  --color-line: #0c0c0c;
+  --color-line-2: #0c0c0c;
+  --color-text: #0c0c0c;
+  --color-muted: #4a4a4a;
+  --color-faint: #767676;
+
+  /* Section gelap */
   --color-dark: #0c0c0c;
   --color-dark-panel: #171717;
   --color-ondark: #ffffff;
-  --color-ondark-muted: #a8a8a8;
-  --color-line-dark: rgba(255, 255, 255, 0.12);
+  --color-ondark-muted: #b5b5b5;
+  --color-line-dark: rgba(255, 255, 255, 0.3);
 
-  /* Aksen = hitam (primary pill), status tetap hijau/kuning/merah */
-  --color-accent: #0c0c0c;
-  --color-accent-dim: #0c0c0c;
-  --color-ok: #15803d;
+  /* Aksen fungsional */
+  --color-accent: #2563eb;
+  --color-accent-dim: #2563eb;
+  --color-ok: #00c853;
   --color-warn: #b45309;
   --color-bad: #dc2626;
+}
+
+/*
+ * Hard shadow tanpa blur. Warna shadow lewat --brutal-shadow
+ * (default hitam); .shadow-yellow / .shadow-green / .shadow-white
+ * mengubahnya — berguna untuk tombol di atas section gelap.
+ */
+@utility shadow-brutal {
+  box-shadow: 5px 5px 0 0 var(--brutal-shadow, #000);
+}
+@utility shadow-brutal-sm {
+  box-shadow: 3px 3px 0 0 var(--brutal-shadow, #000);
+}
+@utility shadow-brutal-xs {
+  box-shadow: 2px 2px 0 0 var(--brutal-shadow, #000);
+}
+
+.shadow-yellow {
+  --brutal-shadow: #ffdc00;
+}
+.shadow-green {
+  --brutal-shadow: #00c853;
+}
+.shadow-white {
+  --brutal-shadow: #fff;
+}
+
+/* Efek tombol "ditekan": geser ke arah shadow, shadow mengecil. */
+.btn-press {
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+.btn-press:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 0 var(--brutal-shadow, #000);
+}
+.btn-press:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 var(--brutal-shadow, #000);
 }
 
 html {
@@ -47,25 +95,31 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  /*
+   * Pengaman: konten yang sedikit lebih lebar dari viewport tidak boleh
+   * membuat seluruh halaman bisa di-scroll horizontal di mobile. `clip`
+   * (bukan `hidden`) supaya navbar sticky tetap jalan — clip tidak
+   * membuat scroll container.
+   */
+  overflow-x: clip;
 }
 
 /* Scrollbar tipis, senada tema */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-line-2) transparent;
+  scrollbar-color: #0c0c0c transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: var(--color-line-2);
-  border-radius: 4px;
+  background: #0c0c0c;
 }
 
 ::selection {
-  background: var(--color-dark);
-  color: #fff;
+  background: #ffdc00;
+  color: #0c0c0c;
 }
 
 /* Kursor berkedip untuk status "mengetik" */

@@ -135,19 +135,19 @@ export default function DashboardClient({
           <img
             src={user.avatarUrl}
             alt=""
-            className="h-12 w-12 rounded-full object-cover"
+            className="h-12 w-12 rounded-full border-2 border-black object-cover"
             referrerPolicy="no-referrer"
           />
         ) : (
-          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-dark text-[18px] font-semibold text-white">
+          <span className="flex h-12 w-12 items-center justify-center border-2 border-black bg-yellow text-[18px] font-black text-black">
             {(user.name ?? user.email).slice(0, 1).toUpperCase()}
           </span>
         )}
-        <div>
-          <h1 className="text-[28px] font-bold leading-tight tracking-tight text-text">
+        <div className="min-w-0">
+          <h1 className="text-[28px] font-black leading-tight tracking-tight text-black">
             Halo, {user.name ?? "di sana"}
           </h1>
-          <p className="font-mono text-[13px] text-muted">{user.email}</p>
+          <p className="break-all font-mono text-[13px] text-muted">{user.email}</p>
         </div>
       </div>
 
@@ -165,37 +165,42 @@ export default function DashboardClient({
             l: "token completion",
           },
         ].map((s) => (
-          <div key={s.l} className="rounded-2xl border border-line bg-panel-2 p-5">
-            <p className="text-[28px] font-bold leading-none tracking-tight text-text">
+          <div key={s.l} className="border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
+            <p className="break-words text-[28px] font-black leading-none tracking-tight text-black">
               {s.v}
             </p>
-            <p className="mt-2 font-mono text-[11px] text-faint">{s.l}</p>
+            <p className="mt-2 font-mono text-[11px] font-bold text-faint">{s.l}</p>
           </div>
         ))}
       </div>
 
       {/* Per provider */}
-      <div className="mt-4 rounded-2xl border border-line bg-panel-2 p-5">
-        <h2 className="text-[16px] font-semibold text-text">Per provider</h2>
+      <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+        <h2 className="text-[16px] font-black text-black">Per provider</h2>
         {usage.byProvider.length === 0 ? (
           <p className="mt-2 text-[14px] text-muted">
             Belum ada request tercatat dalam {usage.days} hari terakhir. Buat
             API key di bawah dan kirim request pertama lu.
           </p>
         ) : (
-          <div className="mt-4 space-y-2.5">
+          <div className="mt-4 space-y-3">
             {usage.byProvider.map((p) => (
-              <div key={p.provider} className="flex items-center gap-3">
-                <span className="w-24 font-mono text-[13px] text-muted">{p.provider}</span>
-                <div className="h-2 flex-1 rounded-full bg-panel">
+              <div
+                key={p.provider}
+                className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3"
+              >
+                <span className="font-mono text-[13px] font-bold text-muted sm:w-24 sm:shrink-0">
+                  {p.provider}
+                </span>
+                <div className="h-2.5 w-full border border-black bg-neutral-200 sm:w-auto sm:flex-1">
                   <div
-                    className="h-2 rounded-full bg-dark"
+                    className="h-full bg-blue"
                     style={{
                       width: `${Math.max(4, Math.round((p.requests / usage.totalRequests) * 100))}%`,
                     }}
                   />
                 </div>
-                <span className="w-40 text-right font-mono text-[12px] text-muted">
+                <span className="font-mono text-[12px] text-muted sm:w-40 sm:shrink-0 sm:text-right">
                   {p.requests} req · {p.tokens.toLocaleString("id-ID")} token
                 </span>
               </div>
@@ -205,12 +210,12 @@ export default function DashboardClient({
       </div>
 
       {/* API keys */}
-      <div className="mt-8 rounded-2xl border border-line bg-panel-2 p-5 sm:p-6">
+      <div className="mt-8 border-2 border-black bg-white p-5 shadow-brutal-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-[16px] font-semibold text-text">
-            API key <span className="font-mono text-[13px] font-normal text-faint">· {activeKeys} aktif</span>
+          <h2 className="text-[16px] font-black text-black">
+            API key <span className="font-mono text-[13px] font-bold text-faint">· {activeKeys} aktif</span>
           </h2>
-          <p className="font-mono text-[12px] text-faint">
+          <p className="font-mono text-[12px] font-bold text-faint">
             limit 60 req/menit per key
           </p>
         </div>
@@ -225,36 +230,36 @@ export default function DashboardClient({
             }}
             placeholder="Nama key, mis. bot-discord"
             maxLength={64}
-            className="h-11 flex-1 rounded-full border border-line-2 bg-bg px-4 text-[14px] text-text outline-none placeholder:text-faint focus:border-text"
+            className="h-11 flex-1 border-2 border-black bg-white px-4 text-[16px] text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] sm:text-[14px]"
           />
           <button
             onClick={() => void createKey()}
             disabled={!name.trim() || creating}
-            className="h-11 rounded-full bg-dark px-6 text-[14px] font-medium text-white transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
+            className="btn-press h-11 border-2 border-black bg-yellow px-6 text-[14px] font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-40"
           >
             {creating ? "Membuat…" : "Buat key baru"}
           </button>
         </div>
 
         {error && (
-          <p className="mt-3 rounded-xl border border-bad/40 bg-panel px-4 py-3 text-[14px] text-bad">
+          <p className="mt-3 break-words border-2 border-black bg-white px-4 py-3 text-[14px] font-medium text-bad">
             {error}
           </p>
         )}
 
         {/* Key baru — tampil sekali */}
         {newKey && (
-          <div className="mt-4 rounded-xl border border-warn/50 bg-beige/60 p-4">
-            <p className="text-[14px] font-semibold text-text">
+          <div className="mt-4 border-2 border-black bg-yellow p-4 shadow-brutal-sm">
+            <p className="text-[14px] font-bold text-black">
               Salin key ini sekarang — tidak bisa dilihat lagi sesudahnya.
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <code className="flex-1 break-all rounded-lg border border-line-2 bg-panel-2 px-3 py-2.5 font-mono text-[13px] text-text">
+              <code className="flex-1 break-all border-2 border-black bg-white px-3 py-2.5 font-mono text-[13px] font-bold text-black">
                 {newKey.key}
               </code>
               <button
                 onClick={() => void copy(newKey.key)}
-                className="h-10 shrink-0 rounded-full bg-dark px-5 text-[13px] font-medium text-white transition-opacity hover:opacity-85"
+                className="btn-press h-10 shrink-0 border-2 border-black bg-black px-5 text-[13px] font-bold text-white shadow-brutal-sm"
               >
                 {copied ? "disalin ✓" : "Salin key"}
               </button>
@@ -262,71 +267,108 @@ export default function DashboardClient({
           </div>
         )}
 
-        {/* Daftar key */}
-        <div className="mt-5 overflow-x-auto">
-          {keys.length === 0 ? (
-            <p className="py-4 text-[14px] text-muted">
-              Belum ada API key. Buat satu di atas untuk mulai memakai gateway.
-            </p>
-          ) : (
-            <table className="w-full min-w-[640px] text-left text-[14px]">
-              <thead>
-                <tr className="border-b border-line font-mono text-[11px] uppercase tracking-[0.12em] text-faint">
-                  <th className="py-2.5 pr-4 font-medium">Key</th>
-                  <th className="py-2.5 pr-4 font-medium">Nama</th>
-                  <th className="py-2.5 pr-4 font-medium">Dibuat</th>
-                  <th className="py-2.5 pr-4 font-medium">Terakhir dipakai</th>
-                  <th className="py-2.5 pr-4 font-medium">Status</th>
-                  <th className="py-2.5 font-medium" />
-                </tr>
-              </thead>
-              <tbody>
-                {keys.map((k) => (
-                  <tr key={k.id} className="border-b border-line last:border-0">
-                    <td className="py-3 pr-4 font-mono text-[13px] text-text">
+        {/* Daftar key — kartu di mobile, tabel di sm+ (tabel 640px tidak
+            muat di layar HP dan memaksa scroll horizontal untuk revoke). */}
+        {keys.length === 0 ? (
+          <p className="mt-5 py-4 text-[14px] text-muted">
+            Belum ada API key. Buat satu di atas untuk mulai memakai gateway.
+          </p>
+        ) : (
+          <>
+            <div className="mt-5 flex flex-col gap-3 sm:hidden">
+              {keys.map((k) => (
+                <div key={k.id} className="border-2 border-black bg-white p-4 shadow-brutal-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[13px] font-bold text-black">
                       {k.prefix}…
-                    </td>
-                    <td className="py-3 pr-4 text-muted">{k.name}</td>
-                    <td className="py-3 pr-4 font-mono text-[12px] text-muted">
-                      {fmtDate(k.createdAt)}
-                    </td>
-                    <td className="py-3 pr-4 font-mono text-[12px] text-muted">
-                      {fmtDateTime(k.lastUsedAt)}
-                    </td>
-                    <td className="py-3 pr-4">
-                      {k.revokedAt ? (
-                        <span className="rounded-full border border-line-2 px-2.5 py-1 font-mono text-[11px] text-faint">
-                          revoked
-                        </span>
-                      ) : (
-                        <span className="rounded-full border border-ok/40 px-2.5 py-1 font-mono text-[11px] text-ok">
-                          aktif
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 text-right">
-                      {!k.revokedAt && (
-                        <button
-                          onClick={() => void revokeKey(k.id)}
-                          disabled={revoking === k.id}
-                          className="rounded-full border border-bad/40 px-3.5 py-1.5 font-mono text-[12px] text-bad transition-colors hover:bg-bad hover:text-white disabled:opacity-50"
-                        >
-                          {revoking === k.id ? "…" : "Revoke"}
-                        </button>
-                      )}
-                    </td>
+                    </span>
+                    {k.revokedAt ? (
+                      <span className="shrink-0 border-2 border-black bg-white px-2.5 py-1 font-mono text-[11px] font-bold text-faint">
+                        revoked
+                      </span>
+                    ) : (
+                      <span className="shrink-0 border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
+                        aktif
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1.5 break-words text-[14px] font-medium text-muted">{k.name}</p>
+                  <p className="mt-1 font-mono text-[11px] leading-relaxed text-faint">
+                    Dibuat {fmtDate(k.createdAt)} · Terakhir dipakai{" "}
+                    {fmtDateTime(k.lastUsedAt)}
+                  </p>
+                  {!k.revokedAt && (
+                    <button
+                      onClick={() => void revokeKey(k.id)}
+                      disabled={revoking === k.id}
+                      className="mt-3 h-9 border-2 border-bad bg-white px-4 font-mono text-[12px] font-bold text-bad hover:bg-bad hover:text-white disabled:opacity-50"
+                    >
+                      {revoking === k.id ? "…" : "Revoke"}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 hidden overflow-x-auto sm:block">
+              <table className="w-full min-w-[640px] text-left text-[14px]">
+                <thead>
+                  <tr className="border-b-2 border-black font-mono text-[11px] uppercase tracking-[0.12em] text-black">
+                    <th className="py-2.5 pr-4 font-bold">Key</th>
+                    <th className="py-2.5 pr-4 font-bold">Nama</th>
+                    <th className="py-2.5 pr-4 font-bold">Dibuat</th>
+                    <th className="py-2.5 pr-4 font-bold">Terakhir dipakai</th>
+                    <th className="py-2.5 pr-4 font-bold">Status</th>
+                    <th className="py-2.5 font-bold" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+                </thead>
+                <tbody>
+                  {keys.map((k) => (
+                    <tr key={k.id} className="border-b border-neutral-300 last:border-0">
+                      <td className="py-3 pr-4 font-mono text-[13px] font-bold text-black">
+                        {k.prefix}…
+                      </td>
+                      <td className="py-3 pr-4 font-medium text-muted">{k.name}</td>
+                      <td className="py-3 pr-4 font-mono text-[12px] text-muted">
+                        {fmtDate(k.createdAt)}
+                      </td>
+                      <td className="py-3 pr-4 font-mono text-[12px] text-muted">
+                        {fmtDateTime(k.lastUsedAt)}
+                      </td>
+                      <td className="py-3 pr-4">
+                        {k.revokedAt ? (
+                          <span className="border-2 border-black bg-white px-2.5 py-1 font-mono text-[11px] font-bold text-faint">
+                            revoked
+                          </span>
+                        ) : (
+                          <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
+                            aktif
+                          </span>
+                        )}
+                      </td>
+                      <td className="py-3 text-right">
+                        {!k.revokedAt && (
+                          <button
+                            onClick={() => void revokeKey(k.id)}
+                            disabled={revoking === k.id}
+                            className="border-2 border-bad bg-white px-3.5 py-1.5 font-mono text-[12px] font-bold text-bad hover:bg-bad hover:text-white disabled:opacity-50"
+                          >
+                            {revoking === k.id ? "…" : "Revoke"}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Quickstart */}
-      <div className="mt-4 overflow-hidden rounded-2xl border border-line bg-dark text-ondark">
-        <div className="border-b border-line-dark px-5 py-3.5">
-          <span className="font-mono text-[12px] text-ondark-muted">
+      <div className="shadow-yellow mt-4 overflow-hidden border-2 border-black bg-dark text-ondark shadow-brutal">
+        <div className="border-b-2 border-white/25 px-5 py-3.5">
+          <span className="font-mono text-[12px] font-bold text-ondark-muted">
             quickstart — cURL
           </span>
         </div>
@@ -338,7 +380,7 @@ export default function DashboardClient({
        "messages": [{"role": "user", "content": "Halo!"}]}'`}
         </pre>
       </div>
-      <p className="mt-3 font-mono text-[12px] leading-relaxed text-faint">
+      <p className="mt-3 break-words font-mono text-[12px] leading-relaxed text-faint">
         Ganti hr_KEY_LU dengan API key dari tabel di atas. Model juga bisa
         berupa id provider (mis. &quot;groq&quot;) atau id model dari GET{" "}
         {baseUrl}/api/v1/models. Streaming belum didukung.

@@ -34,6 +34,8 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const scrollReadyRef = useRef(false);
+  const prevCountRef = useRef(0);
 
   // Muat riwayat dari localStorage (client only).
   useEffect(() => {
@@ -59,10 +61,22 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
     }
   }, [messages, loaded]);
 
-  // Auto-scroll ke pesan terbaru.
+  // Auto-scroll ke pesan terbaru — hanya saat ada pesan BARU atau saat
+  // mulai mengirim. Jangan scroll saat halaman pertama dimuat (termasuk
+  // saat riwayat dari localStorage selesai dimuat): user harus melihat
+  // header & kontrol dulu, bukan langsung dijebloskan ke bawah.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [messages, sending]);
+    if (!loaded) return;
+    if (!scrollReadyRef.current) {
+      scrollReadyRef.current = true;
+      prevCountRef.current = messages.length;
+      return;
+    }
+    if (messages.length > prevCountRef.current || sending) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+    prevCountRef.current = messages.length;
+  }, [messages, sending, loaded]);
 
   const stop = useCallback(() => {
     abortRef.current?.abort();
@@ -143,13 +157,13 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
   return (
     <div className="flex flex-col gap-3">
       {/* Kontrol */}
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-line bg-panel p-3">
-        <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-faint">Provider</span>
+      <div className="flex flex-wrap items-end gap-3 border-2 border-black bg-yellow-soft p-3 shadow-brutal-sm">
+        <label className="flex min-w-0 w-full flex-col gap-1 sm:w-auto">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-black">Provider</span>
           <select
             value={provider}
             onChange={(e) => setProvider(e.target.value)}
-            className="h-9 rounded-xl border border-line-2 bg-panel-2 px-2 text-sm text-text outline-none focus:border-accent"
+            className="h-10 w-full max-w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-auto sm:max-w-[320px] sm:text-sm"
           >
             <option value="auto">Auto (fallback chain)</option>
             {selectable.map((p) => (
@@ -161,8 +175,8 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
           </select>
         </label>
 
-        <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-faint">
+        <label className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-none">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-black">
             Temperature · {temperature.toFixed(1)}
           </span>
           <input
@@ -172,26 +186,26 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
             step={0.1}
             value={temperature}
             onChange={(e) => setTemperature(Number(e.target.value))}
-            className="h-9 w-32 accent-[#0c0c0c]"
+            className="h-10 w-full accent-[#0c0c0c] sm:w-32"
           />
         </label>
 
-        <label className="flex flex-col gap-1">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-faint">Max tokens</span>
+        <label className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-none">
+          <span className="text-[11px] font-bold uppercase tracking-wide text-black">Max tokens</span>
           <input
             type="number"
             min={1}
             max={8192}
             value={maxTokens}
             onChange={(e) => setMaxTokens(Number(e.target.value))}
-            className="h-9 w-24 rounded-xl border border-line-2 bg-panel-2 px-2 text-sm text-text outline-none focus:border-accent"
+            className="h-10 w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-24 sm:text-sm"
           />
         </label>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex w-full items-center gap-2 sm:ml-auto sm:w-auto">
           <button
             onClick={() => setShowSystem((v) => !v)}
-            className="h-9 rounded-xl border border-line-2 bg-panel-2 px-3 text-sm text-muted hover:text-text"
+            className="h-10 flex-1 border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft sm:flex-none"
           >
             {showSystem ? "Sembunyikan system prompt" : "System prompt"}
           </button>
@@ -200,7 +214,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
               setMessages([]);
               setError(null);
             }}
-            className="h-9 rounded-xl border border-line-2 bg-panel-2 px-3 text-sm text-muted hover:text-text"
+            className="h-10 flex-1 border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft disabled:opacity-50 sm:flex-none"
             disabled={messages.length === 0}
           >
             Hapus riwayat
@@ -212,27 +226,27 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
             value={systemPrompt}
             onChange={(e) => setSystemPrompt(e.target.value)}
             placeholder="System prompt (opsional), mis. Jawab singkat dalam Bahasa Indonesia."
-            className="h-9 w-full rounded-xl border border-line-2 bg-panel-2 px-2 text-sm text-text outline-none placeholder:text-faint focus:border-accent"
+            className="h-10 w-full border-2 border-black bg-white px-2 text-base text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] sm:text-sm"
           />
         )}
       </div>
 
       {providers !== null && configured.length === 0 && (
-        <div className="rounded-xl border border-warn/40 bg-panel p-3 text-sm text-warn">
+        <div className="border-2 border-black bg-yellow p-3 text-sm font-medium text-black shadow-brutal-sm">
           Belum ada provider yang terkonfigurasi — ini seharusnya tidak terjadi, karena Kilo &amp;
-          LLM7 keyless selalu aktif. Cek tab Providers.
+          LLM7 keyless selalu aktif. Cek section Provider di beranda.
         </div>
       )}
 
       {/* Riwayat chat */}
-      <div className="flex min-h-[320px] flex-col gap-3 rounded-xl border border-line bg-panel p-3">
+      <div className="flex min-h-[320px] flex-col gap-3 border-2 border-black bg-white p-3 shadow-brutal-sm">
         {messages.length === 0 && !sending && (
           <div className="m-auto max-w-md py-10 text-center">
-            <p className="font-mono text-sm text-muted">Belum ada pesan.</p>
+            <p className="font-mono text-sm font-bold text-black">Belum ada pesan.</p>
             <p className="mt-1 text-sm text-faint">
               Ketik di bawah untuk ngetes router. Tanpa API key pun langsung jalan lewat Kilo &amp;
-              LLM7 — tambah key gratis (Groq, Gemini, dll) di <code className="font-mono text-muted">.env.local</code> kalau
-              mau kapasitas lebih besar.
+              LLM7 — login dan pakai API key dari dashboard kalau mau limit lebih besar
+              (60 req/menit).
             </p>
           </div>
         )}
@@ -240,20 +254,20 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
         {messages.map((m) => (
           <div
             key={m.id}
-            className={`rounded-xl border border-line px-3 py-2 ${
-              m.role === "user" ? "bg-panel-2" : "bg-panel"
+            className={`border-2 border-black px-3 py-2 ${
+              m.role === "user" ? "bg-yellow-soft" : "bg-white"
             }`}
           >
             <div className="mb-1 flex flex-wrap items-center gap-2">
               <span
-                className={`font-mono text-[11px] font-semibold uppercase tracking-wide ${
-                  m.role === "user" ? "text-accent" : "text-ok"
+                className={`font-mono text-[11px] font-bold uppercase tracking-wide ${
+                  m.role === "user" ? "text-blue" : "text-green"
                 }`}
               >
                 {m.role === "user" ? "lu" : "asisten"}
               </span>
               {m.provider && (
-                <span className="rounded border border-line-2 bg-panel-2 px-1.5 py-0.5 font-mono text-[11px] text-muted">
+                <span className="break-all border border-black bg-white px-1.5 py-0.5 font-mono text-[11px] font-bold text-muted">
                   {m.provider} · {m.model}
                 </span>
               )}
@@ -263,9 +277,9 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
                 </span>
               )}
             </div>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-text">{m.content}</p>
+            <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-black">{m.content}</p>
             {m.tried && m.tried.length > 0 && (
-              <p className="mt-1.5 font-mono text-[11px] leading-relaxed text-faint">
+              <p className="mt-1.5 break-words font-mono text-[11px] leading-relaxed text-faint">
                 fallback:{" "}
                 {m.tried.map((t) => `${t.provider} (${t.error.slice(0, 60)})`).join(" → ")}
                 {m.provider ? ` → ${m.provider} ✓` : ""}
@@ -275,8 +289,8 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
         ))}
 
         {sending && (
-          <div className="rounded-xl border border-line bg-panel px-3 py-2">
-            <span className="font-mono text-[11px] font-semibold uppercase tracking-wide text-ok">
+          <div className="border-2 border-black bg-white px-3 py-2">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wide text-green">
               asisten
             </span>
             <p className="text-sm text-muted">
@@ -290,14 +304,14 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
       </div>
 
       {error && (
-        <div className="rounded-xl border border-bad/40 bg-panel p-3 text-sm text-bad">
-          <span className="font-mono text-[11px] font-semibold uppercase tracking-wide">error · </span>
+        <div className="border-2 border-black bg-white p-3 text-sm font-medium text-bad shadow-brutal-sm">
+          <span className="font-mono text-[11px] font-bold uppercase tracking-wide">error · </span>
           <span className="break-words font-mono text-xs">{error}</span>
         </div>
       )}
 
       {/* Composer */}
-      <div className="flex flex-col gap-2 rounded-xl border border-line bg-panel p-3">
+      <div className="flex flex-col gap-2 border-2 border-black bg-yellow-soft p-3 shadow-brutal-sm">
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -309,17 +323,17 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
           }}
           rows={3}
           placeholder="Tulis pesan… (Enter untuk kirim, Shift+Enter untuk baris baru)"
-          className="w-full resize-none rounded-xl border border-line-2 bg-panel-2 px-3 py-2 text-sm text-text outline-none placeholder:text-faint focus:border-accent"
+          className="w-full resize-none border-2 border-black bg-white px-3 py-2 text-base text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] disabled:opacity-60 sm:text-sm"
           disabled={sending}
         />
-        <div className="flex items-center justify-between">
-          <span className="font-mono text-[11px] text-faint">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-mono text-[11px] font-bold text-black">
             {configured.length}/{selectable.length || 9} provider aktif · POST /api/ai/chat
           </span>
           {sending ? (
             <button
               onClick={stop}
-              className="h-9 rounded-full border border-bad/50 bg-panel-2 px-5 text-sm font-medium text-bad hover:bg-panel"
+              className="h-10 border-2 border-bad bg-white px-5 text-sm font-bold text-bad hover:bg-bad hover:text-white"
             >
               Stop
             </button>
@@ -327,7 +341,7 @@ export default function ChatPlayground({ providers }: { providers: ProviderStatu
             <button
               onClick={() => void send()}
               disabled={input.trim() === ""}
-              className="h-9 rounded-full bg-accent-dim px-5 text-sm font-medium text-white transition-opacity hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-press h-10 border-2 border-black bg-yellow px-5 text-sm font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-40"
             >
               Kirim
             </button>

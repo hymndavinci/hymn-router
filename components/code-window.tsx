@@ -1,6 +1,7 @@
 /**
  * CodeWindow — jendela kode dengan tab cURL / Python / TypeScript + salin.
  * Contoh OpenAI-compatible ke /api/v1/chat/completions (model hymn/auto).
+ * Hitam dengan border putih + hard shadow kuning (di atas section gelap).
  */
 
 "use client";
@@ -75,17 +76,17 @@ export default function CodeWindow({ baseUrl }: { baseUrl: string }) {
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-line-dark bg-dark-panel">
-      <div className="flex items-center justify-between gap-2 border-b border-line-dark px-4 py-2.5">
+    <div className="shadow-yellow min-w-0 overflow-hidden border-2 border-white bg-dark-panel shadow-brutal">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-white/25 px-3 py-2.5 sm:px-4">
         <div className="flex gap-1">
           {TABS.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
-              className={`rounded-full px-3 py-1.5 font-mono text-[12px] transition-colors ${
+              className={`border-2 px-2.5 py-1.5 font-mono text-[11px] font-bold transition-colors sm:px-3 sm:text-[12px] ${
                 tab === t.id
-                  ? "bg-white text-dark"
-                  : "text-ondark-muted hover:text-ondark"
+                  ? "border-yellow bg-yellow text-black"
+                  : "border-transparent text-ondark-muted hover:text-ondark"
               }`}
             >
               {t.label}
@@ -94,7 +95,7 @@ export default function CodeWindow({ baseUrl }: { baseUrl: string }) {
         </div>
         <button
           onClick={() => void copy()}
-          className="rounded-full border border-line-dark px-3 py-1.5 font-mono text-[12px] text-ondark-muted transition-colors hover:text-ondark"
+          className="shrink-0 border-2 border-white/40 px-2.5 py-1.5 font-mono text-[11px] font-bold text-ondark-muted transition-colors hover:border-white hover:text-ondark sm:px-3 sm:text-[12px]"
         >
           {copied ? "disalin ✓" : "salin"}
         </button>

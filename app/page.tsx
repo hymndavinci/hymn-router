@@ -1,7 +1,7 @@
 /**
- * Landing page Hymn Router — gaya Dahono (dhn.ai.id).
- * Light editorial: announcement bar, hero 2 kolom + stats, grid provider,
- * cara pakai (dark) + code window, dashboard, kenapa (dark), FAQ, CTA.
+ * Landing page Hymn Router — NEO-BRUTALISM (kuning / putih / hijau / biru).
+ * Blok warna berani bergantian: putih, kuning lembut, hitam, putih, biru,
+ * hijau lembut, hitam. Border hitam tebal, hard shadow, sudut tajam.
  */
 
 import Link from "next/link";
@@ -78,15 +78,15 @@ export default async function Home() {
 
   return (
     <div className="flex-1">
-      {/* 1. Announcement bar */}
-      <div className="bg-beige">
+      {/* 1. Announcement bar — kuning */}
+      <div className="border-b-2 border-black bg-yellow">
         <div className="mx-auto flex w-full max-w-[1280px] flex-wrap items-center justify-center gap-x-3 gap-y-1 px-6 py-2.5 text-center lg:px-8">
-          <span className="text-[13px] font-medium text-text">
+          <span className="text-[13px] font-bold text-black">
             100% gratis — 9 provider, tanpa kartu kredit
           </span>
           <Link
             href="#provider"
-            className="font-mono text-[12px] font-medium text-text underline underline-offset-4 hover:text-muted"
+            className="font-mono text-[12px] font-bold text-black underline underline-offset-4 hover:text-blue"
           >
             Lihat provider →
           </Link>
@@ -95,14 +95,16 @@ export default async function Home() {
 
       <Navbar />
 
-      {/* 3. Hero */}
-      <section className="border-b border-line">
+      {/* 3. Hero — putih */}
+      <section className="border-b-2 border-black bg-white">
         <div className="mx-auto grid w-full max-w-[1280px] items-center gap-12 px-6 py-16 sm:py-20 lg:grid-cols-2 lg:px-8 lg:py-24">
-          <div>
-            <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-faint">
-              AI Router · Gratis · OpenAI-Compatible
+          <div className="min-w-0">
+            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
+              <span className="bg-yellow px-2 py-1">
+                AI Router · Gratis · OpenAI-Compatible
+              </span>
             </p>
-            <h1 className="mt-5 text-[44px] font-bold leading-[1.05] tracking-[-0.02em] text-text sm:text-[56px] lg:text-[64px]">
+            <h1 className="mt-5 text-[44px] font-black leading-[1.05] tracking-[-0.02em] text-black sm:text-[56px] lg:text-[64px]">
               Satu endpoint untuk semua model AI gratis.
             </h1>
             <p className="mt-6 max-w-[520px] text-[16px] leading-[1.6] text-muted">
@@ -113,19 +115,19 @@ export default async function Home() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/api/auth/google"
-                className="rounded-full bg-dark px-6 py-3 text-[15px] font-medium text-white transition-opacity hover:opacity-85"
+                className="btn-press border-2 border-black bg-yellow px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
               >
                 Mulai sekarang
               </Link>
               <Link
                 href="/chat"
-                className="rounded-full border border-line-2 bg-panel-2 px-6 py-3 text-[15px] font-medium text-text transition-colors hover:border-faint"
+                className="btn-press border-2 border-black bg-white px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
               >
                 Coba chat
               </Link>
               <Link
                 href="/docs"
-                className="px-2 py-3 font-mono text-[13px] text-muted underline underline-offset-4 hover:text-text"
+                className="px-2 py-3 font-mono text-[13px] font-bold text-blue underline underline-offset-4 hover:text-black"
               >
                 Dokumentasi →
               </Link>
@@ -135,33 +137,33 @@ export default async function Home() {
               key pun langsung jalan
             </p>
           </div>
-          <div className="hidden lg:block">
+          <div className="hidden min-w-0 lg:block">
             <GlobeArt />
           </div>
         </div>
 
         {/* Stats row */}
-        <div className="border-t border-line">
-          <div className="mx-auto grid w-full max-w-[1280px] grid-cols-2 divide-line px-6 sm:grid-cols-4 sm:divide-x lg:px-8">
+        <div className="border-t-2 border-black">
+          <div className="mx-auto grid w-full max-w-[1280px] grid-cols-2 px-6 sm:grid-cols-4 sm:divide-x-2 sm:divide-black lg:px-8">
             {STATS.map((s) => (
               <div key={s.label} className="px-1 py-7 sm:px-6 sm:first:pl-0">
-                <p className="text-[32px] font-bold leading-none tracking-tight text-text">
+                <p className="text-[32px] font-black leading-none tracking-tight text-black">
                   {s.value}
                 </p>
-                <p className="mt-2 text-[13px] leading-snug text-muted">{s.label}</p>
+                <p className="mt-2 text-[13px] font-medium leading-snug text-muted">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* 4. Provider */}
-      <section id="provider" className="scroll-mt-16 border-b border-line">
+      {/* 4. Provider — kuning lembut */}
+      <section id="provider" className="scroll-mt-16 border-b-2 border-black bg-yellow-soft">
         <div className="mx-auto w-full max-w-[1280px] px-6 py-24 lg:px-8 lg:py-28">
-          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-faint">
-            Provider
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
+            <span className="bg-yellow px-2 py-1">Provider</span>
           </p>
-          <h2 className="mt-4 max-w-[640px] text-[36px] font-bold leading-[1.1] tracking-[-0.01em] text-text sm:text-[44px]">
+          <h2 className="mt-4 max-w-[640px] text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-black sm:text-[44px]">
             Sembilan provider. Satu endpoint.
           </h2>
           <p className="mt-4 max-w-[640px] text-[16px] leading-[1.6] text-muted">
@@ -174,14 +176,18 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 5. Cara pakai (dark) */}
+      {/* 5. Cara pakai — hitam */}
       <section id="cara-pakai" className="scroll-mt-16 bg-dark text-ondark">
         <div className="mx-auto grid w-full max-w-[1280px] gap-12 px-6 py-24 lg:grid-cols-2 lg:px-8">
-          <div>
-            <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-ondark-muted">
+          {/* min-w-0: item grid default min-width:auto — tanpa ini, baris
+              <pre> terpanjang di CodeWindow (±471px) memaksa kolom grid
+              melebar keluar viewport di mobile dan teks putih keluar dari
+              area gelap. */}
+          <div className="min-w-0">
+            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-yellow">
               Cara Pakai
             </p>
-            <h2 className="mt-4 text-[36px] font-bold leading-[1.1] tracking-[-0.01em] text-ondark sm:text-[44px]">
+            <h2 className="mt-4 text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-ondark sm:text-[44px]">
               Ganti base URL. Kode tetap jalan.
             </h2>
             <p className="mt-4 max-w-[520px] text-[16px] leading-[1.6] text-ondark-muted">
@@ -191,11 +197,11 @@ export default async function Home() {
             <ol className="mt-10 space-y-8">
               {STEPS.map((s) => (
                 <li key={s.n} className="flex gap-5">
-                  <span className="font-mono text-[13px] font-medium text-ondark-muted">
+                  <span className="font-mono text-[13px] font-bold text-yellow">
                     {s.n}
                   </span>
-                  <div>
-                    <h3 className="text-[18px] font-semibold text-ondark">{s.title}</h3>
+                  <div className="min-w-0">
+                    <h3 className="text-[18px] font-bold text-ondark">{s.title}</h3>
                     <p className="mt-1 max-w-[440px] text-[15px] leading-relaxed text-ondark-muted">
                       {s.body}
                     </p>
@@ -204,14 +210,14 @@ export default async function Home() {
               ))}
             </ol>
             <div className="mt-10">
-              <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-ondark-muted">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-ondark-muted">
                 Bisa dipakai di
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {["OpenAI SDK", "cURL", "fetch"].map((c) => (
                   <span
                     key={c}
-                    className="rounded-full border border-line-dark px-3.5 py-1.5 font-mono text-[12px] text-ondark"
+                    className="border-2 border-yellow px-3.5 py-1.5 font-mono text-[12px] font-bold text-yellow"
                   >
                     {c}
                   </span>
@@ -219,7 +225,7 @@ export default async function Home() {
               </div>
             </div>
           </div>
-          <div className="lg:pt-24">
+          <div className="min-w-0 lg:pt-24">
             <CodeWindow baseUrl={baseUrl} />
             <p className="mt-4 font-mono text-[12px] leading-relaxed text-ondark-muted">
               Simpan API key di environment variable. Streaming belum didukung
@@ -229,14 +235,14 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 6. Dashboard */}
-      <section className="border-b border-line">
+      {/* 6. Dashboard — putih */}
+      <section className="border-b-2 border-black bg-white">
         <div className="mx-auto grid w-full max-w-[1280px] gap-12 px-6 py-24 lg:grid-cols-2 lg:px-8 lg:py-28">
-          <div>
-            <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-faint">
-              Dashboard
+          <div className="min-w-0">
+            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
+              <span className="bg-green px-2 py-1 text-white">Dashboard</span>
             </p>
-            <h2 className="mt-4 text-[36px] font-bold leading-[1.1] tracking-[-0.01em] text-text sm:text-[44px]">
+            <h2 className="mt-4 text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-black sm:text-[44px]">
               Semua pemakaian lu, dalam satu dashboard.
             </h2>
             <p className="mt-4 max-w-[520px] text-[16px] leading-[1.6] text-muted">
@@ -258,8 +264,8 @@ export default async function Home() {
                   body: "60 request/menit per API key, terpisah dari limit anonim 20 request/menit per IP.",
                 },
               ].map((f) => (
-                <li key={f.title} className="border-t border-line pt-6">
-                  <h3 className="text-[18px] font-semibold text-text">{f.title}</h3>
+                <li key={f.title} className="border-t-2 border-black pt-6">
+                  <h3 className="text-[18px] font-bold text-black">{f.title}</h3>
                   <p className="mt-1 max-w-[480px] text-[15px] leading-relaxed text-muted">
                     {f.body}
                   </p>
@@ -269,24 +275,24 @@ export default async function Home() {
           </div>
 
           {/* Mock dashboard statis */}
-          <div className="lg:pt-24">
-            <div className="overflow-hidden rounded-2xl border border-line bg-panel-2">
-              <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
-                <span className="font-mono text-[12px] font-medium text-muted">
+          <div className="min-w-0 lg:pt-24">
+            <div className="overflow-hidden border-2 border-black bg-white shadow-brutal">
+              <div className="flex items-center justify-between border-b-2 border-black px-5 py-3.5">
+                <span className="font-mono text-[12px] font-bold text-muted">
                   dashboard / pemakaian
                 </span>
-                <span className="rounded-full border border-ok/40 px-2.5 py-1 font-mono text-[11px] text-ok">
+                <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
                   ● 4/9 provider aktif
                 </span>
               </div>
-              <div className="grid grid-cols-3 divide-x divide-line border-b border-line">
+              <div className="grid grid-cols-3 divide-x-2 divide-black border-b-2 border-black">
                 {[
                   { v: "1.284", l: "request · 7 hari" },
                   { v: "96,4K", l: "token" },
                   { v: "3", l: "API key aktif" },
                 ].map((s) => (
                   <div key={s.l} className="px-4 py-4">
-                    <p className="text-[22px] font-bold leading-none tracking-tight text-text">
+                    <p className="text-[22px] font-black leading-none tracking-tight text-black">
                       {s.v}
                     </p>
                     <p className="mt-1.5 font-mono text-[11px] text-faint">{s.l}</p>
@@ -300,10 +306,10 @@ export default async function Home() {
                   { p: "llm7", n: 301 },
                 ].map((r) => (
                   <div key={r.p} className="flex items-center gap-3">
-                    <span className="w-14 font-mono text-[12px] text-muted">{r.p}</span>
-                    <div className="h-2 flex-1 rounded-full bg-panel">
+                    <span className="w-14 font-mono text-[12px] font-bold text-muted">{r.p}</span>
+                    <div className="h-2.5 flex-1 border border-black bg-neutral-200">
                       <div
-                        className="h-2 rounded-full bg-dark"
+                        className="h-full bg-blue"
                         style={{ width: `${Math.round((r.n / 412) * 100)}%` }}
                       />
                     </div>
@@ -313,11 +319,11 @@ export default async function Home() {
                   </div>
                 ))}
               </div>
-              <div className="flex items-center justify-between border-t border-line px-5 py-3.5">
-                <span className="font-mono text-[12px] text-muted">
+              <div className="flex items-center justify-between gap-2 border-t-2 border-black px-5 py-3.5">
+                <span className="min-w-0 truncate font-mono text-[12px] text-muted">
                   hr_4f8a2c1e9b3d… · bot-discord
                 </span>
-                <span className="font-mono text-[11px] text-ok">aktif</span>
+                <span className="shrink-0 font-mono text-[11px] font-bold text-green">aktif</span>
               </div>
             </div>
             <p className="mt-3 font-mono text-[12px] text-faint">
@@ -327,13 +333,13 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 7. Kenapa (dark) */}
-      <section className="bg-dark text-ondark">
+      {/* 7. Kenapa — biru */}
+      <section className="bg-blue text-white">
         <div className="mx-auto w-full max-w-[1280px] px-6 py-24 lg:px-8">
-          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-ondark-muted">
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-yellow">
             Kenapa Hymn Router
           </p>
-          <h2 className="mt-4 max-w-[720px] text-[36px] font-bold leading-[1.1] tracking-[-0.01em] text-ondark sm:text-[44px]">
+          <h2 className="mt-4 max-w-[720px] text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-white sm:text-[44px]">
             Semua model gratis, dalam satu akun.
           </h2>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -356,17 +362,17 @@ export default async function Home() {
             ].map((c) => (
               <div
                 key={c.title}
-                className="rounded-2xl border border-line-dark bg-dark-panel p-6"
+                className="border-2 border-black bg-white p-6 shadow-brutal"
               >
-                <p className="text-[48px] font-bold leading-none tracking-tight text-ondark">
+                <p className="text-[48px] font-black leading-none tracking-tight text-black">
                   {c.big}
                 </p>
-                <h3 className="mt-3 text-[18px] font-semibold text-ondark">{c.title}</h3>
-                <p className="mt-2 text-[15px] leading-relaxed text-ondark-muted">{c.body}</p>
+                <h3 className="mt-3 text-[18px] font-bold text-black">{c.title}</h3>
+                <p className="mt-2 text-[15px] leading-relaxed text-muted">{c.body}</p>
               </div>
             ))}
           </div>
-          <p className="mt-12 max-w-[720px] text-[15px] leading-relaxed text-ondark-muted">
+          <p className="mt-12 max-w-[720px] text-[15px] leading-relaxed text-white/90">
             Soal privasi: prompt dan response tidak pernah disimpan di server
             ini. Yang dicatat hanya jumlah request, token, dan provider —
             untuk dashboard lu sendiri. Request tetap diteruskan ke provider
@@ -375,13 +381,13 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 8. FAQ */}
-      <section id="faq" className="scroll-mt-16 border-b border-line">
+      {/* 8. FAQ — hijau lembut */}
+      <section id="faq" className="scroll-mt-16 border-b-2 border-black bg-green-soft">
         <div className="mx-auto w-full max-w-[1280px] px-6 py-24 lg:px-8 lg:py-28">
-          <p className="font-mono text-[11px] font-medium uppercase tracking-[0.2em] text-faint">
-            FAQ
+          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
+            <span className="bg-green px-2 py-1 text-white">FAQ</span>
           </p>
-          <h2 className="mt-4 text-[36px] font-bold leading-[1.1] tracking-[-0.01em] text-text sm:text-[44px]">
+          <h2 className="mt-4 text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-black sm:text-[44px]">
             Pertanyaan yang sering muncul.
           </h2>
           <p className="mt-4 max-w-[640px] text-[16px] leading-[1.6] text-muted">
@@ -394,11 +400,11 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* 9. CTA */}
+      {/* 9. CTA — hitam */}
       <section className="bg-dark text-ondark">
         <div className="mx-auto flex w-full max-w-[1280px] flex-col items-start gap-6 px-6 py-20 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
-            <h2 className="text-[36px] font-bold leading-[1.1] tracking-[-0.01em] text-ondark sm:text-[44px]">
+            <h2 className="text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-ondark sm:text-[44px]">
               Mulai pakai hari ini.
             </h2>
             <p className="mt-3 max-w-[520px] text-[16px] leading-[1.6] text-ondark-muted">
@@ -409,13 +415,13 @@ export default async function Home() {
           <div className="flex flex-wrap gap-3">
             <Link
               href="/api/auth/google"
-              className="rounded-full bg-white px-6 py-3 text-[15px] font-medium text-dark transition-opacity hover:opacity-85"
+              className="btn-press shadow-green border-2 border-black bg-yellow px-6 py-3 text-[15px] font-bold text-black shadow-brutal-sm"
             >
               Login dengan Google
             </Link>
             <Link
               href="/chat"
-              className="rounded-full border border-line-dark px-6 py-3 text-[15px] font-medium text-ondark transition-colors hover:border-ondark-muted"
+              className="btn-press shadow-yellow border-2 border-white bg-dark px-6 py-3 text-[15px] font-bold text-ondark shadow-brutal-sm"
             >
               Coba chat dulu
             </Link>

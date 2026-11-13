@@ -14,16 +14,16 @@ export default function Faq({ items }: { items: FaqItem[] }) {
       {items.map((item, i) => {
         const isOpen = open === i;
         return (
-          <div key={item.q} className="border-b border-line">
+          <div key={item.q} className="border-b-2 border-black">
             <button
               onClick={() => setOpen(isOpen ? null : i)}
               aria-expanded={isOpen}
               className="flex w-full items-center justify-between gap-4 py-5 text-left"
             >
-              <span className="text-[16px] font-medium text-text">{item.q}</span>
+              <span className="text-[16px] font-bold text-black">{item.q}</span>
               <span
-                className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-line-2 text-[16px] text-muted transition-transform ${
-                  isOpen ? "rotate-45" : ""
+                className={`flex h-8 w-8 shrink-0 items-center justify-center border-2 border-black bg-white text-[18px] font-bold text-black shadow-brutal-xs transition-transform ${
+                  isOpen ? "rotate-45 bg-yellow" : ""
                 }`}
               >
                 +

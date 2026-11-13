@@ -19,7 +19,7 @@ function DbErrorView() {
     <div className="flex-1">
       <Navbar />
       <div className="mx-auto w-full max-w-[1280px] px-6 py-10 lg:px-8">
-        <h1 className="text-[28px] font-bold leading-tight tracking-tight text-text">
+        <h1 className="text-[28px] font-black leading-tight tracking-tight text-black">
           Database sedang bermasalah
         </h1>
         <p className="mt-2 max-w-[640px] text-[15px] leading-relaxed text-muted">
