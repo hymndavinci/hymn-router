@@ -5,14 +5,18 @@
  * Sukses (200): akun dibuat dari pending_signups, pending dihapus,
  * session cookie dibuat — { ok: true, user: { id, email, name } }.
  *
- * - Pending tidak ada -> 404 { error: "verification_not_found" }
- *   (termasuk bila tabel pending_signups belum ada — tanpa tabel,
- *   tidak mungkin ada pending; dicatat sebagai warning di log server).
+ * - Pending tidak ada -> 401 { error: "invalid_code" } (disamakan
+ *   dengan kode salah — 404 yang berbeda akan membocorkan apakah
+ *   sebuah email sedang punya pending signup; termasuk bila tabel
+ *   pending_signups belum ada).
  * - Kode kedaluwarsa -> 410 { error: "verification_expired" }
  *   (pending dihapus, daftar ulang untuk kode baru).
  * - Percobaan habis (>= 5) -> 429 { error: "too_many_attempts" }
  *   (pending dihapus, daftar ulang untuk kode baru).
  * - Kode salah -> 401 { error: "invalid_code", attemptsRemaining }.
+ *   Penghitung percobaan dinaikkan secara atomik di database
+ *   (UPDATE ... SET attempts = attempts + 1) supaya tebakan paralel
+ *   tidak bisa mengakali batas 5 percobaan.
  * - Email sudah terdaftar di users (race dengan OAuth) -> 409.
  *
  * Rate limit: 10 percobaan per 15 menit per IP. Kode tidak pernah
@@ -21,8 +25,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, isDbConfigured } from "@/lib/db";
-import { setSessionCookie } from "@/lib/auth";
-import { rateLimitedWindow } from "@/lib/rate-limit";
+import { isForeignOrigin, isSessionConfigured, setSessionCookie } from "@/lib/auth";
+import { clientIp, rateLimitedWindow } from "@/lib/rate-limit";
 import {
   isCodeFormat,
   MAX_ATTEMPTS,
@@ -34,14 +38,6 @@ export const runtime = "nodejs";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const VERIFY_LIMIT = 10;
 const VERIFY_WINDOW_MS = 15 * 60 * 1000;
-
-function clientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
 
 function isPgCode(err: unknown, code: string): boolean {
   return (
@@ -61,6 +57,14 @@ type Pending = {
 };
 
 export async function POST(req: NextRequest) {
+  // Verify yang sukses membuat session — tolak POST cross-site
+  // (login CSRF). Request tanpa Origin (curl/API client) diizinkan.
+  if (isForeignOrigin(req)) {
+    return NextResponse.json(
+      { error: "forbidden", message: "Origin tidak diizinkan." },
+      { status: 403 },
+    );
+  }
   const ip = clientIp(req);
   if (rateLimitedWindow(`verify:${ip}`, VERIFY_LIMIT, VERIFY_WINDOW_MS)) {
     return NextResponse.json(
@@ -123,12 +127,14 @@ export async function POST(req: NextRequest) {
       FROM pending_signups WHERE email = ${normalizedEmail} LIMIT 1
     `) as Pending[];
     if (rows.length === 0) {
+      // Disamakan dengan kode salah (401) — jangan 404: respons yang
+      // berbeda akan membocorkan apakah email ini punya pending signup.
       return NextResponse.json(
         {
-          error: "verification_not_found",
-          message: "Verifikasi tidak ditemukan — silakan daftar ulang.",
+          error: "invalid_code",
+          message: "Kode salah atau sudah tidak berlaku — silakan periksa kembali kode di email Anda.",
         },
-        { status: 404 },
+        { status: 401 },
       );
     }
     const pending = rows[0];
@@ -156,11 +162,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (!verifyCode(code, pending.code_hash)) {
-      const attempts = pending.attempts + 1;
-      await db`
-        UPDATE pending_signups SET attempts = ${attempts}
-        WHERE email = ${normalizedEmail}
-      `;
+      // Atomik: nilai lama tidak dibaca dulu — tebakan paralel tidak
+      // bisa berbagi satu hitungan percobaan.
+      const updated = (await db`
+        UPDATE pending_signups SET attempts = attempts + 1
+        WHERE email = ${normalizedEmail} AND attempts < ${MAX_ATTEMPTS}
+        RETURNING attempts
+      `) as { attempts: number }[];
+      const attempts = updated.length > 0 ? updated[0].attempts : MAX_ATTEMPTS;
       return NextResponse.json(
         {
           error: "invalid_code",
@@ -181,6 +190,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "email_exists", message: "Email sudah terdaftar, silakan masuk." },
         { status: 409 },
+      );
+    }
+
+    // Cek session SEBELUM membuat akun: kalau SESSION_SECRET belum
+    // benar, jangan sisakan akun yang terbuat tapi tidak bisa login.
+    if (!isSessionConfigured()) {
+      return NextResponse.json(
+        {
+          error: "server_not_configured",
+          message: "SESSION_SECRET belum dikonfigurasi di server.",
+        },
+        { status: 503 },
       );
     }
 
@@ -211,15 +232,16 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     // Tabel pending_signups belum ada (migrasi 004 belum dijalankan):
     // tanpa tabel, tidak mungkin ada pending — hasilnya sama seperti
-    // "tidak ditemukan". Dicatat di log server supaya tidak diam-diam.
+    // kode salah (401, disamakan — lihat di atas). Dicatat di log
+    // server supaya tidak diam-diam.
     if (isPgCode(err, "42P01")) {
       console.warn("[auth/verify] tabel pending_signups belum ada — migrasi 004 belum dijalankan");
       return NextResponse.json(
         {
-          error: "verification_not_found",
-          message: "Verifikasi tidak ditemukan — silakan daftar ulang.",
+          error: "invalid_code",
+          message: "Kode salah atau sudah tidak berlaku — silakan periksa kembali kode di email Anda.",
         },
-        { status: 404 },
+        { status: 401 },
       );
     }
     // Race insert user (unique index email).

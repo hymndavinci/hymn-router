@@ -7,7 +7,8 @@
  *
  * Kalau ada header Authorization: Bearer <API key user>:
  *   - key valid → request diatribusikan ke user itu, limit 60 req/menit
- *     per key (AI_ROUTER_KEY_RPM), pemakaian dicatat ke dashboard.
+ *     per key (AI_ROUTER_KEY_RPM), kuota harian 100 request ditegakkan
+ *     (429 `quota_exceeded` kalau habis), pemakaian dicatat ke dashboard.
  *   - key tidak valid → 401 (tidak diam-diam fallback ke anonim).
  *
  * Request:
@@ -51,7 +52,19 @@ import {
 import { buildSseResponse } from "@/lib/sse";
 import { isDbConfigured } from "@/lib/db";
 import { logUsage, validateApiKey } from "@/lib/api-keys";
-import { rateLimited } from "@/lib/rate-limit";
+import { clientIp, rateLimited } from "@/lib/rate-limit";
+import { DAILY_FREE_QUOTA, getTodayQuota, type DailyQuota } from "@/lib/usage";
+
+/** Header kuota harian (hanya kalau info kuota tersedia) — sama seperti /v1. */
+function quotaHeaders(quota: DailyQuota | null): Record<string, string> {
+  if (!quota) return {};
+  return {
+    "X-Quota-Limit": String(quota.limit),
+    // Request ini ikut dihitung, jadi sisa setelah request ini = remaining - 1.
+    "X-Quota-Remaining": String(Math.max(0, quota.remaining - 1)),
+    "X-Quota-Reset": quota.resetsAt,
+  };
+}
 
 export const runtime = "nodejs";
 // Router bisa memakan waktu kalau harus fallback beberapa provider.
@@ -59,14 +72,6 @@ export const maxDuration = 60;
 
 const IP_RPM = Number(process.env.AI_ROUTER_IP_RPM ?? 20);
 const KEY_RPM = Number(process.env.AI_ROUTER_KEY_RPM ?? 60);
-
-function clientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
 
 export async function GET() {
   return NextResponse.json({ providers: getProviderStatus() });
@@ -161,6 +166,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "maxTokens must be 1–8192", code: "invalid_request" }, { status: 400 });
   }
 
+  // Kuota harian gratis — ditegakkan untuk request ber-autentikasi
+  // (fail OPEN seperti /v1: gangguan DB tidak memblokir request).
+  // Request anonim tetap bebas kuota (hanya limit 20/menit/IP).
+  // Hasil pengecekan dipakai lagi untuk header X-Quota-* di respons sukses.
+  let quota: DailyQuota | null = null;
+  if (keyInfo) {
+    quota = await getTodayQuota(keyInfo.userId).catch((err) => {
+      console.error("[ai/chat] quota check failed, allowing request:", err);
+      return null;
+    });
+    if (quota && quota.remaining <= 0) {
+      return NextResponse.json(
+        {
+          error: `Kuota harian gratis habis (${DAILY_FREE_QUOTA} request/hari). Reset pukul 00:00 WIB (${quota.resetsAt}).`,
+          code: "quota_exceeded",
+          retry_after: quota.retryAfterSeconds,
+          resets_at: quota.resetsAt,
+        },
+        { status: 429, headers: { "Retry-After": String(quota.retryAfterSeconds) } },
+      );
+    }
+  }
+
   const started = Date.now();
   const chatOpts = {
     temperature: temperature as number | undefined,
@@ -202,6 +230,9 @@ export async function POST(req: NextRequest) {
         });
       });
     }
+    for (const [k, v] of Object.entries(quotaHeaders(quota))) {
+      sseResponse.headers.set(k, v);
+    }
     return sseResponse;
   }
 
@@ -221,7 +252,24 @@ export async function POST(req: NextRequest) {
         });
       });
     }
-    return NextResponse.json(result);
+    // Pangkas usage ke 3 field (seperti /v1): provider bisa mengembalikan
+    // field mentah tambahan (mis. *_details, cost) yang tidak didokumentasikan.
+    const promptTokens = result.usage?.prompt_tokens ?? 0;
+    const completionTokens = result.usage?.completion_tokens ?? 0;
+    return NextResponse.json(
+      {
+        ...result,
+        usage: result.usage
+          ? {
+              prompt_tokens: promptTokens,
+              completion_tokens: completionTokens,
+              total_tokens:
+                result.usage.total_tokens ?? promptTokens + completionTokens,
+            }
+          : undefined,
+      },
+      { headers: quotaHeaders(quota) },
+    );
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: msg, code: "all_providers_failed" }, { status: 502 });

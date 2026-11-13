@@ -30,13 +30,22 @@ function fmtDate(iso: string | null, locale: Locale): string {
   });
 }
 
-function fmtDateTime(iso: string | null, locale: Locale, neverUsed: string): string {
+function fmtDateTime(
+  iso: string | null,
+  locale: Locale,
+  neverUsed: string,
+  timeZone?: string,
+): string {
   if (!iso) return neverUsed;
   return new Date(iso).toLocaleString(dateLocaleOf(locale), {
     day: "numeric",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
+    // Zona waktu eksplisit bila diminta — tanggal reset kuota dilabeli
+    // "WIB", jadi harus diformat dalam Asia/Jakarta, bukan zona waktu
+    // browser penonton (yang bisa berbeda dan menampilkan jam salah).
+    ...(timeZone ? { timeZone } : {}),
   });
 }
 
@@ -333,7 +342,7 @@ export default function DashboardClient({
               ? `${fill(t.quotaRemaining, { n: initialQuota.remaining })} `
               : `${t.quotaExhausted} `}
             {fill(t.quotaReset, {
-              date: fmtDateTime(initialQuota.resetsAt, locale, t.neverUsed),
+              date: fmtDateTime(initialQuota.resetsAt, locale, t.neverUsed, "Asia/Jakarta"),
             })}
           </p>
         </div>
@@ -496,7 +505,7 @@ export default function DashboardClient({
                   <p className="mt-1 font-mono text-[11px] text-muted">
                     {fill(t.tokensCount, { n: r.tokens.toLocaleString(numLocale) })} ·{" "}
                     {r.latencyMs !== null ? `${r.latencyMs.toLocaleString(numLocale)} ms` : "—"}
-                    {r.keyName ? ` · key: ${r.keyName}` : ""}
+                    {r.keyName ? ` · ${r.keyName}` : ""}
                   </p>
                 </div>
               ))}
@@ -564,6 +573,7 @@ export default function DashboardClient({
               if (e.key === "Enter") void createKey();
             }}
             placeholder={t.keyNamePlaceholder}
+            aria-label={t.keyNamePlaceholder}
             maxLength={64}
             className="h-11 flex-1 border-2 border-black bg-white px-4 text-[16px] text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] sm:text-[14px]"
           />
@@ -577,7 +587,7 @@ export default function DashboardClient({
         </div>
 
         {error && (
-          <p className="mt-3 break-words border-2 border-black bg-white px-4 py-3 text-[14px] font-medium text-bad">
+          <p role="alert" className="mt-3 break-words border-2 border-black bg-white px-4 py-3 text-[14px] font-medium text-bad">
             {error}
           </p>
         )}
@@ -635,6 +645,7 @@ export default function DashboardClient({
                   {!k.revokedAt && (
                     <button
                       onClick={() => void revokeKey(k.id)}
+                      aria-label={`${t.revokeBtn}: ${k.name}`}
                       disabled={revoking === k.id}
                       className="mt-3 h-9 border-2 border-bad bg-white px-4 font-mono text-[12px] font-bold text-bad hover:bg-bad hover:text-white disabled:opacity-50"
                     >
@@ -684,6 +695,7 @@ export default function DashboardClient({
                         {!k.revokedAt && (
                           <button
                             onClick={() => void revokeKey(k.id)}
+                            aria-label={`${t.revokeBtn}: ${k.name}`}
                             disabled={revoking === k.id}
                             className="border-2 border-bad bg-white px-3.5 py-1.5 font-mono text-[12px] font-bold text-bad hover:bg-bad hover:text-white disabled:opacity-50"
                           >
@@ -709,7 +721,7 @@ export default function DashboardClient({
         </div>
         <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-relaxed text-ondark">
 {`curl ${baseUrl}/api/v1/chat/completions \\
-  -H "Authorization: Bearer hr_KEY_ANDA" \\
+  -H "Authorization: Bearer hr_YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"model": "hymn/auto",
        "messages": [{"role": "user", "content": "Halo!"}]}'`}

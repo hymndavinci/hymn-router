@@ -10,6 +10,8 @@
  *   tidak mungkin ada pending).
  * - Dalam jeda 60 detik sejak pengiriman terakhir -> 429
  *   { error: "resend_too_soon", retryAfterSeconds }.
+ * - Lebih dari 5 pengiriman/jam untuk email ini (dihitung bersama
+ *   signup — kunci bucket yang sama) -> 429 { error: "rate_limited" }.
  * - Pengiriman email gagal -> 502 { error: "email_send_failed" }
  *   (pending lama tidak diubah — kode lama tetap berlaku sampai
  *   kedaluwarsa).
@@ -23,12 +25,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, isDbConfigured } from "@/lib/db";
-import { rateLimitedWindow } from "@/lib/rate-limit";
+import { clientIp, rateLimitedWindow } from "@/lib/rate-limit";
 import { sendVerificationCode } from "@/lib/mail";
 import {
   CODE_TTL_MS,
   generateCode,
   hashCode,
+  MAX_SENDS_PER_HOUR,
   RESEND_COOLDOWN_MS,
 } from "@/lib/verification";
 import { DEFAULT_LOCALE, isLocale, LOCALE_COOKIE } from "@/lib/i18n";
@@ -38,14 +41,7 @@ export const runtime = "nodejs";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESEND_LIMIT = 10;
 const RESEND_WINDOW_MS = 15 * 60 * 1000;
-
-function clientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
+const EMAIL_SEND_WINDOW_MS = 60 * 60 * 1000;
 
 function isPgCode(err: unknown, code: string): boolean {
   return (
@@ -88,6 +84,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: "invalid_email", message: "Format email tidak valid." },
       { status: 400 },
+    );
+  }
+
+  // Batas pengiriman kode per email (anti spam inbox) — kunci bucket
+  // SAMA dengan signup, supaya signup + kirim ulang dihitung bersama
+  // menuju batas 5/jam/email.
+  if (
+    rateLimitedWindow(`signup-email:${normalizedEmail}`, MAX_SENDS_PER_HOUR, EMAIL_SEND_WINDOW_MS)
+  ) {
+    return NextResponse.json(
+      {
+        error: "rate_limited",
+        message: "Terlalu banyak permintaan kode untuk email ini — silakan coba lagi dalam satu jam.",
+      },
+      { status: 429 },
     );
   }
 

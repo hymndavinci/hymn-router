@@ -34,6 +34,39 @@ function getSecret(): string | null {
   return s.trim();
 }
 
+/**
+ * True kalau SESSION_SECRET sudah benar (>= 32 karakter). Dipakai
+ * route yang membuat akun SEBELUM membuat session (signup fallback,
+ * verify): cek ini dulu supaya tidak ada akun yang terbuat lalu
+ * dibalas 503 karena session tidak bisa dibuat.
+ */
+export function isSessionConfigured(): boolean {
+  return getSecret() !== null;
+}
+
+/**
+ * CSRF check untuk POST yang membuat session (login, signup, verify):
+ * kalau request membawa Origin/Referer dari host lain, tolak.
+ * Request tanpa Origin (curl, API client, navigasi same-site tanpa
+ * header) tetap diizinkan — header Origin tidak pernah ada di
+ * request non-browser, dan browser selalu mengirimkannya untuk
+ * POST cross-site. SameSite=Lax saja tidak cukup: cookie tetap
+ * BISA di-set lewat respons POST cross-site (login CSRF).
+ */
+export function isForeignOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get("origin");
+  const referer = req.headers.get("referer");
+  const candidate = origin ?? referer;
+  if (!candidate) return false;
+  try {
+    const candidateHost = new URL(candidate).host;
+    const reqHost = new URL(req.url).host;
+    return candidateHost !== reqHost;
+  } catch {
+    return true;
+  }
+}
+
 function b64urlEncode(data: string): string {
   return Buffer.from(data, "utf8").toString("base64url");
 }

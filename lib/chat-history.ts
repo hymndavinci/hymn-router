@@ -23,7 +23,13 @@ export type SavedMessage = {
   createdAt: string;
 };
 
-/** Judul otomatis: pesan pertama user, dipotong ~40 karakter. */
+/** Judul otomatis: pesan pertama user, dipotong ~40 karakter.
+ * Nilai default "Percakapan baru" adalah SENTINEL yang disimpan di DB
+ * (juga DEFAULT di migrasi 003): addMessage memakai kecocokan persis
+ * dengannya untuk mengenali judul yang belum diganti dan memberi judul
+ * otomatis dari pesan pertama. Lapisan tampilan (chat-playground)
+ * menerjemahkan sentinel ini ke bahasa aktif — jangan ganti nilai
+ * simpanannya tanpa migrasi. */
 export function titleFromMessage(content: string): string {
   const oneLine = content.replace(/\s+/g, " ").trim();
   if (oneLine.length <= 40) return oneLine || "Percakapan baru";

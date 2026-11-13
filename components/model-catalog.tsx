@@ -163,7 +163,10 @@ export default function ModelCatalog({
               </dl>
 
               <p className="mt-3 flex-1 text-[13px] leading-relaxed text-muted">
-                {dict.providers.notes[m.provider] ?? m.freeTier}
+                {m.providers
+                  .map((pid) => dict.providers.notes[pid])
+                  .filter(Boolean)
+                  .join(" · ") || m.freeTier}
               </p>
 
               <ModelString model={m.id} />

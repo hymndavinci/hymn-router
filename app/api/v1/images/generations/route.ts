@@ -191,10 +191,36 @@ export async function POST(req: NextRequest) {
     const res = await fetch(url, { signal: controller.signal });
     if (!res.ok) {
       const text = await res.text().catch(() => "");
+      // Detail upstream hanya dicatat di log server — TIDAK pernah
+      // dikembalikan ke client (bisa membocorkan nama/URL upstream
+      // dan teks upsell mereka).
+      console.error(`[v1/images] upstream gagal: HTTP ${res.status} ${text.slice(0, 200)}`);
+      // Upstream membatasi gambar gratis (1 gambar per ~45 detik per
+      // IP egress): itu rate limit, bukan kegagalan server — balas
+      // 429 + Retry-After supaya client bisa mencoba lagi, bukan 502.
+      const retryMatch = text.match(/Retry after (\d+)s/i);
+      const freeLimit =
+        res.status === 402 ||
+        res.status === 429 ||
+        /FREE_LIMIT|free limit/i.test(text);
+      if (freeLimit) {
+        const retryAfter = retryMatch ? Number(retryMatch[1]) : 45;
+        return NextResponse.json(
+          {
+            error: {
+              message: `Layanan gambar sedang dibatasi — silakan coba lagi dalam ${retryAfter} detik.`,
+              type: "rate_limit_error",
+              code: "image_rate_limited",
+              retry_after: retryAfter,
+            },
+          },
+          { status: 429, headers: { "Retry-After": String(retryAfter) } },
+        );
+      }
       return NextResponse.json(
         {
           error: {
-            message: `Layanan gambar gagal (HTTP ${res.status} ${text.slice(0, 200)})`,
+            message: "Layanan gambar gagal — silakan coba lagi sebentar.",
             type: "server_error",
             code: "image_generation_failed",
           },

@@ -27,13 +27,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, isDbConfigured } from "@/lib/db";
-import { setSessionCookie } from "@/lib/auth";
+import { isForeignOrigin, isSessionConfigured, setSessionCookie } from "@/lib/auth";
 import {
   hashPassword,
   MAX_PASSWORD_LENGTH,
   MIN_PASSWORD_LENGTH,
 } from "@/lib/password";
-import { rateLimitedWindow } from "@/lib/rate-limit";
+import { clientIp, rateLimitedWindow } from "@/lib/rate-limit";
 import { isEmailConfigured, sendVerificationCode } from "@/lib/mail";
 import {
   CODE_TTL_MS,
@@ -52,14 +52,6 @@ const SIGNUP_LIMIT = 10;
 const SIGNUP_WINDOW_MS = 15 * 60 * 1000;
 const EMAIL_SEND_WINDOW_MS = 60 * 60 * 1000;
 
-function clientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
-
 function isPgCode(err: unknown, code: string): boolean {
   return (
     typeof err === "object" &&
@@ -69,6 +61,14 @@ function isPgCode(err: unknown, code: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  // Signup (jalur fallback) membuat session — tolak POST cross-site
+  // (login CSRF). Request tanpa Origin (curl/API client) diizinkan.
+  if (isForeignOrigin(req)) {
+    return NextResponse.json(
+      { error: "forbidden", message: "Origin tidak diizinkan." },
+      { status: 403 },
+    );
+  }
   const ip = clientIp(req);
   if (rateLimitedWindow(`signup:${ip}`, SIGNUP_LIMIT, SIGNUP_WINDOW_MS)) {
     return NextResponse.json(
@@ -213,6 +213,18 @@ export async function POST(req: NextRequest) {
     // --- Fallback transisional: email belum dikonfigurasi ---
     // Akun langsung dibuat dan aktif (perilaku sebelum verifikasi ada).
     // Sengaja dipertahankan sampai RESEND_API_KEY diisi di server.
+    // Cek session SEBELUM membuat akun: kalau SESSION_SECRET belum
+    // benar, jangan sisakan akun yang terbuat tapi tidak bisa login
+    // (retry-nya hanya akan menghasilkan 409 yang membingungkan).
+    if (!isSessionConfigured()) {
+      return NextResponse.json(
+        {
+          error: "server_not_configured",
+          message: "SESSION_SECRET belum dikonfigurasi di server.",
+        },
+        { status: 503 },
+      );
+    }
     const rows = (await db`
       INSERT INTO users (email, name, password_hash)
       VALUES (${normalizedEmail}, ${displayName}, ${hashPassword(password)})

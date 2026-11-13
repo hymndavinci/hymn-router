@@ -42,6 +42,13 @@ type CompareRun = {
 
 const STORAGE_KEY = "hymn-router-chat-v1";
 
+/**
+ * Sentinel judul default yang disimpan di DB (lihat lib/chat-history.ts
+ * + migrasi 003). Lapisan tampilan menerjemahkannya ke bahasa aktif
+ * supaya pengguna EN tidak melihat judul Indonesia.
+ */
+const DEFAULT_TITLE_SENTINEL = "Percakapan baru";
+
 function uid(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -49,7 +56,7 @@ function uid(): string {
 /** Judul percakapan dari pesan pertama (maks ~40 karakter). */
 function titleFromMessage(content: string): string {
   const oneLine = content.replace(/\s+/g, " ").trim();
-  if (oneLine.length <= 40) return oneLine || "Percakapan baru";
+  if (oneLine.length <= 40) return oneLine || DEFAULT_TITLE_SENTINEL;
   return `${oneLine.slice(0, 40).trimEnd()}…`;
 }
 
@@ -241,6 +248,10 @@ export default function ChatPlayground({
 }) {
   const { dict } = useLocale();
   const t = dict.chat;
+
+  // Judul tampil: sentinel default diterjemahkan ke bahasa aktif.
+  const displayTitle = (title: string) =>
+    title === DEFAULT_TITLE_SENTINEL ? t.newConversationTitle : title;
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [input, setInput] = useState("");
@@ -810,14 +821,14 @@ export default function ChatPlayground({
               >
                 <button
                   onClick={() => void openConversation(c.id)}
-                  title={c.title}
+                  title={displayTitle(c.title)}
                   className="min-w-0 flex-1 truncate px-4 py-3 text-left text-[13px] font-bold text-black hover:text-blue"
                 >
-                  {c.title}
+                  {displayTitle(c.title)}
                 </button>
                 <button
                   onClick={() => void deleteConversation(c.id)}
-                  aria-label={`${t.deleteConversation}: ${c.title}`}
+                  aria-label={`${t.deleteConversation}: ${displayTitle(c.title)}`}
                   title={t.deleteConversation}
                   className="mr-2 shrink-0 border border-black bg-white px-2 py-1 font-mono text-[11px] font-bold text-bad hover:bg-bad hover:text-white"
                 >
@@ -904,7 +915,7 @@ export default function ChatPlayground({
             <button
               onClick={() => setCompareMode((v) => !v)}
               aria-pressed={compareMode}
-              className={`h-10 flex-1 border-2 border-black px-3 text-sm font-bold text-black sm:flex-none ${
+              className={`h-10 flex-1 whitespace-nowrap border-2 border-black px-3 text-sm font-bold text-black sm:flex-none ${
                 compareMode ? "bg-yellow shadow-brutal-xs" : "bg-white hover:bg-yellow-soft"
               }`}
             >
@@ -912,7 +923,7 @@ export default function ChatPlayground({
             </button>
             <button
               onClick={() => setShowSystem((v) => !v)}
-              className="h-10 flex-1 border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft sm:flex-none"
+              className="h-10 flex-1 whitespace-nowrap border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft sm:flex-none"
             >
               {showSystem ? t.systemHide : t.systemShow}
             </button>
@@ -922,7 +933,7 @@ export default function ChatPlayground({
                 setCompares([]);
                 setError(null);
               }}
-              className="h-10 flex-1 border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft disabled:opacity-50 sm:flex-none"
+              className="h-10 flex-1 whitespace-nowrap border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft disabled:opacity-50 sm:flex-none"
               disabled={messages.length === 0 && compares.length === 0}
             >
               {t.clearHistory}
@@ -934,6 +945,7 @@ export default function ChatPlayground({
               value={systemPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
               placeholder={t.systemPlaceholder}
+              aria-label={t.systemShow}
               className="h-10 w-full border-2 border-black bg-white px-2 text-base text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] sm:text-sm"
             />
           )}
@@ -957,7 +969,7 @@ export default function ChatPlayground({
             <div className="m-auto max-w-md py-10 text-center">
               <p className="font-mono text-sm font-bold text-black">{t.emptyTitle}</p>
               <p className="mt-1 text-sm text-faint">
-                {t.emptyBody}
+                {loggedIn ? t.emptyBodyLoggedIn : t.emptyBody}
               </p>
             </div>
           )}
@@ -991,7 +1003,7 @@ export default function ChatPlayground({
               <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-black">{m.content}</p>
               {m.tried && m.tried.length > 0 && (
                 <p className="mt-1.5 break-words font-mono text-[11px] leading-relaxed text-faint">
-                  fallback:{" "}
+                  {t.triedLabel}{" "}
                   {m.tried.map((t) => `${t.provider} (${t.error.slice(0, 60)})`).join(" → ")}
                   {m.provider ? ` → ${m.provider} ✓` : ""}
                 </p>
@@ -1064,7 +1076,7 @@ export default function ChatPlayground({
         </div>
 
         {error && (
-          <div className="border-2 border-black bg-white p-3 text-sm font-medium text-bad shadow-brutal-sm">
+          <div role="alert" className="border-2 border-black bg-white p-3 text-sm font-medium text-bad shadow-brutal-sm">
             <span className="font-mono text-[11px] font-bold uppercase tracking-wide">{t.errorLabel} · </span>
             <span className="break-words font-mono text-xs">{error}</span>
           </div>
@@ -1081,6 +1093,7 @@ export default function ChatPlayground({
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            aria-label={t.composerLabel}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
@@ -1097,7 +1110,9 @@ export default function ChatPlayground({
           </p>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="font-mono text-[11px] font-bold text-black">
-              {fill(t.footerStats, { configured: configured.length, total: selectable.length || 9 })}
+              {providers === null
+                ? t.loadingStatus
+                : fill(t.footerStats, { configured: configured.length, total: selectable.length })}
             </span>
             {sending ? (
               <button

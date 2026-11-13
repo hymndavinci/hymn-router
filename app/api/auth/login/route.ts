@@ -5,12 +5,13 @@
  * Sukses: session cookie + { ok: true, user: { id, email, name } }.
  * Rate limit: 10 percobaan per 15 menit per IP.
  *
- * Anti-enumerasi: email yang tidak ada dan password yang salah sama-sama
- * dibalas 401 generik "Email atau password salah". Untuk email yang tidak
- * ada, tetap dijalankan verifikasi dummy terhadap hash acak supaya
- * timing-nya mirip (tidak bisa dibedakan dari password salah).
- * Akun yang dibuat lewat OAuth (password_hash NULL) dibalas 401 khusus
- * { error: "oauth_only" } yang mengarahkan ke tombol Google/GitHub.
+ * Anti-enumerasi: email yang tidak ada, password yang salah, DAN
+ * akun OAuth-only (password_hash NULL) semuanya dibalas 401 generik
+ * "Email atau password salah" — respons yang berbeda untuk akun
+ * OAuth-only akan membocorkan bahwa email itu terdaftar dan cara
+ * loginnya. Untuk email yang tidak ada, tetap dijalankan verifikasi
+ * dummy terhadap hash acak supaya timing-nya mirip (tidak bisa
+ * dibedakan dari password salah).
  *
  * Password tidak pernah di-log atau dikembalikan di respons.
  */
@@ -18,9 +19,9 @@
 import { randomBytes } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, isDbConfigured } from "@/lib/db";
-import { setSessionCookie } from "@/lib/auth";
+import { isForeignOrigin, setSessionCookie } from "@/lib/auth";
 import { hashPassword, verifyPassword } from "@/lib/password";
-import { rateLimitedWindow } from "@/lib/rate-limit";
+import { clientIp, rateLimitedWindow } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -37,14 +38,6 @@ function getDummyHash(): string {
   return dummyHash;
 }
 
-function clientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
-
 function isPgCode(err: unknown, code: string): boolean {
   return (
     typeof err === "object" &&
@@ -54,6 +47,14 @@ function isPgCode(err: unknown, code: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  // Login yang sukses membuat session — tolak POST cross-site
+  // (login CSRF). Request tanpa Origin (curl/API client) diizinkan.
+  if (isForeignOrigin(req)) {
+    return NextResponse.json(
+      { error: "forbidden", message: "Origin tidak diizinkan." },
+      { status: 403 },
+    );
+  }
   const ip = clientIp(req);
   if (rateLimitedWindow(`login:${ip}`, LOGIN_LIMIT, LOGIN_WINDOW_MS)) {
     return NextResponse.json(
@@ -138,12 +139,12 @@ export async function POST(req: NextRequest) {
 
     const user = rows[0];
     if (!user.password_hash) {
+      // Akun OAuth-only: dibalas SAMA seperti password salah — pesan
+      // khusus di sini akan membocorkan bahwa email ini terdaftar
+      // dan dibuat lewat OAuth. Verifikasi dummy supaya timing mirip.
+      verifyPassword(password, getDummyHash());
       return NextResponse.json(
-        {
-          error: "oauth_only",
-          message:
-            "Akun ini dibuat melalui Google/GitHub, silakan masuk dengan tombol tersebut.",
-        },
+        { error: "invalid_credentials", message: GENERIC_FAIL },
         { status: 401 },
       );
     }

@@ -56,6 +56,10 @@ export async function GET() {
       existing.providers = [...(existing.providers ?? [existing.provider]), p.id];
       existing.configured = existing.configured || !p.needsKey || !!p.apiKey;
       existing.needs_key = existing.needs_key && p.needsKey;
+      // Gabungkan juga catatan free tier (mis. gpt-oss-20b: Pollinations + OVH).
+      if (p.notes && !existing.free_tier.includes(p.notes)) {
+        existing.free_tier = `${existing.free_tier} · ${p.notes}`;
+      }
       continue;
     }
     const item: ModelItem = {

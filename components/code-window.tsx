@@ -20,7 +20,7 @@ const TABS: { id: TabId; label: string }[] = [
 function snippets(baseUrl: string): Record<TabId, string> {
   return {
     curl: `curl ${baseUrl}/api/v1/chat/completions \\
-  -H "Authorization: Bearer hr_KEY_ANDA" \\
+  -H "Authorization: Bearer hr_YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "hymn/auto",
@@ -80,10 +80,12 @@ export default function CodeWindow({ baseUrl }: { baseUrl: string }) {
   return (
     <div className="shadow-yellow min-w-0 overflow-hidden border-2 border-white bg-dark-panel shadow-brutal">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-white/25 px-3 py-2.5 sm:px-4">
-        <div className="flex gap-1">
+        <div className="flex gap-1" role="tablist" aria-label="Code sample language">
           {TABS.map((t) => (
             <button
               key={t.id}
+              role="tab"
+              aria-selected={tab === t.id}
               onClick={() => setTab(t.id)}
               className={`border-2 px-2.5 py-1.5 font-mono text-[11px] font-bold transition-colors sm:px-3 sm:text-[12px] ${
                 tab === t.id

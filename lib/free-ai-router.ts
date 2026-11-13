@@ -259,6 +259,22 @@ function reasoningParams(p: ProviderConfig): Record<string, unknown> {
   return {};
 }
 
+/**
+ * Batas bawah max_tokens efektif untuk model reasoning (Groq gpt-oss-120b
+ * & Kilo): model ini menghabiskan token untuk reasoning tersembunyi
+ * SEBELUM menjawab (terukur 2026-11-14: jawaban 1 kata menelan ~60
+ * completion token di Groq), sehingga max_tokens kecil (mis. 20)
+ * menghasilkan konten kosong dan provider dianggap gagal. Floor 256
+ * memberi ruang reasoning untuk jawaban singkat; nilai yang diminta
+ * user tetap dihormati di atas floor. Token reasoning tetap tercatat
+ * di usage (itu angka dari provider).
+ */
+function effectiveMaxTokens(p: ProviderConfig, requested?: number): number {
+  const base = requested ?? 1024;
+  if (p.id === "groq" || p.id === "kilo") return Math.max(base, 256);
+  return base;
+}
+
 async function callProvider(
   p: ProviderConfig,
   messages: ChatMessage[],
@@ -278,7 +294,7 @@ async function callProvider(
         model: resolveModel(p, opts),
         messages,
         temperature: opts.temperature ?? 0.7,
-        max_tokens: opts.maxTokens ?? 1024,
+        max_tokens: effectiveMaxTokens(p, opts.maxTokens),
         ...reasoningParams(p),
       }),
       signal: controller.signal,
@@ -624,7 +640,7 @@ async function attemptStream(
       model,
       messages,
       temperature: opts.temperature ?? 0.7,
-      max_tokens: opts.maxTokens ?? 1024,
+      max_tokens: effectiveMaxTokens(p, opts.maxTokens),
       stream: true,
       ...reasoningParams(p),
     };

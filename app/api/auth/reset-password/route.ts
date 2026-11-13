@@ -6,14 +6,18 @@
  * Sukses (200): { ok: true } — password_hash diperbarui, record reset
  * dihapus. TIDAK membuat session: user masuk lagi dengan password baru.
  *
- * - Reset tidak ada -> 404 { error: "reset_not_found" }
- *   (termasuk bila tabel password_resets belum ada — tanpa tabel,
- *   tidak mungkin ada reset; dicatat sebagai warning di log server).
+ * - Reset tidak ada -> 401 { error: "invalid_code" } (disamakan
+ *   dengan kode salah — 404 yang berbeda akan membocorkan apakah
+ *   sebuah email adalah akun password yang baru meminta reset;
+ *   termasuk bila tabel password_resets belum ada).
  * - Kode kedaluwarsa -> 410 { error: "reset_expired" }
  *   (record dihapus, minta kode baru).
  * - Percobaan habis (>= 5) -> 429 { error: "too_many_attempts" }
  *   (record dihapus, minta kode baru).
  * - Kode salah -> 401 { error: "invalid_code", attemptsRemaining }.
+ *   Penghitung percobaan dinaikkan secara atomik di database
+ *   (UPDATE ... SET attempts = attempts + 1) supaya tebakan paralel
+ *   tidak bisa mengakali batas 5 percobaan.
  *
  * Rate limit: 10 percobaan per 15 menit per IP. Kode dan password
  * tidak pernah di-log.
@@ -22,7 +26,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, isDbConfigured } from "@/lib/db";
 import { hashPassword, MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from "@/lib/password";
-import { rateLimitedWindow } from "@/lib/rate-limit";
+import { clientIp, rateLimitedWindow } from "@/lib/rate-limit";
 import {
   isCodeFormat,
   MAX_ATTEMPTS,
@@ -34,14 +38,6 @@ export const runtime = "nodejs";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESET_LIMIT = 10;
 const RESET_WINDOW_MS = 15 * 60 * 1000;
-
-function clientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
 
 function isPgCode(err: unknown, code: string): boolean {
   return (
@@ -138,12 +134,14 @@ export async function POST(req: NextRequest) {
       FROM password_resets WHERE email = ${normalizedEmail} LIMIT 1
     `) as ResetRecord[];
     if (rows.length === 0) {
+      // Disamakan dengan kode salah (401) — jangan 404: respons yang
+      // berbeda akan membocorkan apakah email ini baru meminta reset.
       return NextResponse.json(
         {
-          error: "reset_not_found",
-          message: "Reset tidak ditemukan — silakan minta kode baru.",
+          error: "invalid_code",
+          message: "Kode salah atau sudah tidak berlaku — silakan periksa kembali kode di email Anda.",
         },
-        { status: 404 },
+        { status: 401 },
       );
     }
     const record = rows[0];
@@ -171,11 +169,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (!verifyCode(code, record.code_hash)) {
-      const attempts = record.attempts + 1;
-      await db`
-        UPDATE password_resets SET attempts = ${attempts}
-        WHERE email = ${normalizedEmail}
-      `;
+      // Atomik: nilai lama tidak dibaca dulu — tebakan paralel tidak
+      // bisa berbagi satu hitungan percobaan.
+      const updated = (await db`
+        UPDATE password_resets SET attempts = attempts + 1
+        WHERE email = ${normalizedEmail} AND attempts < ${MAX_ATTEMPTS}
+        RETURNING attempts
+      `) as { attempts: number }[];
+      const attempts = updated.length > 0 ? updated[0].attempts : MAX_ATTEMPTS;
       return NextResponse.json(
         {
           error: "invalid_code",
@@ -194,27 +195,28 @@ export async function POST(req: NextRequest) {
     await db`DELETE FROM password_resets WHERE email = ${normalizedEmail}`;
     if (updated.length === 0) {
       // Akun dihapus setelah kode diminta — reset tidak berarti lagi.
+      // Disamakan dengan kode salah (401) supaya tidak membocorkan.
       return NextResponse.json(
         {
-          error: "reset_not_found",
-          message: "Reset tidak ditemukan — silakan minta kode baru.",
+          error: "invalid_code",
+          message: "Kode salah atau sudah tidak berlaku — silakan periksa kembali kode di email Anda.",
         },
-        { status: 404 },
+        { status: 401 },
       );
     }
     return NextResponse.json({ ok: true }, { status: 200 });
   } catch (err) {
     // Tabel password_resets belum ada (migrasi 004 belum dijalankan):
-    // tanpa tabel, tidak mungkin ada reset — sama seperti
-    // "tidak ditemukan". Dicatat di log server.
+    // tanpa tabel, tidak mungkin ada reset — sama seperti kode salah
+    // (401, disamakan — lihat di atas). Dicatat di log server.
     if (isPgCode(err, "42P01")) {
       console.warn("[auth/reset-password] tabel password_resets belum ada — migrasi 004 belum dijalankan");
       return NextResponse.json(
         {
-          error: "reset_not_found",
-          message: "Reset tidak ditemukan — silakan minta kode baru.",
+          error: "invalid_code",
+          message: "Kode salah atau sudah tidak berlaku — silakan periksa kembali kode di email Anda.",
         },
-        { status: 404 },
+        { status: 401 },
       );
     }
     console.error("[auth/reset-password] database error:", err);

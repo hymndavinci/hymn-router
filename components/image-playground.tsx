@@ -106,8 +106,8 @@ export default function ImagePlayground() {
           />
         </label>
 
-        <div className="mt-3 flex flex-wrap items-end gap-3">
-          <label className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-none">
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end">
+          <label className="flex w-full flex-col gap-1 sm:w-auto sm:flex-none">
             <span className="text-[11px] font-bold uppercase tracking-wide text-black">
               {t.modelLabel}
             </span>
@@ -121,7 +121,7 @@ export default function ImagePlayground() {
             </select>
           </label>
 
-          <label className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-none">
+          <label className="flex w-full flex-col gap-1 sm:w-auto sm:flex-none">
             <span className="text-[11px] font-bold uppercase tracking-wide text-black">
               {t.sizeLabel}
             </span>
@@ -141,7 +141,7 @@ export default function ImagePlayground() {
           <button
             onClick={generate}
             disabled={loading || prompt.trim() === ""}
-            className="btn-press h-10 border-2 border-black bg-yellow px-6 text-sm font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-40"
+            className="btn-press h-10 w-full border-2 border-black bg-yellow px-6 text-sm font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
           >
             {loading ? t.generating : t.generate}
           </button>
@@ -153,7 +153,7 @@ export default function ImagePlayground() {
       </div>
 
       {error && (
-        <div className="border-2 border-black bg-white p-3 text-sm font-medium text-bad shadow-brutal-sm">
+        <div role="alert" className="border-2 border-black bg-white p-3 text-sm font-medium text-bad shadow-brutal-sm">
           {error}
         </div>
       )}

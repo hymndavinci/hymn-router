@@ -14,8 +14,9 @@
  *   kode reset (POST /api/auth/forgot-password, respons selalu generik),
  *   lalu masukkan kode + password baru (POST /api/auth/reset-password).
  *
- * Pesan error API dipetakan ke teks i18n bila dikenali, kalau tidak
- * ditampilkan apa adanya (pesan server berbahasa Indonesia).
+ * Pesan error API dipetakan ke teks i18n berdasarkan kode error-nya
+ * (bukan pesan server mentah — pesan server berbahasa Indonesia dan
+ * akan bocor ke mode English kalau ditampilkan apa adanya).
  */
 
 "use client";
@@ -91,13 +92,14 @@ export default function LoginForm({
     setCooldown(0);
   }
 
-  /** Pesan error API -> teks i18n (fallback: pesan server). */
+  /** Pesan error API -> teks i18n. Pesan server mentah TIDAK pernah
+   *  ditampilkan (berbahasa Indonesia — akan bocor ke mode English). */
   function verifyErrorMessage(data: ApiResult): string {
     switch (data.error) {
       case "invalid_code":
         return typeof data.attemptsRemaining === "number"
           ? fill(t.errInvalidCode, { remaining: data.attemptsRemaining })
-          : (data.message ?? t.errInvalidCode);
+          : t.errInvalidCodePlain;
       case "verification_expired":
         return t.errExpired;
       case "too_many_attempts":
@@ -106,8 +108,13 @@ export default function LoginForm({
         return t.errNotFound;
       case "email_send_failed":
         return t.errSendFailed;
+      case "rate_limited":
+        return t.errRateLimited;
+      case "server_not_configured":
+      case "database_error":
+        return t.errServer;
       default:
-        return data.message ?? data.error ?? t.errSendFailed;
+        return t.errSendFailed;
     }
   }
 
@@ -116,15 +123,58 @@ export default function LoginForm({
       case "invalid_code":
         return typeof data.attemptsRemaining === "number"
           ? fill(t.errInvalidCode, { remaining: data.attemptsRemaining })
-          : (data.message ?? t.errInvalidCode);
+          : t.errInvalidCodePlain;
       case "reset_expired":
         return t.errResetExpired;
       case "reset_not_found":
         return t.errResetNotFound;
       case "too_many_attempts":
         return t.errResetTooMany;
+      case "rate_limited":
+        return t.errRateLimited;
+      case "server_not_configured":
+      case "database_error":
+        return t.errServer;
       default:
-        return data.message ?? data.error ?? t.errSendFailed;
+        return t.errSendFailed;
+    }
+  }
+
+  /** Error login/signup -> teks i18n. */
+  function formErrorMessage(data: ApiResult): string {
+    switch (data.error) {
+      case "invalid_credentials":
+        return t.errInvalidCredentials;
+      case "email_exists":
+        return t.errEmailExists;
+      case "rate_limited":
+        return t.errRateLimited;
+      case "invalid_email":
+        return t.invalidEmail;
+      case "invalid_password":
+        return t.passwordShort;
+      case "server_not_configured":
+      case "database_error":
+        return t.errServer;
+      default:
+        return t.errServer;
+    }
+  }
+
+  /** Error minta kode reset -> teks i18n. */
+  function forgotErrorMessage(data: ApiResult): string {
+    switch (data.error) {
+      case "rate_limited":
+        return t.errRateLimited;
+      case "email_not_configured":
+        return t.errEmailNotConfigured;
+      case "invalid_email":
+        return t.invalidEmail;
+      case "server_not_configured":
+      case "database_error":
+        return t.errServer;
+      default:
+        return t.errServer;
     }
   }
 
@@ -169,7 +219,7 @@ export default function LoginForm({
         },
       );
       if (!res.ok) {
-        throw new Error(data.message ?? data.error ?? `HTTP ${res.status}`);
+        throw new Error(formErrorMessage(data));
       }
       // Signup dengan verifikasi email: lanjut ke langkah kode.
       if (mode === "signup" && data.verificationRequired) {
@@ -180,7 +230,7 @@ export default function LoginForm({
         return;
       }
       if (!data.ok) {
-        throw new Error(data.message ?? data.error ?? `HTTP ${res.status}`);
+        throw new Error(formErrorMessage(data));
       }
       window.location.href = next ?? "/dashboard";
     } catch (err) {
@@ -257,7 +307,7 @@ export default function LoginForm({
         email: trimmedEmail,
       });
       if (!res.ok) {
-        throw new Error(data.message ?? data.error ?? `HTTP ${res.status}`);
+        throw new Error(forgotErrorMessage(data));
       }
       setEmail(trimmedEmail);
       setCode("");
@@ -322,7 +372,7 @@ export default function LoginForm({
         email: email.trim(),
       });
       if (!res.ok) {
-        throw new Error(data.message ?? data.error ?? `HTTP ${res.status}`);
+        throw new Error(forgotErrorMessage(data));
       }
       setNotice(t.forgotSent);
     } catch (err) {
@@ -428,7 +478,7 @@ export default function LoginForm({
               </div>
             )}
             {error && (
-              <div className="border-2 border-black bg-red-100 px-4 py-3 text-[14px] font-semibold leading-relaxed text-black">
+              <div role="alert" className="border-2 border-black bg-red-100 px-4 py-3 text-[14px] font-semibold leading-relaxed text-black">
                 {error}
               </div>
             )}
@@ -504,7 +554,7 @@ export default function LoginForm({
               </div>
             )}
             {error && (
-              <div className="border-2 border-black bg-red-100 px-4 py-3 text-[14px] font-semibold leading-relaxed text-black">
+              <div role="alert" className="border-2 border-black bg-red-100 px-4 py-3 text-[14px] font-semibold leading-relaxed text-black">
                 {error}
               </div>
             )}
@@ -568,7 +618,7 @@ export default function LoginForm({
             </div>
 
             {error && (
-              <div className="border-2 border-black bg-red-100 px-4 py-3 text-[14px] font-semibold leading-relaxed text-black">
+              <div role="alert" className="border-2 border-black bg-red-100 px-4 py-3 text-[14px] font-semibold leading-relaxed text-black">
                 {error}
               </div>
             )}
@@ -666,7 +716,7 @@ export default function LoginForm({
               </div>
             )}
             {error && (
-              <div className="border-2 border-black bg-red-100 px-4 py-3 text-[14px] font-semibold leading-relaxed text-black">
+              <div role="alert" className="border-2 border-black bg-red-100 px-4 py-3 text-[14px] font-semibold leading-relaxed text-black">
                 {error}
               </div>
             )}

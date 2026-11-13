@@ -28,7 +28,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, isDbConfigured } from "@/lib/db";
-import { rateLimitedWindow } from "@/lib/rate-limit";
+import { clientIp, rateLimitedWindow } from "@/lib/rate-limit";
 import { isEmailConfigured, sendPasswordResetCode } from "@/lib/mail";
 import {
   CODE_TTL_MS,
@@ -45,6 +45,15 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FORGOT_LIMIT = 10;
 const FORGOT_WINDOW_MS = 15 * 60 * 1000;
 const EMAIL_SEND_WINDOW_MS = 60 * 60 * 1000;
+/**
+ * Respons generik di-pad sampai minimal selama ini (ms): jalur
+ * "email tidak terdaftar" yang langsung kembali akan jauh lebih
+ * cepat dari jalur asli (upsert + kirim email) dan menjadi oracle
+ * timing yang membocorkan keberadaan email. Hash dummy scrypt
+ * (biaya sama seperti hash kode asli) + jeda sampai batas ini
+ * membuat kedua jalur tidak lagi mudah dibedakan dari timing.
+ */
+const MIN_RESPONSE_MS = 500;
 
 /** Respons generik — sama persis untuk email terdaftar maupun tidak. */
 function genericOk() {
@@ -54,14 +63,6 @@ function genericOk() {
       message: "Jika email terdaftar, kode reset telah dikirim.",
     },
     { status: 200 },
-  );
-}
-
-function clientIp(req: NextRequest): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
   );
 }
 
@@ -150,6 +151,17 @@ export async function POST(req: NextRequest) {
 
   // Mulai dari sini: JANGAN pernah membalas selain 200 generik.
   // Kegagalan apa pun hanya dicatat di log server.
+  const started = Date.now();
+  // Kerja dummy + padding waktu untuk jalur yang kembali lebih awal
+  // (lihat MIN_RESPONSE_MS): samarkan perbedaan timing dengan jalur
+  // yang benar-benar mengirim email.
+  const padEarlyReturn = async () => {
+    hashCode(generateCode());
+    const elapsed = Date.now() - started;
+    if (elapsed < MIN_RESPONSE_MS) {
+      await new Promise((r) => setTimeout(r, MIN_RESPONSE_MS - elapsed));
+    }
+  };
   try {
     const users = (await db`
       SELECT id, password_hash FROM users WHERE email = ${normalizedEmail} LIMIT 1
@@ -157,6 +169,7 @@ export async function POST(req: NextRequest) {
     // Email tidak terdaftar, atau akun OAuth-only (tanpa password):
     // tidak ada kode yang dikirim, respons tetap generik.
     if (users.length === 0 || !users[0].password_hash) {
+      await padEarlyReturn();
       return genericOk();
     }
 
@@ -167,6 +180,7 @@ export async function POST(req: NextRequest) {
     if (existing.length > 0) {
       const lastSent = new Date(existing[0].last_sent_at).getTime();
       if (lastSent + RESEND_COOLDOWN_MS > Date.now()) {
+        await padEarlyReturn();
         return genericOk();
       }
     }

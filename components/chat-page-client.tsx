@@ -61,7 +61,7 @@ export default function ChatPageClient() {
             {t.title}
           </h1>
           <p className="mt-2 max-w-[560px] text-[15px] leading-relaxed text-muted">
-            {t.sub}
+            {loggedIn ? t.subLoggedIn : t.sub}
           </p>
           <p className="mt-3 max-w-[640px] border-2 border-black bg-yellow-soft p-3 text-[14px] leading-relaxed text-black shadow-brutal-sm">
             {t.tryLiveNote}

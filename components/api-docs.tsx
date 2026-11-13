@@ -116,7 +116,7 @@ function InfoCard({ title, items }: { title: string; items: React.ReactNode[] })
 }
 
 const V1_CURL = `curl <domain>/api/v1/chat/completions \\
-  -H "Authorization: Bearer hr_KEY_ANDA" \\
+  -H "Authorization: Bearer hr_YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "hymn/auto",
@@ -169,7 +169,7 @@ const v1ModelsSample = (total: number) => `curl <domain>/api/v1/models
 # diabaikan client OpenAI. Versi visualnya ada di halaman /models.`;
 
 const V1_STREAM_CURL = `curl -N <domain>/api/v1/chat/completions \\
-  -H "Authorization: Bearer hr_KEY_ANDA" \\
+  -H "Authorization: Bearer hr_YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "model": "hymn/auto",
@@ -184,12 +184,13 @@ const V1_STREAM_CURL = `curl -N <domain>/api/v1/chat/completions \\
 #      "choices":[{"index":0,"delta":{"content":"Dulu"},"finish_reason":null}]}
 # -> ... (satu chunk per delta teks)
 # -> data: {"id":"...","object":"chat.completion.chunk",
-#      "choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+#      "choices":[{"index":0,"delta":{},"finish_reason":"stop"}],
+#      "usage":{"prompt_tokens":12,"completion_tokens":8,"total_tokens":20}}
 # -> data: [DONE]`;
 
 const V1_STREAM_PYTHON = `from openai import OpenAI
 
-client = OpenAI(api_key="hr_KEY_ANDA", base_url="<domain>/api/v1")
+client = OpenAI(api_key="hr_YOUR_API_KEY", base_url="<domain>/api/v1")
 
 stream = client.chat.completions.create(
     model="hymn/auto",
@@ -205,7 +206,7 @@ const CURL_CHAT = `curl -X POST <domain>/api/ai/chat \\
   -d '{"messages":[{"role":"user","content":"halo, jawab singkat"}]}'
 
 # Dengan API key (limit 60/menit/key, tercatat di dasbor):
-#   -H "Authorization: Bearer hr_KEY_ANDA"`;
+#   -H "Authorization: Bearer hr_YOUR_API_KEY"`;
 
 const REQUEST_JSON = `{
   "messages": [
@@ -213,7 +214,7 @@ const REQUEST_JSON = `{
     { "role": "user", "content": "Apa itu LLM?" }
   ],
   "temperature": 0.7,        // opsional, 0–2, default 0.7
-  "maxTokens": 1024,         // opsional, 1–8192, default 1024
+  "maxTokens": 1024,         // opsional, 1–8192, default 1024 (Groq/Kilo: min. efektif 256 — model reasoning)
   "preferProvider": "groq"   // opsional, tetap fallback jika gagal
 }`;
 
@@ -232,7 +233,7 @@ const RESPONSE_JSON = `{
 const CURL_STATUS = `curl <domain>/api/ai/chat`;
 
 const IMAGES_CURL = `curl <domain>/api/v1/images/generations \\
-  -H "Authorization: Bearer hr_KEY_ANDA" \\
+  -H "Authorization: Bearer hr_YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
     "prompt": "seekor kucing oranye duduk di jendela saat hujan",
@@ -338,6 +339,7 @@ export default function ApiDocs({ providerCount }: { providerCount: number }) {
             </div>
           ))}
         </div>
+        <p className="mt-4 font-mono text-[13px] leading-relaxed text-muted">{t.errorsNote}</p>
       </Section>
 
       <Section eyebrow={t.chatEyebrow} title={t.chatTitle}>

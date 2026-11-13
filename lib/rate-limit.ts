@@ -6,6 +6,26 @@
  * serius (multi-instance), ganti dengan Redis/Upstash.
  */
 
+import type { NextRequest } from "next/server";
+
+/**
+ * IP client yang bisa dipercaya untuk rate limit.
+ *
+ * Vercel selalu mengisi `x-real-ip` dengan IP asli client — header ini
+ * tidak bisa dipalsukan dari luar karena ditulis oleh edge Vercel
+ * sendiri. Entri pertama `x-forwarded-for` justru BISA dipalsukan
+ * (client yang mengisi; Vercel hanya menambahkan di belakang), jadi
+ * hanya dipakai sebagai fallback saat `x-real-ip` tidak ada (mis.
+ * saat jalan di luar Vercel).
+ */
+export function clientIp(req: NextRequest): string {
+  return (
+    req.headers.get("x-real-ip")?.trim() ||
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
+  );
+}
+
 const WINDOW_MS = 60_000;
 const buckets = new Map<string, { count: number; resetAt: number }>();
 const windowedBuckets = new Map<string, { count: number; resetAt: number }>();

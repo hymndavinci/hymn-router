@@ -24,6 +24,7 @@ export default async function Home() {
   const providers = getProviderStatus();
   const baseUrl = await getBaseUrl();
   const configured = providers.filter((p) => p.configured).length;
+  const keyless = providers.filter((p) => !p.needsKey).length;
 
   return (
     <div className="flex-1">
@@ -53,7 +54,7 @@ export default async function Home() {
               {h.heroTitle}
             </h1>
             <p className="mt-6 max-w-[520px] text-[16px] leading-[1.6] text-muted">
-              {h.heroSub}
+              {fill(h.heroSub, { total: providers.length })}
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
@@ -90,7 +91,7 @@ export default async function Home() {
             {h.stats.map((s) => (
               <div key={s.label} className="px-1 py-7 sm:px-6 sm:first:pl-0">
                 <p className="text-[32px] font-black leading-none tracking-tight text-black">
-                  {s.value}
+                  {fill(s.value, { total: providers.length, keyless })}
                 </p>
                 <p className="mt-2 text-[13px] font-medium leading-snug text-muted">{s.label}</p>
               </div>
@@ -143,10 +144,10 @@ export default async function Home() {
             <span className="bg-yellow px-2 py-1">{h.providersEyebrow}</span>
           </p>
           <h2 className="mt-4 max-w-[640px] text-[36px] font-black leading-[1.1] tracking-[-0.01em] text-black sm:text-[44px]">
-            {h.providersTitle}
+            {fill(h.providersTitle, { total: providers.length })}
           </h2>
           <p className="mt-4 max-w-[640px] text-[16px] leading-[1.6] text-muted">
-            {h.providersSub}
+            {fill(h.providersSub, { keyless })}
           </p>
           <div className="mt-12">
             <ProviderSection initial={providers} />
@@ -305,7 +306,7 @@ export default async function Home() {
               <Reveal key={c.title} delay={Math.min(i * 50, 150)}>
                 <div className="h-full border-2 border-black bg-white p-6 shadow-brutal">
                   <p className="text-[48px] font-black leading-none tracking-tight text-black">
-                    {c.big}
+                    {fill(c.big, { total: providers.length, keyless })}
                   </p>
                   <h3 className="mt-3 text-[18px] font-bold text-black">{c.title}</h3>
                   <p className="mt-2 text-[15px] leading-relaxed text-muted">{c.body}</p>

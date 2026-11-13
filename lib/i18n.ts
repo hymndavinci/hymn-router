@@ -42,7 +42,7 @@ const id = {
   meta: {
     homeTitle: "Hymn Router — Satu Endpoint untuk Semua Model AI Gratis",
     homeDescription:
-      "Gateway OpenAI-compatible untuk {total} endpoint LLM gratis (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, dan lainnya) dengan fallback otomatis. Masuk, buat API key, dan akses hymn-router.vercel.app/api/v1. Rp 0.",
+      "Gateway OpenAI-compatible untuk {total} endpoint LLM gratis (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, dan lainnya) dengan fallback otomatis. Masuk, buat API key, dan akses hymnrouter.my.id/api/v1. Rp 0.",
     loginTitle: "Masuk — Hymn Router",
     loginDescription:
       "Masuk ke Hymn Router dengan email, Google, atau GitHub untuk membuat API key dan memakai gateway AI gratis.",
@@ -98,22 +98,22 @@ const id = {
     heroBadge: "AI Router · Gratis · OpenAI-Compatible",
     heroTitle: "Satu endpoint untuk semua model AI gratis.",
     heroSub:
-      "Sembilan provider LLM gratis di balik satu API. Masuk, buat API key, dan panggil dari kode Anda — tanpa kartu kredit, tanpa saldo.",
+      "{total} provider LLM gratis di balik satu API. Masuk, buat API key, dan panggil dari kode Anda — tanpa kartu kredit, tanpa saldo.",
     ctaStart: "Mulai sekarang",
     ctaChat: "Coba chat",
     ctaDocs: "Dokumentasi →",
     providerLine:
       "{configured}/{total} provider aktif saat ini · tanpa key pun langsung dapat digunakan",
     stats: [
-      { value: "9", label: "provider, satu endpoint" },
-      { value: "4", label: "tanpa API key" },
+      { value: "{total}", label: "provider, satu endpoint" },
+      { value: "{keyless}", label: "tanpa API key" },
       { value: "Rp 0", label: "tanpa kartu kredit" },
       { value: "1", label: "endpoint OpenAI-compatible" },
     ],
     providersEyebrow: "Provider",
-    providersTitle: "Sembilan provider. Satu endpoint.",
+    providersTitle: "{total} provider. Satu endpoint.",
     providersSub:
-      "Status live dari server — urutan kartu adalah urutan fallback (atas dicoba duluan). Empat provider berfungsi tanpa API key.",
+      "Status live dari server — urutan kartu adalah urutan fallback (atas dicoba duluan). {keyless} provider berfungsi tanpa API key.",
     howtoEyebrow: "Cara Penggunaan",
     howtoTitle: "Ganti base URL. Kode tetap berfungsi.",
     howtoSub:
@@ -193,7 +193,7 @@ const id = {
     whyTitle: "Semua model gratis, dalam satu akun.",
     whyCards: [
       {
-        big: "9",
+        big: "{total}",
         title: "provider",
         body: "Satu endpoint untuk semuanya. Fallback otomatis jika satu provider gagal atau mencapai limit.",
       },
@@ -203,13 +203,13 @@ const id = {
         body: "Tidak ada saldo, tidak ada langganan, tidak ada tagihan kejutan. Gratis berarti gratis.",
       },
       {
-        big: "4",
+        big: "{keyless}",
         title: "keyless",
         body: "Kilo, LLM7, Pollinations, dan OVH langsung berfungsi tanpa API key provider apa pun.",
       },
     ],
     whyPrivacy:
-      "Soal privasi: prompt dan response tidak pernah disimpan di server ini. Yang dicatat hanya jumlah request, token, dan provider — untuk dasbor Anda sendiri. Request tetap diteruskan ke provider gratis pihak ketiga, jadi jangan kirim data sensitif.",
+      "Soal privasi: prompt dan response tidak pernah disimpan di server ini — kecuali riwayat chat /chat Anda sendiri saat masuk, yang sengaja disimpan agar bisa dibuka lagi dan bisa dihapus kapan saja dari sidebar riwayat. Yang dicatat hanya jumlah request, token, dan provider — untuk dasbor Anda sendiri. Request tetap diteruskan ke provider gratis pihak ketiga, jadi jangan kirim data sensitif.",
     faqEyebrow: "FAQ",
     faqTitle: "Pertanyaan yang sering muncul.",
     faqSub:
@@ -225,7 +225,7 @@ const id = {
       },
       {
         q: "Perlu API key provider?",
-        a: "Tidak, untuk mulai. Empat provider (Kilo, LLM7, Pollinations, OVH) bisa dipakai tanpa key sama sekali. Yang Anda butuhkan hanyalah API key Hymn Router (diawali hr_) yang dibuat di dasbor setelah masuk — key tersebut untuk gateway ini, bukan key provider.",
+        a: "Tidak, untuk mulai. Provider Kilo, LLM7, Pollinations, dan OVH bisa dipakai tanpa key sama sekali. Yang Anda butuhkan hanyalah API key Hymn Router (diawali hr_) yang dibuat di dasbor setelah masuk — key tersebut untuk gateway ini, bukan key provider.",
       },
       {
         q: "Bagaimana cara menggunakannya di kode?",
@@ -233,7 +233,7 @@ const id = {
       },
       {
         q: "Apakah prompt saya disimpan?",
-        a: "Tidak. Prompt dan isi response tidak pernah disimpan di server ini. Yang dicatat hanya jumlah request, token, provider, dan latensi — untuk dasbor pemakaian Anda. Catatan jujur: request tetap diteruskan ke provider gratis pihak ketiga, dan beberapa provider bisa me-log prompt sesuai kebijakannya sendiri. Jangan kirim data sensitif.",
+        a: "Tidak — dengan satu pengecualian: riwayat chat di /chat untuk pengguna yang masuk sengaja disimpan di server agar percakapan bisa dibuka lagi, dan bisa dihapus kapan saja dari sidebar riwayat. Di luar itu, prompt dan isi response tidak pernah disimpan. Yang dicatat hanya jumlah request, token, provider, dan latensi — untuk dasbor pemakaian Anda. Catatan jujur: request tetap diteruskan ke provider gratis pihak ketiga, dan beberapa provider bisa me-log prompt sesuai kebijakannya sendiri. Jangan kirim data sensitif.",
       },
       {
         q: "Mengapa terkadang lambat / gagal?",
@@ -241,7 +241,7 @@ const id = {
       },
       {
         q: "Berapa limitnya?",
-        a: "Anonim (playground dan /api/ai/chat tanpa key): 20 request/menit per IP. Menggunakan API key: 60 request/menit per key. Di atas itu, limit gratis tiap provider tetap berlaku.",
+        a: "Anonim (playground dan /api/ai/chat tanpa key): 20 request/menit per IP. Menggunakan API key: 60 request/menit per key, ditambah kuota harian gratis 100 request per pengguna (reset pukul 00:00 WIB). Di atas itu, limit gratis tiap provider tetap berlaku.",
       },
     ],
     ctaTitle: "Mulai gunakan hari ini.",
@@ -265,6 +265,7 @@ const id = {
     requestsLabel: "request:",
     successesLabel: "sukses:",
     lastUsed: "terakhir:",
+    lastErrorLabel: "Error terakhir:",
     getKey: "Dapatkan key gratis ↗",
     optionalToken: "Token opsional ↗",
     optional: "(opsional)",
@@ -293,8 +294,6 @@ const id = {
         "Akun GitHub Anda tidak membagikan alamat email (periksa Settings → Emails di GitHub). Silakan gunakan Google atau email.",
       github_failed:
         "Login GitHub gagal — silakan coba lagi, atau gunakan Google / email.",
-      oauth_only:
-        "Akun ini dibuat melalui Google/GitHub. Silakan masuk menggunakan tombol di atas.",
     } as Record<string, string>,
     googleBtn: "Lanjutkan dengan Google",
     githubBtn: "Lanjutkan dengan GitHub",
@@ -336,6 +335,12 @@ const id = {
     errNotFound: "Verifikasi tidak ditemukan — silakan daftar ulang.",
     errResendSoon: "Tunggu {seconds} detik sebelum meminta kode baru.",
     errSendFailed: "Gagal mengirim kode — silakan coba lagi.",
+    errInvalidCodePlain: "Kode salah atau sudah tidak berlaku.",
+    errInvalidCredentials: "Email atau password salah.",
+    errEmailExists: "Email sudah terdaftar, silakan masuk.",
+    errRateLimited: "Terlalu banyak percobaan — silakan coba lagi nanti.",
+    errServer: "Terjadi kesalahan di server — silakan coba lagi sebentar.",
+    errEmailNotConfigured: "Pengiriman email belum dikonfigurasi di server.",
     forgotLink: "Lupa password?",
     forgotTitle: "Reset password",
     forgotSubtitle: "Masukkan email akun Anda — kami akan mengirim kode reset 6 digit.",
@@ -400,6 +405,10 @@ const id = {
         title: "Token Google tidak lengkap",
         body: "Token tidak berisi sub/email. Silakan masuk lagi.",
       },
+      email_not_verified: {
+        title: "Email Google belum terverifikasi",
+        body: "Google menyatakan email akun ini belum terverifikasi. Verifikasi dulu email Anda di akun Google, lalu coba masuk lagi.",
+      },
       token_expired: {
         title: "Token Google sudah kadaluarsa",
         body: "Silakan masuk lagi.",
@@ -419,7 +428,9 @@ const id = {
   chat: {
     badge: "Playground",
     title: "Coba router secara langsung.",
-    sub: "Tanpa login, tanpa key. Anonim dibatasi 20 request/menit per IP — masuk dan gunakan API key untuk limit 60/menit.",
+    sub: "Tanpa login, tanpa key — playground ini anonim dan dibatasi 20 request/menit per IP. Masuk untuk menyimpan riwayat; limit 60/menit berlaku saat memanggil API dengan API key.",
+    subLoggedIn:
+      "Playground ini anonim dan dibatasi 20 request/menit per IP. Percakapan Anda tersimpan di akun ini; limit 60/menit berlaku saat memanggil API dengan API key.",
     tryLiveNote:
       "Coba langsung di sini tanpa daftar: tulis pertanyaan, pilih model di bawah, lalu tekan Kirim. Jawaban mengalir kata demi kata.",
     loadingStatus: "memuat status…",
@@ -438,13 +449,16 @@ const id = {
       "Belum ada provider yang terkonfigurasi — hal ini seharusnya tidak terjadi, karena Kilo & LLM7 keyless selalu aktif. Periksa bagian Provider di beranda.",
     emptyTitle: "Belum ada pesan.",
     emptyBody:
-      "Ketik pesan di bawah untuk menguji router. Tanpa API key pun dapat langsung digunakan melalui Kilo & LLM7 — masuk dan gunakan API key dari dasbor jika menginginkan limit yang lebih besar (60 req/menit).",
+      "Ketik pesan di bawah untuk menguji router. Tanpa API key pun dapat langsung digunakan melalui Kilo & LLM7. Masuk untuk menyimpan riwayat percakapan Anda.",
+    emptyBodyLoggedIn:
+      "Ketik pesan di bawah untuk menguji router. Tanpa API key pun dapat langsung digunakan melalui Kilo & LLM7. Percakapan ini akan tersimpan di akun Anda.",
     youLabel: "Anda",
     assistantLabel: "asisten",
     waiting: "menunggu jawaban…",
     stopped: "(dihentikan)",
     streamInterrupted: "(stream terputus)",
     emptyResponse: "(respons kosong)",
+    composerLabel: "Pesan untuk router",
     composerPlaceholder:
       "Tanyakan apa saja — contoh: Jelaskan fotosintesis dalam satu kalimat. (Enter untuk kirim, Shift+Enter untuk baris baru)",
     modelHint:
@@ -454,6 +468,7 @@ const id = {
     sendBtn: "Kirim",
     historyTitle: "Riwayat percakapan",
     newChat: "+ Chat baru",
+    newConversationTitle: "Percakapan baru",
     noConversations: "Belum ada percakapan tersimpan.",
     signInToSave: "Masuk untuk menyimpan riwayat percakapan Anda.",
     signInLink: "Masuk →",
@@ -465,8 +480,9 @@ const id = {
     compareModelA: "Model A",
     compareModelB: "Model B",
     compareQuotaNote:
-      "Mode banding mengirim prompt Anda ke dua model sekaligus — memakai 2 unit kuota per kirim (untuk pengguna yang masuk).",
+      "Mode banding mengirim prompt Anda ke dua model sekaligus — terhitung 2 request terhadap limit 20/menit per IP.",
     compareNoAnswer: "(tidak ada jawaban)",
+    triedLabel: "Jalur yang dicoba:",
     saveFailedNote: "Pesan terkirim, tetapi gagal disimpan ke riwayat.",
     errorLabel: "Kesalahan",
     sendFailed: "Pesan gagal dikirim — periksa koneksi Anda, lalu coba lagi.",
@@ -527,7 +543,7 @@ const id = {
     introC: "(anonim atau menggunakan key).",
     domainNoteA: "Ganti",
     domainNoteB:
-      "dengan domain deployment Anda, mis. https://hymn-router.vercel.app",
+      "dengan domain deployment Anda, mis. https://hymnrouter.my.id",
     quickstartEyebrow: "Mulai Cepat",
     quickstartTitle: "Panduan singkat",
     quickstartSteps: [
@@ -611,9 +627,9 @@ const id = {
         { t: "), atau model OpenRouter berakhiran " },
         { c: ":free" },
         { t: " (mis. " },
-        { c: "google/gemma-4-26b-a4b-it:free" },
+        { c: "cohere/north-mini-code:free" },
         {
-          t: "). Model tidak dikenal → 404. Daftar lengkap (live, bisa berubah) ada di halaman Model.",
+          t: "). Model tidak dikenal → 404. Daftar lengkap (live, bisa berubah) ada di halaman Model. Jika model/provider yang diminta gagal, router fallback ke provider lain — periksa field model pada respons, karena model yang melayani bisa berbeda dari yang diminta.",
         },
       ],
       [
@@ -639,6 +655,11 @@ const id = {
         },
       ],
       [{ t: "Jika semua provider gagal → 502 beserta alasan tiap provider." }],
+      [
+        {
+          t: "Groq dan Kilo adalah model reasoning: jika max_tokens diminta di bawah 256, router memakai 256 agar jawaban tidak kosong (reasoning tersembunyi memakan jatah token). Token reasoning tetap tercatat di usage.",
+        },
+      ],
     ] as Rich[],
     v1CodeTitles: [
       "POST /api/v1/chat/completions — cURL",
@@ -737,11 +758,13 @@ const id = {
     imagesCodeTitles: ["POST /api/v1/images/generations — cURL"],
     errorsEyebrow: "Referensi",
     errorsTitle: "Kode error",
+    errorsNote:
+      "Catatan: /api/ai/chat memakai bentuk error flat { error, code } — bukan bentuk OpenAI di atas — dengan kode invalid_key (401), invalid_request (400), rate_limited (429), quota_exceeded (429), dan all_providers_failed (502).",
     errors: [
       {
         code: "400",
         name: "invalid_request_error",
-        desc: "Body tidak valid: messages kosong / >50 pesan, role tidak dikenal, konten >20000 karakter, temperature di luar 0–2, max_tokens di luar 1–8192, atau stream bukan boolean.",
+        desc: "Body tidak valid: messages kosong / >50 pesan, role tidak dikenal, konten >20000 karakter, temperature di luar 0–2, max_tokens di luar 1–8192, atau stream bukan boolean. Untuk gambar: prompt 1–4000 karakter, model \"flux\"/\"turbo\", size 1024x1024 / 512x512 / 1024x1792 / 1792x1024, n hanya 1, seed bilangan bulat ≥ 0.",
       },
       {
         code: "401",
@@ -754,6 +777,11 @@ const id = {
         desc: "Model tidak dikenal. Gunakan \"hymn/auto\", id provider, id model dari GET /api/v1/models, atau model OpenRouter berakhiran \":free\".",
       },
       {
+        code: "405",
+        name: "method_not_allowed",
+        desc: "Method tidak diizinkan — mis. GET ke /api/v1/chat/completions atau /api/v1/images/generations (hanya POST). Responsnya 405 polos, bukan JSON error. GET tersedia di /api/v1/models dan /api/ai/chat.",
+      },
+      {
         code: "429",
         name: "rate_limit_exceeded",
         desc: "Melebihi 60 request/menit per API key (atau 20/menit per IP untuk /api/ai/chat anonim).",
@@ -764,9 +792,19 @@ const id = {
         desc: "Kuota harian gratis (100 request/hari) habis. Respons menyertakan retry_after (detik) dan header Retry-After; reset 00:00 WIB.",
       },
       {
+        code: "429",
+        name: "image_rate_limited",
+        desc: "Layanan gambar membatasi 1 gambar per 45 detik per IP server; respons menyertakan header Retry-After — tunggu lalu coba lagi. Request yang dibatasi tidak menghabiskan kuota.",
+      },
+      {
         code: "502",
         name: "all_providers_failed",
         desc: "Semua provider gagal (429 / 5xx / timeout). Pesan error berisi alasan tiap provider.",
+      },
+      {
+        code: "502",
+        name: "image_generation_failed",
+        desc: "Layanan gambar gagal (mis. timeout di sisi penyedia). Coba lagi; request yang gagal tidak menghabiskan kuota.",
       },
       {
         code: "503",
@@ -841,12 +879,17 @@ const id = {
       ],
       [
         {
-          t: "Jangan kirim data sensitif melalui router ini — prompt di free tier dapat digunakan provider untuk meningkatkan produk / dicatat di log. Server ini sendiri tidak menyimpan prompt atau response; yang dicatat hanya jumlah request, token, provider, dan latensi.",
+          t: "Jangan kirim data sensitif melalui router ini — prompt di free tier dapat digunakan provider untuk meningkatkan produk / dicatat di log. Server ini sendiri tidak menyimpan prompt atau response — kecuali riwayat chat /chat pengguna yang masuk, yang sengaja disimpan agar bisa dibuka lagi dan bisa dihapus kapan saja; yang dicatat hanya jumlah request, token, provider, dan latensi.",
         },
       ],
       [
         {
           t: "Statistik di section Provider bersifat per proses server dan reset saat restart. Histori pemakaian per user (dasbor) tersimpan permanen di database.",
+        },
+      ],
+      [
+        {
+          t: "Sesi login berlaku 30 hari. Ringkasan limit: /v1 dan /api/ai/chat dengan key — 60 request/menit per key; /api/ai/chat anonim — 20/menit per IP; kuota harian 100 request/hari untuk request ber-autentikasi (termasuk /api/ai/chat dengan key), reset 00:00 WIB.",
         },
       ],
     ] as Rich[],
@@ -860,7 +903,7 @@ const id = {
     introC:
       ". Context window diambil dari data OpenRouter; jika tidak ada datanya, tertulis “tidak diketahui”.",
     routerTitle: "Model Router",
-    routerActive: "{configured}/{total} aktif",
+    routerActive: "{configured}/{total} model aktif",
     routerIntroA: "Model default tiap provider. Gunakan",
     routerIntroB: "untuk fallback otomatis, id provider (mis.",
     routerIntroC:
@@ -962,7 +1005,7 @@ const id = {
     thStatus: "Status",
     quickstartTitle: "quickstart — cURL",
     quickstartA:
-      "Ganti hr_KEY_ANDA dengan API key dari tabel di atas. Model juga bisa berupa id provider (mis. \"groq\"), id model dari GET ",
+      "Ganti hr_YOUR_API_KEY dengan API key dari tabel di atas. Model juga bisa berupa id provider (mis. \"groq\"), id model dari GET ",
     quickstartB:
       "/api/v1/models, atau model OpenRouter berakhiran \":free\". Streaming didukung: tambahkan ",
     quickstartC:
@@ -984,7 +1027,6 @@ const id = {
     copied: "disalin ✓",
     copyLabel: "Salin",
     copiedLabel: "Disalin!",
-    tryAgain: "Coba lagi",
     loading: "Memuat…",
   },
 };
@@ -995,7 +1037,7 @@ const en: Dict = {
   meta: {
     homeTitle: "Hymn Router — One Endpoint for Every Free AI Model",
     homeDescription:
-      "An OpenAI-compatible gateway for {total} free LLM endpoints (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, and more) with automatic fallback. Sign in, create an API key, and call hymn-router.vercel.app/api/v1. Free.",
+      "An OpenAI-compatible gateway for {total} free LLM endpoints (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, and more) with automatic fallback. Sign in, create an API key, and call hymnrouter.my.id/api/v1. Free.",
     loginTitle: "Sign in — Hymn Router",
     loginDescription:
       "Sign in to Hymn Router with email, Google, or GitHub to create API keys and use the free AI gateway.",
@@ -1051,22 +1093,22 @@ const en: Dict = {
     heroBadge: "AI Router · Free · OpenAI-Compatible",
     heroTitle: "One endpoint for every free AI model.",
     heroSub:
-      "Nine free LLM providers behind a single API. Sign in, create an API key, and call it from your code — no credit card, no balance.",
+      "{total} free LLM providers behind a single API. Sign in, create an API key, and call it from your code — no credit card, no balance.",
     ctaStart: "Get started",
     ctaChat: "Try the chat",
     ctaDocs: "Documentation →",
     providerLine:
       "{configured}/{total} providers active right now · usable even without a key",
     stats: [
-      { value: "9", label: "providers, one endpoint" },
-      { value: "4", label: "without an API key" },
+      { value: "{total}", label: "providers, one endpoint" },
+      { value: "{keyless}", label: "without an API key" },
       { value: "$0", label: "no credit card" },
       { value: "1", label: "OpenAI-compatible endpoint" },
     ],
     providersEyebrow: "Providers",
-    providersTitle: "Nine providers. One endpoint.",
+    providersTitle: "{total} providers. One endpoint.",
     providersSub:
-      "Live status from the server — card order is the fallback order (top is tried first). Four providers work without an API key.",
+      "Live status from the server — card order is the fallback order (top is tried first). {keyless} providers work without an API key.",
     howtoEyebrow: "How to Use",
     howtoTitle: "Change the base URL. Your code keeps working.",
     howtoSub:
@@ -1146,7 +1188,7 @@ const en: Dict = {
     whyTitle: "Every free model, in one account.",
     whyCards: [
       {
-        big: "9",
+        big: "{total}",
         title: "providers",
         body: "One endpoint for all of them. Automatic fallback when a provider fails or hits its limit.",
       },
@@ -1156,13 +1198,13 @@ const en: Dict = {
         body: "No balance, no subscription, no surprise bills. Free means free.",
       },
       {
-        big: "4",
+        big: "{keyless}",
         title: "keyless",
         body: "Kilo, LLM7, Pollinations, and OVH work right away without any provider API key.",
       },
     ],
     whyPrivacy:
-      "On privacy: prompts and responses are never stored on this server. Only request counts, tokens, and providers are recorded — for your own dashboard. Requests are still forwarded to third-party free providers, so never send sensitive data.",
+      "On privacy: prompts and responses are never stored on this server — except your own /chat history while signed in, which is deliberately saved so conversations can be reopened, and can be deleted at any time from the history sidebar. Only request counts, tokens, and providers are recorded — for your own dashboard. Requests are still forwarded to third-party free providers, so never send sensitive data.",
     faqEyebrow: "FAQ",
     faqTitle: "Frequently asked questions.",
     faqSub:
@@ -1178,7 +1220,7 @@ const en: Dict = {
       },
       {
         q: "Do I need a provider API key?",
-        a: "No, not to get started. Four providers (Kilo, LLM7, Pollinations, OVH) work without any key at all. All you need is a Hymn Router API key (starting with hr_) created in the dashboard after signing in — that key is for this gateway, not a provider key.",
+        a: "No, not to get started. The Kilo, LLM7, Pollinations, and OVH providers work without any key at all. All you need is a Hymn Router API key (starting with hr_) created in the dashboard after signing in — that key is for this gateway, not a provider key.",
       },
       {
         q: "How do I use it in code?",
@@ -1186,7 +1228,7 @@ const en: Dict = {
       },
       {
         q: "Are my prompts stored?",
-        a: "No. Prompts and response content are never stored on this server. Only request counts, tokens, providers, and latency are recorded — for your usage dashboard. Honest note: requests are still forwarded to third-party free providers, and some providers may log prompts under their own policies. Never send sensitive data.",
+        a: "No — with one exception: /chat history for signed-in users is deliberately stored on the server so conversations can be reopened, and can be deleted at any time from the history sidebar. Apart from that, prompts and response content are never stored. Only request counts, tokens, providers, and latency are recorded — for your usage dashboard. Honest note: requests are still forwarded to third-party free providers, and some providers may log prompts under their own policies. Never send sensitive data.",
       },
       {
         q: "Why is it sometimes slow / failing?",
@@ -1194,7 +1236,7 @@ const en: Dict = {
       },
       {
         q: "What are the limits?",
-        a: "Anonymous (the playground and /api/ai/chat without a key): 20 requests/minute per IP. With an API key: 60 requests/minute per key. On top of that, each provider's free limits still apply.",
+        a: "Anonymous (the playground and /api/ai/chat without a key): 20 requests/minute per IP. With an API key: 60 requests/minute per key, plus a free daily quota of 100 requests per user (resets at 00:00 WIB). On top of that, each provider's free limits still apply.",
       },
     ],
     ctaTitle: "Start using it today.",
@@ -1218,6 +1260,7 @@ const en: Dict = {
     requestsLabel: "requests:",
     successesLabel: "successes:",
     lastUsed: "last:",
+    lastErrorLabel: "Last error:",
     getKey: "Get a free key ↗",
     optionalToken: "Optional token ↗",
     optional: "(optional)",
@@ -1248,8 +1291,6 @@ const en: Dict = {
         "Your GitHub account does not share an email address (check Settings → Emails on GitHub). Please use Google or email.",
       github_failed:
         "GitHub sign-in failed — please try again, or use Google / email.",
-      oauth_only:
-        "This account was created with Google/GitHub. Please sign in using the buttons above.",
     } as Record<string, string>,
     googleBtn: "Continue with Google",
     githubBtn: "Continue with GitHub",
@@ -1292,6 +1333,12 @@ const en: Dict = {
     errNotFound: "Verification not found — please sign up again.",
     errResendSoon: "Wait {seconds} seconds before requesting a new code.",
     errSendFailed: "Failed to send the code — please try again.",
+    errInvalidCodePlain: "The code is wrong or no longer valid.",
+    errInvalidCredentials: "Wrong email or password.",
+    errEmailExists: "This email is already registered, please sign in.",
+    errRateLimited: "Too many attempts — please try again later.",
+    errServer: "A server error occurred — please try again in a moment.",
+    errEmailNotConfigured: "Email sending is not configured on the server.",
     forgotLink: "Forgot your password?",
     forgotTitle: "Reset password",
     forgotSubtitle: "Enter your account email — we will send a 6-digit reset code.",
@@ -1356,6 +1403,10 @@ const en: Dict = {
         title: "Incomplete Google token",
         body: "The token does not contain sub/email. Please sign in again.",
       },
+      email_not_verified: {
+        title: "Google email is not verified",
+        body: "Google reports that this account's email is not verified. Verify your email in your Google account first, then try signing in again.",
+      },
       token_expired: {
         title: "Google token has expired",
         body: "Please sign in again.",
@@ -1375,7 +1426,9 @@ const en: Dict = {
   chat: {
     badge: "Playground",
     title: "Try the router live.",
-    sub: "No sign-in, no key. Anonymous use is limited to 20 requests/minute per IP — sign in and use an API key for the 60/minute limit.",
+    sub: "No sign-in, no key — this playground is anonymous, limited to 20 requests/minute per IP. Sign in to save history; the 60/minute limit applies when calling the API with an API key.",
+    subLoggedIn:
+      "This playground is anonymous, limited to 20 requests/minute per IP. Your conversations are saved to this account; the 60/minute limit applies when calling the API with an API key.",
     tryLiveNote:
       "Try it right here with no sign-up: write a question, pick a model below, then press Send. The answer streams in word by word.",
     loadingStatus: "loading status…",
@@ -1394,13 +1447,16 @@ const en: Dict = {
       "No provider is configured yet — this should not happen, because keyless Kilo & LLM7 are always active. Check the Provider section on the home page.",
     emptyTitle: "No messages yet.",
     emptyBody:
-      "Type a message below to test the router. It works without an API key through Kilo & LLM7 — sign in and use an API key from the dashboard if you want the higher limit (60 req/min).",
+      "Type a message below to test the router. It works without an API key through Kilo & LLM7. Sign in to save your conversation history.",
+    emptyBodyLoggedIn:
+      "Type a message below to test the router. It works without an API key through Kilo & LLM7. This conversation will be saved to your account.",
     youLabel: "You",
     assistantLabel: "assistant",
     waiting: "waiting for a reply…",
     stopped: "(stopped)",
     streamInterrupted: "(stream interrupted)",
     emptyResponse: "(empty response)",
+    composerLabel: "Message to the router",
     composerPlaceholder:
       "Ask anything — e.g. Explain photosynthesis in one sentence. (Enter to send, Shift+Enter for a new line)",
     modelHint:
@@ -1410,6 +1466,7 @@ const en: Dict = {
     sendBtn: "Send",
     historyTitle: "Conversation history",
     newChat: "+ New chat",
+    newConversationTitle: "New conversation",
     noConversations: "No saved conversations yet.",
     signInToSave: "Sign in to save your conversation history.",
     signInLink: "Sign in →",
@@ -1421,8 +1478,9 @@ const en: Dict = {
     compareModelA: "Model A",
     compareModelB: "Model B",
     compareQuotaNote:
-      "Compare mode sends your prompt to two models at once — it uses 2 quota units per send (for signed-in users).",
+      "Compare mode sends your prompt to two models at once — it counts as 2 requests against the 20/minute per-IP limit.",
     compareNoAnswer: "(no answer)",
+    triedLabel: "Providers tried:",
     saveFailedNote: "Your message was sent, but it could not be saved to history.",
     errorLabel: "Error",
     sendFailed: "The message could not be sent — please check your connection and try again.",
@@ -1482,7 +1540,7 @@ const en: Dict = {
     introB: "(using an API key from the dashboard) and the simple endpoint",
     introC: "(anonymous or with a key).",
     domainNoteA: "Replace",
-    domainNoteB: "with your deployment domain, e.g. https://hymn-router.vercel.app",
+    domainNoteB: "with your deployment domain, e.g. https://hymnrouter.my.id",
     quickstartEyebrow: "Quick Start",
     quickstartTitle: "Short guide",
     quickstartSteps: [
@@ -1566,9 +1624,9 @@ const en: Dict = {
         { t: "), or an OpenRouter model ending in " },
         { c: ":free" },
         { t: " (e.g. " },
-        { c: "google/gemma-4-26b-a4b-it:free" },
+        { c: "cohere/north-mini-code:free" },
         {
-          t: "). Unknown model → 404. The full list (live, may change) is on the /models page.",
+          t: "). Unknown model → 404. The full list (live, may change) is on the /models page. If the requested model/provider fails, the router falls back to another provider — check the model field in the response, as the serving model may differ from the one requested.",
         },
       ],
       [
@@ -1594,6 +1652,11 @@ const en: Dict = {
         },
       ],
       [{ t: "If all providers fail → 502, with each provider's reason." }],
+      [
+        {
+          t: "Groq and Kilo are reasoning models: if max_tokens below 256 is requested, the router uses 256 so the answer does not come back empty (hidden reasoning consumes the token budget). Reasoning tokens are still recorded in usage.",
+        },
+      ],
     ] as Rich[],
     v1CodeTitles: [
       "POST /api/v1/chat/completions — cURL",
@@ -1692,11 +1755,13 @@ const en: Dict = {
     imagesCodeTitles: ["POST /api/v1/images/generations — cURL"],
     errorsEyebrow: "Reference",
     errorsTitle: "Error codes",
+    errorsNote:
+      "Note: /api/ai/chat uses a flat error shape { error, code } — not the OpenAI shape above — with codes invalid_key (401), invalid_request (400), rate_limited (429), quota_exceeded (429), and all_providers_failed (502).",
     errors: [
       {
         code: "400",
         name: "invalid_request_error",
-        desc: "Invalid body: empty messages / more than 50 messages, unknown role, content over 20,000 characters, temperature outside 0–2, max_tokens outside 1–8192, or stream not a boolean.",
+        desc: "Invalid body: empty messages / more than 50 messages, unknown role, content over 20,000 characters, temperature outside 0–2, max_tokens outside 1–8192, or stream not a boolean. For images: prompt 1–4000 characters, model \"flux\"/\"turbo\", size 1024x1024 / 512x512 / 1024x1792 / 1792x1024, n must be 1, seed a non-negative integer.",
       },
       {
         code: "401",
@@ -1709,6 +1774,11 @@ const en: Dict = {
         desc: "Unknown model. Use \"hymn/auto\", a provider id, a model id from GET /api/v1/models, or an OpenRouter model ending in \":free\".",
       },
       {
+        code: "405",
+        name: "method_not_allowed",
+        desc: "Method not allowed — e.g. GET to /api/v1/chat/completions or /api/v1/images/generations (POST only). The response is a plain 405, not a JSON error. GET is available on /api/v1/models and /api/ai/chat.",
+      },
+      {
         code: "429",
         name: "rate_limit_exceeded",
         desc: "Above 60 requests/minute per API key (or 20/minute per IP for anonymous /api/ai/chat).",
@@ -1719,9 +1789,19 @@ const en: Dict = {
         desc: "The free daily quota (100 requests/day) is exhausted. The response includes retry_after (seconds) and a Retry-After header; reset at 00:00 WIB.",
       },
       {
+        code: "429",
+        name: "image_rate_limited",
+        desc: "The image service allows 1 image per 45 seconds per server IP; the response includes a Retry-After header — wait and retry. Rate-limited requests do not consume quota.",
+      },
+      {
         code: "502",
         name: "all_providers_failed",
         desc: "All providers failed (429 / 5xx / timeout). The error message contains each provider's reason.",
+      },
+      {
+        code: "502",
+        name: "image_generation_failed",
+        desc: "The image service failed (e.g. a provider-side timeout). Retry; failed requests do not consume quota.",
       },
       {
         code: "503",
@@ -1798,12 +1878,17 @@ const en: Dict = {
       ],
       [
         {
-          t: "Never send sensitive data through this router — prompts on free tiers may be used by providers to improve their products or recorded in logs. This server itself does not store prompts or responses; only request counts, tokens, providers, and latency are recorded.",
+          t: "Never send sensitive data through this router — prompts on free tiers may be used by providers to improve their products or recorded in logs. This server itself does not store prompts or responses — except /chat history of signed-in users, which is deliberately saved so it can be reopened and can be deleted at any time; only request counts, tokens, providers, and latency are recorded.",
         },
       ],
       [
         {
           t: "Statistics in the Provider section are per server process and reset on restart. Per-user usage history (dashboard) is stored permanently in the database.",
+        },
+      ],
+      [
+        {
+          t: "Login sessions last 30 days. Rate limits at a glance: /v1 and /api/ai/chat with a key — 60 requests/minute per key; anonymous /api/ai/chat — 20/minute per IP; daily quota of 100 requests/day for authenticated requests (including /api/ai/chat with a key), resetting at 00:00 WIB.",
         },
       ],
     ] as Rich[],
@@ -1817,7 +1902,7 @@ const en: Dict = {
     introC:
       ". Context windows come from OpenRouter data; when there is no data it reads “unknown”.",
     routerTitle: "Router Models",
-    routerActive: "{configured}/{total} active",
+    routerActive: "{configured}/{total} models active",
     routerIntroA: "The default model of each provider. Use",
     routerIntroB: "for automatic fallback, a provider id (e.g.",
     routerIntroC:
@@ -1833,7 +1918,7 @@ const en: Dict = {
     accessLabel: "access",
     needsServerKey: "needs a server API key",
     noKey: "keyless",
-    freeTitle: "Model :free OpenRouter",
+    freeTitle: "OpenRouter :free Models",
     orConfigured: "configured",
     orNotConfigured: "no key yet",
     freeIntroA:
@@ -1919,7 +2004,7 @@ const en: Dict = {
     thStatus: "Status",
     quickstartTitle: "quickstart — cURL",
     quickstartA:
-      "Replace hr_KEY_ANDA with an API key from the table above. The model can also be a provider id (e.g. \"groq\"), a model id from GET ",
+      "Replace hr_YOUR_API_KEY with an API key from the table above. The model can also be a provider id (e.g. \"groq\"), a model id from GET ",
     quickstartB:
       "/api/v1/models, or an OpenRouter model ending in \":free\". Streaming is supported: add ",
     quickstartC:
@@ -1941,7 +2026,6 @@ const en: Dict = {
     copied: "copied ✓",
     copyLabel: "Copy",
     copiedLabel: "Copied!",
-    tryAgain: "Try again",
     loading: "Loading…",
   },
 };

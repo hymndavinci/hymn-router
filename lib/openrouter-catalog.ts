@@ -95,8 +95,15 @@ export function findContextLength(
   const exact = catalog.contextById.get(modelId);
   if (exact !== undefined) return exact;
   const suffix = `/${modelId}`;
+  // Kecocokan akhiran bisa ambigu (dua vendor dengan nama model yang
+  // sama) — hanya kembalikan nilai kalau SEMUA yang cocok sepakat;
+  // kalau berbeda, kembalikan null ("tidak diketahui") daripada
+  // menebak angka yang salah.
+  let found: number | null = null;
   for (const [id, len] of catalog.contextById) {
-    if (id.endsWith(suffix)) return len;
+    if (!id.endsWith(suffix)) continue;
+    if (found === null) found = len;
+    else if (found !== len) return null;
   }
-  return null;
+  return found;
 }

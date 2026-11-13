@@ -18,6 +18,7 @@ type TokenInfo = {
   exp?: string;
   sub?: string;
   email?: string;
+  email_verified?: string;
   name?: string;
   picture?: string;
 };
@@ -25,8 +26,13 @@ type TokenInfo = {
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const origin = url.origin;
-  const fail = (reason: string) =>
-    NextResponse.redirect(`${origin}/auth/error?reason=${encodeURIComponent(reason)}`);
+  // Cookie state dihapus di SEMUA jalur gagal juga — state yang
+  // tertinggal hanya mengundang percobaan ulang yang membingungkan.
+  const fail = (reason: string) => {
+    const res = NextResponse.redirect(`${origin}/auth/error?reason=${encodeURIComponent(reason)}`);
+    res.cookies.delete(OAUTH_STATE_COOKIE);
+    return res;
+  };
 
   try {
     const denied = url.searchParams.get("error");
@@ -72,6 +78,9 @@ export async function GET(req: NextRequest) {
     const info = (await infoRes.json()) as TokenInfo;
     if (info.aud !== clientId) return fail("bad_audience");
     if (!info.sub || !info.email) return fail("bad_token");
+    // Email Google praktis selalu terverifikasi, tapi tokeninfo
+    // menyatakannya eksplisit — periksa, jangan asumsikan.
+    if (info.email_verified !== "true") return fail("email_not_verified");
     if (Number(info.exp) * 1000 < Date.now()) return fail("token_expired");
 
     // Cari / buat user.
@@ -88,9 +97,13 @@ export async function GET(req: NextRequest) {
     `) as { id: string; google_sub: string | null }[];
     if (byEmail.length > 0 && byEmail[0].google_sub !== info.sub) {
       userId = byEmail[0].id;
+      // Nama/avatar hanya diisi kalau masih kosong (COALESCE) — jangan
+      // menimpa nama yang dipilih user saat daftar email/password.
       await db`
         UPDATE users
-        SET google_sub = ${info.sub}, name = ${info.name ?? null}, avatar_url = ${info.picture ?? null}
+        SET google_sub = ${info.sub},
+            name = COALESCE(name, ${info.name ?? null}),
+            avatar_url = COALESCE(avatar_url, ${info.picture ?? null})
         WHERE id = ${userId}
       `;
     } else {
@@ -99,7 +112,9 @@ export async function GET(req: NextRequest) {
         INSERT INTO users (google_sub, email, name, avatar_url)
         VALUES (${info.sub}, ${email}, ${info.name ?? null}, ${info.picture ?? null})
         ON CONFLICT (google_sub) DO UPDATE
-          SET email = EXCLUDED.email, name = EXCLUDED.name, avatar_url = EXCLUDED.avatar_url
+          SET email = EXCLUDED.email,
+              name = COALESCE(users.name, EXCLUDED.name),
+              avatar_url = COALESCE(users.avatar_url, EXCLUDED.avatar_url)
         RETURNING id
       `) as { id: string }[];
       userId = rows[0]?.id ?? null;

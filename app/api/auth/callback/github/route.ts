@@ -35,8 +35,11 @@ type GitHubEmail = {
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const origin = url.origin;
-  const fail = (reason: string) =>
-    NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(reason)}`);
+  const fail = (reason: string) => {
+    const res = NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(reason)}`);
+    res.cookies.delete(OAUTH_STATE_COOKIE);
+    return res;
+  };
 
   try {
     const denied = url.searchParams.get("error");
@@ -92,18 +95,28 @@ export async function GET(req: NextRequest) {
     if (!ghUser.id || !ghUser.login) return fail("github_failed");
 
     // Email: profil bisa menyembunyikannya (pengaturan privasi GitHub),
-    // jadi ambil dari /user/emails kalau perlu.
-    let email = ghUser.email?.trim().toLowerCase() || null;
-    if (!email) {
-      const emailsRes = await ghFetch("/user/emails");
-      if (emailsRes.ok) {
-        const emails = (await emailsRes.json()) as GitHubEmail[];
-        const pick =
-          emails.find((e) => e.primary && e.verified) ??
-          emails.find((e) => e.verified) ??
-          null;
-        email = pick ? pick.email.trim().toLowerCase() : null;
-      }
+    // dan email profil tidak membawa flag terverifikasi — jadi selalu
+    // periksa /user/emails dan hanya terima email yang verified.
+    // Kalau /user/emails gagal total, email profil tetap dipakai
+    // sebagai fallback: GitHub hanya menampilkan email publik yang
+    // sudah terverifikasi.
+    const emailsRes = await ghFetch("/user/emails");
+    let verified: GitHubEmail[] = [];
+    if (emailsRes.ok) {
+      const emails = (await emailsRes.json()) as GitHubEmail[];
+      verified = emails.filter((e) => e.verified);
+    }
+    const profileEmail = ghUser.email?.trim().toLowerCase() || null;
+    let email: string | null = null;
+    if (
+      profileEmail &&
+      (verified.length === 0 ||
+        verified.some((e) => e.email.trim().toLowerCase() === profileEmail))
+    ) {
+      email = profileEmail;
+    } else {
+      const pick = verified.find((e) => e.primary) ?? verified[0] ?? null;
+      email = pick ? pick.email.trim().toLowerCase() : null;
     }
     if (!email) return fail("github_no_email");
 

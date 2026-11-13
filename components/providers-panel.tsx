@@ -143,7 +143,7 @@ export default function ProvidersPanel({
 
               {p.lastError && (
                 <p className="mt-3 break-words border-2 border-black bg-white px-2.5 py-2 font-mono text-[11px] leading-relaxed text-bad">
-                  {p.lastError.slice(0, 200)}
+                  <span className="font-bold">{t.lastErrorLabel}</span> {p.lastError.slice(0, 200)}
                 </p>
               )}
 

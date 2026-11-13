@@ -9,7 +9,7 @@
  *   - id provider, mis. "groq" — provider itu dicoba duluan, tetap fallback
  *   - id model, mis. "openai/gpt-oss-120b"
  *   - model OpenRouter berakhiran ":free", mis.
- *     "google/gemma-4-26b-a4b-it:free" — diteruskan ke OpenRouter
+ *     "cohere/north-mini-code:free" — diteruskan ke OpenRouter
  *     (butuh OPENROUTER_API_KEY di server; hanya :free yang diizinkan,
  *     supaya tidak ada model berbayar yang membakar kredit server).
  *
