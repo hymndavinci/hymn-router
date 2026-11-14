@@ -69,6 +69,114 @@ function fmtDayLabel(date: string, locale: Locale): string {
   return `${weekday} ${d}`;
 }
 
+/** Label tanggal "16 Okt" (tanpa nama hari) untuk bar mingguan. */
+function fmtDayMonth(date: string, locale: Locale): string {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(y, (m ?? 1) - 1, d ?? 1).toLocaleDateString(
+    dateLocaleOf(locale),
+    { day: "numeric", month: "short" },
+  );
+}
+
+/** Satu bar grafik: label di bawah sumbu, angka di atas bar (ditentukan
+    `showValue` di BarChart), tooltip lengkap di `title`. */
+type ChartBar = {
+  key: string;
+  label: string;
+  title: string;
+  requests: number;
+  tokens: number;
+};
+
+/** Bar chart CSS murni. Dipakai untuk grafik harian (sm+) dan mingguan
+    (mobile) — 30 bar harian di layar HP cuma ~4px per bar dengan label
+    yang terpotong sampai tak terbaca, jadi di mobile diagregasi per minggu. */
+function BarChart({
+  bars,
+  metric,
+  numLocale,
+  showValue,
+}: {
+  bars: ChartBar[];
+  metric: "requests" | "tokens";
+  numLocale: string;
+  showValue: (i: number, count: number) => boolean;
+}) {
+  const values = bars.map((b) => (metric === "requests" ? b.requests : b.tokens));
+  const max = Math.max(1, ...values);
+  return (
+    <>
+      <div className="mt-5 flex h-40 items-stretch gap-1.5 sm:gap-2.5">
+        {bars.map((b, i) => {
+          const v = metric === "requests" ? b.requests : b.tokens;
+          const pct = Math.round((v / max) * 100);
+          return (
+            <div
+              key={b.key}
+              className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5"
+              title={b.title}
+            >
+              <span className="whitespace-nowrap font-mono text-[11px] font-bold text-black">
+                {showValue(i, bars.length) && v > 0 ? v.toLocaleString(numLocale) : ""}
+              </span>
+              <div
+                className="w-full max-w-[48px] border-2 border-black bg-yellow"
+                style={{ height: `${Math.max(v > 0 ? 8 : 2, pct)}%` }}
+              />
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-2 flex gap-1.5 border-t-2 border-black pt-2 sm:gap-2.5">
+        {bars.map((b) => (
+          <span
+            key={b.key}
+            className="min-w-0 flex-1 overflow-hidden text-center font-mono text-[10px] font-bold text-faint sm:text-[11px]"
+          >
+            {b.label}
+          </span>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/** Agregasi harian → mingguan (kelompok 7 hari dari AKHIR rentang, supaya
+    minggu-minggu terakhir utuh dan sebanding; kelompok pertama bisa parsial).
+    Label = tanggal mulai kelompok ("16 Okt"), tooltip = rentang penuh. */
+function toWeeklyBars(
+  daily: DailyUsage[],
+  locale: Locale,
+  t: Dict["dashboard"],
+): ChartBar[] {
+  const numLocale = dateLocaleOf(locale);
+  const chunks: DailyUsage[][] = [];
+  for (let end = daily.length; end > 0; end -= 7) {
+    chunks.unshift(daily.slice(Math.max(0, end - 7), end));
+  }
+  return chunks.map((chunk) => {
+    const first = chunk[0];
+    const last = chunk[chunk.length - 1];
+    const requests = chunk.reduce((s, d) => s + d.requests, 0);
+    const tokens = chunk.reduce((s, d) => s + d.tokens, 0);
+    const range =
+      first.date === last.date
+        ? fmtDayMonth(first.date, locale)
+        : `${fmtDayMonth(first.date, locale)}–${fmtDayMonth(last.date, locale)}`;
+    return {
+      key: first.date,
+      label: fmtDayMonth(first.date, locale),
+      title: fill(t.chartTooltip, {
+        date: range,
+        requests,
+        tokens: tokens.toLocaleString(numLocale),
+      }),
+      requests,
+      tokens,
+    };
+  });
+}
+
 /** Sparkline SVG murni dari series harian. Hari tanpa data (null) dilewati
     tapi posisi-x hari lainnya dipertahankan, supaya garis tidak menukik ke
     nol secara menyesatkan. Semua nol → garis datar di bawah. */
@@ -124,7 +232,10 @@ function Sparkline({
 }
 
 /** Satu stat card: label, angka besar, sub-teks, dan visual di bawah
-    (sparkline atau progress bar kuota). */
+    (sparkline atau progress bar kuota).
+    `min-w-0` di root + wrapper visual WAJIB: tanpa itu, teks `truncate`
+    kuota (nowrap, ~660px) memaksa kolom grid melebar sampai max-content
+    dan seluruh dasbor overflow horizontal di HP. */
 function StatCard({
   label,
   value,
@@ -133,24 +244,26 @@ function StatCard({
 }: {
   label: string;
   value: string;
-  sub: string;
+  sub: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
+    <div className="flex min-w-0 flex-col border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
       <p className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-faint">
         {label}
       </p>
-      <p className="mt-2 break-words text-[28px] font-black leading-none tracking-tight text-black">
+      <p className="mt-2 break-words text-[22px] font-black leading-none tracking-tight text-black sm:text-[28px]">
         {value}
       </p>
       <p className="mt-2 font-mono text-[11px] leading-relaxed text-muted">{sub}</p>
-      <div className="mt-auto pt-3">{children}</div>
+      <div className="mt-auto min-w-0 pt-3">{children}</div>
     </div>
   );
 }
 
-/** Bar horizontal reuse untuk breakdown (per provider / per model / per key). */
+/** Bar horizontal reuse untuk breakdown (per provider / per model / per key).
+    Mobile: label + angka sebaris (2 baris total per row dengan bar di bawah),
+    bukan 4 baris bertumpuk. sm+: label | bar | angka dalam satu baris. */
 function BreakdownRows({
   rows,
   totalRequests,
@@ -165,8 +278,11 @@ function BreakdownRows({
   return (
     <div className="mt-4 space-y-3">
       {rows.map((r) => (
-        <div key={r.key} className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-          <span className="min-w-0 font-mono text-[13px] font-bold text-muted sm:w-56 sm:shrink-0">
+        <div
+          key={r.key}
+          className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:flex-nowrap sm:gap-3"
+        >
+          <span className="order-1 min-w-0 flex-1 font-mono text-[13px] font-bold text-muted sm:w-56 sm:flex-none sm:shrink-0">
             <span className="block truncate text-black" title={r.label}>
               {r.label}
             </span>
@@ -176,7 +292,11 @@ function BreakdownRows({
               </span>
             )}
           </span>
-          <div className="h-2.5 w-full border border-black bg-neutral-200 sm:w-auto sm:flex-1">
+          <span className="order-2 shrink-0 whitespace-nowrap font-mono text-[12px] text-muted sm:order-3 sm:w-40 sm:text-right">
+            {r.requests} req ·{" "}
+            {fill(t.tokensCount, { n: r.tokens.toLocaleString(dateLocaleOf(locale)) })}
+          </span>
+          <div className="order-3 h-2.5 w-full basis-full border border-black bg-neutral-200 sm:order-2 sm:w-auto sm:basis-auto sm:flex-1">
             <div
               className={`h-full ${barClass}`}
               style={{
@@ -184,10 +304,6 @@ function BreakdownRows({
               }}
             />
           </div>
-          <span className="font-mono text-[12px] text-muted sm:w-40 sm:shrink-0 sm:text-right">
-            {r.requests} req ·{" "}
-            {fill(t.tokensCount, { n: r.tokens.toLocaleString(dateLocaleOf(locale)) })}
-          </span>
         </div>
       ))}
     </div>
@@ -345,8 +461,41 @@ export default function DashboardClient({
   const topKeys = initialKeyUsage.slice(0, 5);
   const topModels = initialModelUsage.slice(0, 5);
 
+  // Data grafik Trends: harian (desktop + rentang 7 hari) dan mingguan
+  // (mobile, rentang 30 hari — 30 bar harian tidak terbaca di HP).
+  const isLongRange = initialDailyUsage.length > 7;
+  const dailyBars: ChartBar[] = initialDailyUsage.map((d, i) => ({
+    key: d.date,
+    // Rentang 30 hari: label hari hanya tiap 5 hari (kolom ~11px di mobile
+    // kalau dipaksa harian — angka tiap bar akan bertumpuk).
+    label:
+      initialDailyUsage.length <= 7 ||
+      i % 5 === 0 ||
+      i === initialDailyUsage.length - 1
+        ? fmtDayLabel(d.date, locale)
+        : "",
+    title: fill(t.chartTooltip, {
+      date: d.date,
+      requests: d.requests,
+      tokens: d.tokens.toLocaleString(numLocale),
+    }),
+    requests: d.requests,
+    tokens: d.tokens,
+  }));
+  const weeklyBars = toWeeklyBars(initialDailyUsage, locale, t);
+  const dailyShowValue = (i: number, n: number) =>
+    n <= 7 || i % 5 === 0 || i === n - 1;
+  const dailyTitle =
+    chartMetric === "requests"
+      ? fill(t.dailyChartTitle, { days: usage.days })
+      : fill(t.dailyChartTokensTitle, { days: usage.days });
+  const weeklyTitle =
+    chartMetric === "requests"
+      ? fill(t.weeklyChartTitle, { days: usage.days })
+      : fill(t.weeklyChartTokensTitle, { days: usage.days });
+
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-6 py-8 lg:px-8">
+    <div className="mx-auto w-full max-w-[1280px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       {/* Header user */}
       <div className="flex flex-wrap items-center gap-4">
         {user.avatarUrl ? (
@@ -378,7 +527,7 @@ export default function DashboardClient({
       {/* Banner panduan — hanya untuk user baru (0 API key aktif):
           langkah berikutnya yang jelas + tombol langsung ke form buat key. */}
       {activeKeys === 0 && (
-        <div className="mt-8 border-2 border-black bg-yellow p-5 shadow-brutal-sm">
+        <div className="mt-8 border-2 border-black bg-yellow p-4 shadow-brutal-sm sm:p-5">
           <h2 className="text-[18px] font-black text-black">{t.guideTitle}</h2>
           <p className="mt-2 max-w-[640px] text-[14px] leading-relaxed text-black/80">
             {t.guideBody}
@@ -400,8 +549,10 @@ export default function DashboardClient({
         </div>
       )}
 
-      {/* Header aktivitas + pemilih rentang */}
-      <div className="mt-8 flex flex-wrap items-end justify-between gap-3">
+      {/* Header aktivitas + pemilih rentang — di mobile sengaja bertumpuk
+          (judul, lalu badge WIB + pemilih di baris sendiri) supaya tidak
+          berdesakan di 360px; sm+ tetap satu baris. */}
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
         <h2 className="text-[22px] font-black leading-tight tracking-tight text-black">
           {t.activityTitle}
         </h2>
@@ -463,8 +614,10 @@ export default function DashboardClient({
 
       {tab === "overview" && (
         <>
-          {/* Stat cards */}
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Stat cards — 2 kolom mulai dari HP (4 angka tidak perlu 4 baris
+              penuh); grid-cols-* eksplisit = minmax(0,1fr), jadi tidak ada
+              lagi kolom yang melebar sampai max-content. */}
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             <StatCard
               label={t.statRequests}
               value={String(usage.totalRequests)}
@@ -478,7 +631,16 @@ export default function DashboardClient({
             <StatCard
               label={t.statTokens}
               value={usage.totalTokens.toLocaleString(numLocale)}
-              sub={`${usage.totalPromptTokens.toLocaleString(numLocale)} ${t.tokensPrompt} · ${usage.totalCompletionTokens.toLocaleString(numLocale)} ${t.tokensCompletion}`}
+              sub={
+                <>
+                  <span className="sm:hidden">
+                    {`${usage.totalPromptTokens.toLocaleString(numLocale)} ${t.tokensPromptShort} · ${usage.totalCompletionTokens.toLocaleString(numLocale)} ${t.tokensCompletionShort}`}
+                  </span>
+                  <span className="hidden sm:inline">
+                    {`${usage.totalPromptTokens.toLocaleString(numLocale)} ${t.tokensPrompt} · ${usage.totalCompletionTokens.toLocaleString(numLocale)} ${t.tokensCompletion}`}
+                  </span>
+                </>
+              }
             >
               <Sparkline
                 values={initialDailyUsage.map((d) => d.tokens)}
@@ -540,8 +702,8 @@ export default function DashboardClient({
           </div>
 
           {/* Top API Keys | Top Models */}
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="border-2 border-black bg-white p-5 shadow-brutal-sm">
+          <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
               <h2 className="text-[16px] font-black text-black">{t.topKeys}</h2>
               {topKeys.length === 0 ? (
                 <div className="mt-2">
@@ -580,7 +742,7 @@ export default function DashboardClient({
                 </>
               )}
             </div>
-            <div className="border-2 border-black bg-white p-5 shadow-brutal-sm">
+            <div className="border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
               <h2 className="text-[16px] font-black text-black">{t.topModels}</h2>
               {topModels.length === 0 ? (
                 <div className="mt-2">
@@ -622,22 +784,20 @@ export default function DashboardClient({
           </div>
 
           {/* Request terakhir — kartu di mobile, tabel di sm+ */}
-          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+          <div className="mt-4 border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
             <h2 className="text-[16px] font-black text-black">{t.recentTitle}</h2>
             {initialRecent.length === 0 ? (
               <p className="mt-2 text-[14px] text-muted">{t.noRecent}</p>
             ) : (
               <>
-                <div className="mt-4 flex flex-col gap-3 sm:hidden">
+                <div className="mt-4 flex flex-col gap-2 sm:hidden">
                   {initialRecent.map((r) => (
                     <div key={r.id} className="border-2 border-black bg-white p-3 shadow-brutal-xs">
                       <p className="truncate font-mono text-[13px] font-bold text-black" title={r.model}>
                         {r.model}
                       </p>
                       <p className="mt-1 font-mono text-[11px] leading-relaxed text-faint">
-                        {fmtDateTime(r.createdAt, locale, t.neverUsed)} · {r.provider}
-                      </p>
-                      <p className="mt-1 font-mono text-[11px] text-muted">
+                        {fmtDateTime(r.createdAt, locale, t.neverUsed)} · {r.provider} ·{" "}
                         {fill(t.tokensCount, { n: r.tokens.toLocaleString(numLocale) })} ·{" "}
                         {r.latencyMs !== null ? `${r.latencyMs.toLocaleString(numLocale)} ms` : "—"}
                         {r.keyName ? ` · ${r.keyName}` : ""}
@@ -689,13 +849,14 @@ export default function DashboardClient({
 
       {tab === "trends" && (
         <>
-          {/* Grafik harian (bar chart CSS murni) + toggle metrik */}
-          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+          {/* Grafik harian (bar chart CSS murni) + toggle metrik.
+              Mobile + rentang 30 hari: bar mingguan (5 bar, label terbaca);
+              7 hari di mobile dan semua rentang di sm+: bar harian. */}
+          <div className="mt-4 border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-[16px] font-black text-black">
-                {chartMetric === "requests"
-                  ? fill(t.dailyChartTitle, { days: usage.days })
-                  : fill(t.dailyChartTokensTitle, { days: usage.days })}
+                <span className="sm:hidden">{isLongRange ? weeklyTitle : dailyTitle}</span>
+                <span className="hidden sm:inline">{dailyTitle}</span>
               </h2>
               <div
                 className="flex border-2 border-black bg-white"
@@ -723,54 +884,21 @@ export default function DashboardClient({
               <p className="mt-2 text-[14px] text-muted">{t.noDailyData}</p>
             ) : (
               <>
-                <div className="mt-5 flex h-40 items-stretch gap-1.5 sm:gap-2.5">
-                  {initialDailyUsage.map((d, i) => {
-                    const values = initialDailyUsage.map((x) =>
-                      chartMetric === "requests" ? x.requests : x.tokens,
-                    );
-                    const max = Math.max(1, ...values);
-                    const v = chartMetric === "requests" ? d.requests : d.tokens;
-                    const pct = Math.round((v / max) * 100);
-                    // Rentang 30 hari: angka di atas bar hanya tiap 5 hari
-                    // (kolom ~11px di mobile — angka tiap bar akan bertumpuk).
-                    const showValue =
-                      initialDailyUsage.length <= 7 ||
-                      i % 5 === 0 ||
-                      i === initialDailyUsage.length - 1;
-                    return (
-                      <div
-                        key={d.date}
-                        className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5"
-                        title={fill(t.chartTooltip, {
-                          date: d.date,
-                          requests: d.requests,
-                          tokens: d.tokens.toLocaleString(numLocale),
-                        })}
-                      >
-                        <span className="whitespace-nowrap font-mono text-[11px] font-bold text-black">
-                          {showValue && v > 0 ? v.toLocaleString(numLocale) : ""}
-                        </span>
-                        <div
-                          className="w-full max-w-[48px] border-2 border-black bg-yellow"
-                          style={{ height: `${Math.max(v > 0 ? 8 : 2, pct)}%` }}
-                        />
-                      </div>
-                    );
-                  })}
+                <div className="sm:hidden">
+                  <BarChart
+                    bars={isLongRange ? weeklyBars : dailyBars}
+                    metric={chartMetric}
+                    numLocale={numLocale}
+                    showValue={isLongRange ? () => true : dailyShowValue}
+                  />
                 </div>
-                <div className="mt-2 flex gap-1.5 border-t-2 border-black pt-2 sm:gap-2.5">
-                  {initialDailyUsage.map((d, i) => (
-                    <span
-                      key={d.date}
-                      className="min-w-0 flex-1 overflow-hidden text-center font-mono text-[10px] font-bold text-faint sm:text-[11px]"
-                    >
-                      {initialDailyUsage.length <= 7 ||
-                      i % 5 === 0 ||
-                      i === initialDailyUsage.length - 1
-                        ? fmtDayLabel(d.date, locale)
-                        : ""}
-                    </span>
-                  ))}
+                <div className="hidden sm:block">
+                  <BarChart
+                    bars={dailyBars}
+                    metric={chartMetric}
+                    numLocale={numLocale}
+                    showValue={dailyShowValue}
+                  />
                 </div>
                 <p className="mt-3 font-mono text-[11px] text-faint">
                   {chartMetric === "requests" ? t.chartNote : t.chartNoteTokens}
@@ -780,7 +908,7 @@ export default function DashboardClient({
           </div>
 
           {/* Per provider */}
-          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+          <div className="mt-4 border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
             <h2 className="text-[16px] font-black text-black">{t.perProvider}</h2>
             {usage.byProvider.length === 0 ? (
               <div className="mt-2">
@@ -801,12 +929,16 @@ export default function DashboardClient({
                 {usage.byProvider.map((p) => (
                   <div
                     key={p.provider}
-                    className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3"
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:flex-nowrap sm:gap-3"
                   >
-                    <span className="font-mono text-[13px] font-bold text-muted sm:w-24 sm:shrink-0">
+                    <span className="order-1 min-w-0 flex-1 truncate font-mono text-[13px] font-bold text-muted sm:w-24 sm:flex-none sm:shrink-0">
                       {p.provider}
                     </span>
-                    <div className="h-2.5 w-full border border-black bg-neutral-200 sm:w-auto sm:flex-1">
+                    <span className="order-2 shrink-0 whitespace-nowrap font-mono text-[12px] text-muted sm:order-3 sm:w-40 sm:text-right">
+                      {p.requests} req ·{" "}
+                      {fill(t.tokensCount, { n: p.tokens.toLocaleString(numLocale) })}
+                    </span>
+                    <div className="order-3 h-2.5 w-full basis-full border border-black bg-neutral-200 sm:order-2 sm:w-auto sm:basis-auto sm:flex-1">
                       <div
                         className="h-full bg-blue"
                         style={{
@@ -814,10 +946,6 @@ export default function DashboardClient({
                         }}
                       />
                     </div>
-                    <span className="font-mono text-[12px] text-muted sm:w-40 sm:shrink-0 sm:text-right">
-                      {p.requests} req ·{" "}
-                      {fill(t.tokensCount, { n: p.tokens.toLocaleString(numLocale) })}
-                    </span>
                   </div>
                 ))}
               </div>
@@ -829,7 +957,7 @@ export default function DashboardClient({
       {tab === "explore" && (
         <>
           {/* Per model (semua) */}
-          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+          <div className="mt-4 border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
             <h2 className="text-[16px] font-black text-black">{t.perModel}</h2>
             {initialModelUsage.length === 0 ? (
               <p className="mt-2 text-[14px] text-muted">
@@ -851,7 +979,7 @@ export default function DashboardClient({
           </div>
 
           {/* Per API key (semua) */}
-          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+          <div className="mt-4 border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
             <h2 className="text-[16px] font-black text-black">{t.perKey}</h2>
             {initialKeyUsage.length === 0 ? (
               <p className="mt-2 text-[14px] text-muted">
@@ -873,7 +1001,7 @@ export default function DashboardClient({
           </div>
 
           {/* Per provider (semua — salinan dari Trends agar Explore lengkap) */}
-          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+          <div className="mt-4 border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
             <h2 className="text-[16px] font-black text-black">{t.perProvider}</h2>
             {usage.byProvider.length === 0 ? (
               <p className="mt-2 text-[14px] text-muted">
@@ -884,12 +1012,16 @@ export default function DashboardClient({
                 {usage.byProvider.map((p) => (
                   <div
                     key={p.provider}
-                    className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3"
+                    className="flex flex-wrap items-center gap-x-3 gap-y-1.5 sm:flex-nowrap sm:gap-3"
                   >
-                    <span className="font-mono text-[13px] font-bold text-muted sm:w-24 sm:shrink-0">
+                    <span className="order-1 min-w-0 flex-1 truncate font-mono text-[13px] font-bold text-muted sm:w-24 sm:flex-none sm:shrink-0">
                       {p.provider}
                     </span>
-                    <div className="h-2.5 w-full border border-black bg-neutral-200 sm:w-auto sm:flex-1">
+                    <span className="order-2 shrink-0 whitespace-nowrap font-mono text-[12px] text-muted sm:order-3 sm:w-40 sm:text-right">
+                      {p.requests} req ·{" "}
+                      {fill(t.tokensCount, { n: p.tokens.toLocaleString(numLocale) })}
+                    </span>
+                    <div className="order-3 h-2.5 w-full basis-full border border-black bg-neutral-200 sm:order-2 sm:w-auto sm:basis-auto sm:flex-1">
                       <div
                         className="h-full bg-blue"
                         style={{
@@ -897,10 +1029,6 @@ export default function DashboardClient({
                         }}
                       />
                     </div>
-                    <span className="font-mono text-[12px] text-muted sm:w-40 sm:shrink-0 sm:text-right">
-                      {p.requests} req ·{" "}
-                      {fill(t.tokensCount, { n: p.tokens.toLocaleString(numLocale) })}
-                    </span>
                   </div>
                 ))}
               </div>
@@ -910,7 +1038,7 @@ export default function DashboardClient({
       )}
 
       {/* API keys */}
-      <div id="api-keys" className="mt-8 scroll-mt-20 border-2 border-black bg-white p-5 shadow-brutal-sm sm:p-6">
+      <div id="api-keys" className="mt-8 scroll-mt-20 border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-[16px] font-black text-black">
             {t.keysTitle}{" "}
@@ -923,7 +1051,9 @@ export default function DashboardClient({
           </p>
         </div>
 
-        {/* Form buat key */}
+        {/* Form buat key — input pakai min-h-11, BUKAN h-11: di container
+            flex-col, flex-1 (flex-basis 0%) mengalahkan height di sumbu
+            utama dan input menciut ke 24px; min-height tetap dihormati. */}
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input
             value={name}
@@ -934,7 +1064,7 @@ export default function DashboardClient({
             placeholder={t.keyNamePlaceholder}
             aria-label={t.keyNamePlaceholder}
             maxLength={64}
-            className="h-11 flex-1 border-2 border-black bg-white px-4 text-[16px] text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] sm:text-[14px]"
+            className="min-h-11 flex-1 border-2 border-black bg-white px-4 text-[16px] text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] sm:text-[14px]"
           />
           <button
             onClick={() => void createKey()}
