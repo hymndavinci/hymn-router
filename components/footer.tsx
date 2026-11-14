@@ -10,7 +10,7 @@ export default async function Footer() {
   const providerTotal = getProviders().length;
   return (
     <footer className="border-t-2 border-black bg-white">
-      <div className="mx-auto grid w-full max-w-[1280px] gap-10 px-6 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
+      <div className="mx-auto grid w-full max-w-[1280px] gap-8 px-6 py-10 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
         <div>
           <div className="flex items-center gap-2.5">
             <span className="flex h-8 w-8 items-center justify-center border-2 border-black bg-yellow font-mono text-[13px] font-bold text-black shadow-brutal-xs">
@@ -20,7 +20,7 @@ export default async function Footer() {
               Hymn Router
             </span>
           </div>
-          <p className="mt-4 max-w-[260px] text-[14px] leading-relaxed text-muted">
+          <p className="mt-4 max-w-[260px] text-[15px] leading-relaxed text-muted">
             {t.footer.tagline}
           </p>
         </div>
@@ -29,44 +29,44 @@ export default async function Footer() {
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-black">
             {t.footer.products}
           </p>
-          <ul className="mt-4 space-y-2.5 text-[14px] font-medium text-muted">
+          <ul className="mt-4 text-[14px] font-medium text-muted">
             <li>
-              <Link href="/#provider" className="hover:text-blue">
+              <Link href="/#provider" className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4">
                 {t.nav.provider}
               </Link>
             </li>
             <li>
-              <Link href="/models" className="hover:text-blue">
+              <Link href="/models" className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4">
                 {t.nav.models}
               </Link>
             </li>
             <li>
-              <Link href="/images" className="hover:text-blue">
+              <Link href="/images" className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4">
                 {t.nav.images}
               </Link>
             </li>
             <li>
-              <Link href="/status" className="hover:text-blue">
+              <Link href="/status" className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4">
                 {t.nav.status}
               </Link>
             </li>
             <li>
-              <Link href="/chat" className="hover:text-blue">
+              <Link href="/chat" className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4">
                 {t.nav.chat}
               </Link>
             </li>
             <li>
-              <Link href="/docs#quickstart" className="hover:text-blue">
+              <Link href="/docs#quickstart" className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4">
                 {t.nav.guide}
               </Link>
             </li>
             <li>
-              <Link href="/docs" className="hover:text-blue">
+              <Link href="/docs" className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4">
                 {t.nav.apiDocs}
               </Link>
             </li>
             <li>
-              <Link href="/dashboard" className="hover:text-blue">
+              <Link href="/dashboard" className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4">
                 {t.nav.dashboard}
               </Link>
             </li>
@@ -77,13 +77,13 @@ export default async function Footer() {
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-black">
             {t.footer.resources}
           </p>
-          <ul className="mt-4 space-y-2.5 text-[14px] font-medium text-muted">
+          <ul className="mt-4 text-[14px] font-medium text-muted">
             <li>
               <a
                 href="https://github.com/hymndavinci/hymn-router"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-blue"
+                className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4"
               >
                 GitHub ↗
               </a>
@@ -93,13 +93,13 @@ export default async function Footer() {
                 href="https://github.com/hymndavinci/hymn-router#readme"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-blue"
+                className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4"
               >
                 README ↗
               </a>
             </li>
             <li>
-              <Link href="/api/v1/models" className="hover:text-blue">
+              <Link href="/api/v1/models" className="inline-flex min-h-[44px] w-full items-center hover:text-blue hover:underline hover:underline-offset-4">
                 /api/v1/models
               </Link>
             </li>
@@ -110,7 +110,7 @@ export default async function Footer() {
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-black">
             {t.footer.privacy}
           </p>
-          <p className="mt-4 text-[14px] leading-relaxed text-muted">
+          <p className="mt-4 text-[15px] leading-relaxed text-muted">
             {t.footer.privacyText}
           </p>
         </div>

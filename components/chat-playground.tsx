@@ -773,7 +773,7 @@ export default function ChatPlayground({
       <div className="lg:hidden">
         <button
           onClick={() => setHistoryOpen((v) => !v)}
-          className="h-10 w-full border-2 border-black bg-white px-3 text-sm font-bold text-black shadow-brutal-sm"
+          className="h-11 w-full border-2 border-black bg-white px-3 text-sm font-bold text-black shadow-brutal-sm"
         >
           {t.toggleHistory} {historyOpen ? "▴" : "▾"}
         </button>
@@ -789,7 +789,7 @@ export default function ChatPlayground({
           <h2 className="text-[14px] font-black text-black">{t.historyTitle}</h2>
           <button
             onClick={newChat}
-            className="shrink-0 border-2 border-black bg-yellow px-3 py-1.5 text-[12px] font-bold text-black"
+            className="flex h-11 shrink-0 items-center border-2 border-black bg-yellow px-3 text-[12px] font-bold text-black"
           >
             {t.newChat}
           </button>
@@ -799,7 +799,7 @@ export default function ChatPlayground({
             <p className="text-[13px] leading-relaxed text-muted">{t.signInToSave}</p>
             <Link
               href="/login?next=/chat"
-              className="mt-2 inline-block font-mono text-[13px] font-bold text-blue underline underline-offset-4 hover:text-black"
+              className="mt-2 inline-flex min-h-[44px] items-center font-mono text-[13px] font-bold text-blue underline underline-offset-4 hover:text-black"
             >
               {t.signInLink}
             </Link>
@@ -830,7 +830,7 @@ export default function ChatPlayground({
                   onClick={() => void deleteConversation(c.id)}
                   aria-label={`${t.deleteConversation}: ${displayTitle(c.title)}`}
                   title={t.deleteConversation}
-                  className="mr-2 shrink-0 border border-black bg-white px-2 py-1 font-mono text-[11px] font-bold text-bad hover:bg-bad hover:text-white"
+                  className="mr-2 flex h-11 min-w-[44px] shrink-0 items-center justify-center border border-black bg-white px-2 font-mono text-[11px] font-bold text-bad hover:bg-bad hover:text-white"
                 >
                   ✕
                 </button>
@@ -851,7 +851,7 @@ export default function ChatPlayground({
             <select
               value={provider}
               onChange={(e) => setProvider(e.target.value)}
-              className="h-10 w-full max-w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-auto sm:max-w-[320px] sm:text-sm"
+              className="h-11 w-full max-w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-auto sm:max-w-[320px] sm:text-sm"
             >
               <option value="auto">{t.autoOption}</option>
               {selectable.map((p) => (
@@ -871,7 +871,7 @@ export default function ChatPlayground({
               <select
                 value={providerB}
                 onChange={(e) => setProviderB(e.target.value)}
-                className="h-10 w-full max-w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-auto sm:max-w-[320px] sm:text-sm"
+                className="h-11 w-full max-w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-auto sm:max-w-[320px] sm:text-sm"
               >
                 <option value="auto">{t.autoOption}</option>
                 {selectable.map((p) => (
@@ -895,7 +895,7 @@ export default function ChatPlayground({
               step={0.1}
               value={temperature}
               onChange={(e) => setTemperature(Number(e.target.value))}
-              className="h-10 w-full accent-[#0c0c0c] sm:w-32"
+              className="h-11 w-full accent-[#0c0c0c] sm:w-32"
             />
           </label>
 
@@ -907,7 +907,7 @@ export default function ChatPlayground({
               max={8192}
               value={maxTokens}
               onChange={(e) => setMaxTokens(Number(e.target.value))}
-              className="h-10 w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-24 sm:text-sm"
+              className="h-11 w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-24 sm:text-sm"
             />
           </label>
 
@@ -915,7 +915,7 @@ export default function ChatPlayground({
             <button
               onClick={() => setCompareMode((v) => !v)}
               aria-pressed={compareMode}
-              className={`h-10 flex-1 whitespace-nowrap border-2 border-black px-3 text-sm font-bold text-black sm:flex-none ${
+              className={`h-11 flex-1 whitespace-nowrap border-2 border-black px-3 text-sm font-bold text-black sm:flex-none ${
                 compareMode ? "bg-yellow shadow-brutal-xs" : "bg-white hover:bg-yellow-soft"
               }`}
             >
@@ -923,7 +923,7 @@ export default function ChatPlayground({
             </button>
             <button
               onClick={() => setShowSystem((v) => !v)}
-              className="h-10 flex-1 whitespace-nowrap border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft sm:flex-none"
+              className="h-11 flex-1 whitespace-nowrap border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft sm:flex-none"
             >
               {showSystem ? t.systemHide : t.systemShow}
             </button>
@@ -933,7 +933,7 @@ export default function ChatPlayground({
                 setCompares([]);
                 setError(null);
               }}
-              className="h-10 flex-1 whitespace-nowrap border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft disabled:opacity-50 sm:flex-none"
+              className="h-11 flex-1 whitespace-nowrap border-2 border-black bg-white px-3 text-sm font-bold text-black hover:bg-yellow-soft disabled:opacity-50 sm:flex-none"
               disabled={messages.length === 0 && compares.length === 0}
             >
               {t.clearHistory}
@@ -946,7 +946,7 @@ export default function ChatPlayground({
               onChange={(e) => setSystemPrompt(e.target.value)}
               placeholder={t.systemPlaceholder}
               aria-label={t.systemShow}
-              className="h-10 w-full border-2 border-black bg-white px-2 text-base text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] sm:text-sm"
+              className="h-11 w-full border-2 border-black bg-white px-2 text-base text-black outline-none placeholder:text-faint focus:shadow-[3px_3px_0_#2563EB] sm:text-sm"
             />
           )}
 
@@ -984,7 +984,7 @@ export default function ChatPlayground({
               <div className="mb-1 flex flex-wrap items-center gap-2">
                 <span
                   className={`font-mono text-[11px] font-bold uppercase tracking-wide ${
-                    m.role === "user" ? "text-blue" : "text-green"
+                    m.role === "user" ? "text-blue" : "text-green-dark"
                   }`}
                 >
                   {m.role === "user" ? t.youLabel : t.assistantLabel}
@@ -1062,7 +1062,7 @@ export default function ChatPlayground({
 
           {sending && !streaming && !compareMode && (
             <div className="border-2 border-black bg-white px-3 py-2">
-              <span className="font-mono text-[11px] font-bold uppercase tracking-wide text-green">
+              <span className="font-mono text-[11px] font-bold uppercase tracking-wide text-green-dark">
                 {t.assistantLabel}
               </span>
               <p className="text-sm text-muted">
@@ -1117,7 +1117,7 @@ export default function ChatPlayground({
             {sending ? (
               <button
                 onClick={stop}
-                className="h-10 border-2 border-bad bg-white px-5 text-sm font-bold text-bad hover:bg-bad hover:text-white"
+                className="h-11 border-2 border-bad bg-white px-5 text-sm font-bold text-bad hover:bg-bad hover:text-white"
               >
                 {t.stopBtn}
               </button>
@@ -1125,7 +1125,7 @@ export default function ChatPlayground({
               <button
                 onClick={handleSend}
                 disabled={input.trim() === ""}
-                className="btn-press h-10 border-2 border-black bg-yellow px-5 text-sm font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-40"
+                className="btn-press h-11 border-2 border-black bg-yellow px-5 text-sm font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {t.sendBtn}
               </button>

@@ -28,7 +28,7 @@ async function DbErrorView() {
   return (
     <div className="flex-1">
       <Navbar />
-      <div className="mx-auto w-full max-w-[1280px] px-6 py-10 lg:px-8">
+      <div className="mx-auto w-full max-w-[1280px] px-6 py-8 lg:px-8">
         <h1 className="text-[28px] font-black leading-tight tracking-tight text-black">
           {t.dashboard.dbErrorTitle}
         </h1>

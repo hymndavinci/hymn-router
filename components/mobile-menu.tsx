@@ -1,9 +1,9 @@
 /**
- * MobileMenu — menu hamburger untuk layar < md.
+ * MobileMenu — menu hamburger untuk layar < xl.
  *
- * Navbar desktop menyembunyikan semua link navigasi di mobile, jadi tanpa
- * komponen ini user HP tidak bisa mencapai Provider, Cara Pakai, API,
- * dan FAQ. Panel dropdown menempel di bawah header sticky.
+ * Navbar desktop menyembunyikan semua link navigasi di bawah xl, jadi
+ * tanpa komponen ini user HP tidak bisa mencapai Provider, Cara Pakai,
+ * API, dan FAQ. Panel dropdown menempel di bawah header sticky.
  */
 
 "use client";
@@ -38,7 +38,7 @@ export default function MobileMenu({ user }: { user: SessionUser | null }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={open ? dict.nav.closeMenu : dict.nav.openMenu}
-        className="flex h-10 w-10 items-center justify-center border-2 border-black bg-white text-[18px] font-bold leading-none text-black shadow-brutal-xs"
+        className="flex h-11 w-11 items-center justify-center border-2 border-black bg-white text-[18px] font-bold leading-none text-black shadow-brutal-xs"
       >
         {open ? "✕" : "☰"}
       </button>

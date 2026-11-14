@@ -14,7 +14,7 @@ export default async function DocsPage() {
   return (
     <div className="flex-1">
       <Navbar />
-      <div className="mx-auto w-full max-w-[1280px] px-6 py-10 lg:px-8">
+      <div className="mx-auto w-full max-w-[1280px] px-6 py-8 lg:px-8">
         <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
           <span className="bg-yellow px-2 py-1">{t.docs.badge}</span>
         </p>

@@ -84,9 +84,9 @@ export default async function StatusPage() {
   return (
     <div className="flex-1">
       <Navbar />
-      <div className="mx-auto w-full max-w-[1280px] px-6 py-10 lg:px-8">
+      <div className="mx-auto w-full max-w-[1280px] px-6 py-8 lg:px-8">
         <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
-          <span className="bg-green px-2 py-1 text-white">{s.badge}</span>
+          <span className="bg-green px-2 py-1 text-black">{s.badge}</span>
         </p>
         <h1 className="mt-3 text-[32px] font-black leading-tight tracking-tight text-black">
           {s.title}
@@ -115,7 +115,7 @@ export default async function StatusPage() {
                     </div>
                     <span
                       className={`shrink-0 border-2 border-black px-2.5 py-1 font-mono text-[11px] font-bold ${
-                        p.configured ? "bg-green text-white" : "bg-yellow text-black"
+                        p.configured ? "bg-green text-black" : "bg-yellow text-black"
                       }`}
                     >
                       {p.configured ? s.configuredBadge : s.lockedBadge}

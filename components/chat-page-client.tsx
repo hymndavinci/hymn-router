@@ -51,7 +51,7 @@ export default function ChatPageClient() {
   const configured = (providers ?? []).filter((p) => p.configured).length;
 
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-6 py-10 lg:px-8">
+    <div className="mx-auto w-full max-w-[1280px] px-6 py-8 lg:px-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">

@@ -245,6 +245,76 @@ export async function getKeyBreakdown(userId: string, days = 7): Promise<KeyUsag
   }));
 }
 
+// ---- statistik global 24 jam (untuk /status + mock dasbor landing) ----
+
+export type GlobalStats24h = {
+  /** Total request semua user 24 jam terakhir. */
+  requests: number;
+  /** Total token (prompt + completion) 24 jam terakhir. */
+  tokens: number;
+  /** Rata-rata latency_ms (ms, dibulatkan) — null bila belum ada data. */
+  avgLatencyMs: number | null;
+  /** Waktu request terakhir (ISO) — null bila belum ada data. */
+  lastRequestAt: string | null;
+  /** Provider teratas berdasarkan jumlah request (maks 3). */
+  topProviders: { provider: string; requests: number }[];
+};
+
+/**
+ * Agregat usage GLOBAL 24 jam terakhir (semua user). Dipakai mock
+ * dasbor di landing agar angkanya nyata (bukan karangan), dan bisa
+ * dipakai ulang halaman lain. Mengembalikan null kalau DB tidak
+ * terkonfigurasi atau query gagal — caller menampilkan "—" / teks
+ * "belum ada data", bukan angka palsu.
+ */
+export async function getGlobalStats24h(): Promise<GlobalStats24h | null> {
+  const db = getDb();
+  if (!db) return null;
+  try {
+    const totals = (await db`
+      SELECT
+        COUNT(*)::int AS requests,
+        COALESCE(SUM(prompt_tokens + completion_tokens), 0)::int AS tokens,
+        COALESCE(AVG(latency_ms), NULL)::float AS avg_latency_ms,
+        MAX(created_at)::text AS last_request
+      FROM usage
+      WHERE created_at >= now() - interval '24 hours'
+    `) as {
+      requests: number;
+      tokens: number;
+      avg_latency_ms: number | null;
+      last_request: string | null;
+    }[];
+    const top = (await db`
+      SELECT
+        provider,
+        COUNT(*)::int AS requests
+      FROM usage
+      WHERE created_at >= now() - interval '24 hours'
+        AND provider IS NOT NULL
+      GROUP BY provider
+      ORDER BY requests DESC
+      LIMIT 3
+    `) as { provider: string; requests: number }[];
+    const t = totals[0] ?? {
+      requests: 0,
+      tokens: 0,
+      avg_latency_ms: null,
+      last_request: null,
+    };
+    return {
+      requests: t.requests,
+      tokens: t.tokens,
+      avgLatencyMs: t.avg_latency_ms === null ? null : Math.round(t.avg_latency_ms),
+      lastRequestAt: t.last_request,
+      topProviders: top.map((p) => ({ provider: p.provider, requests: p.requests })),
+    };
+  } catch (err) {
+    console.error("[usage] gagal membaca statistik global 24 jam:", err);
+    return null;
+  }
+}
+
 // ---- kuota harian gratis ----
 
 /** Free plan: jumlah request /v1 ber-autentikasi per user per hari. */

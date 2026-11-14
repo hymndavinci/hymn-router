@@ -31,7 +31,7 @@ export default async function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b-2 border-black bg-white">
       <div className="mx-auto flex h-16 w-full max-w-[1280px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-        <Link href="/" className="flex shrink-0 items-center gap-2.5">
+        <Link href="/" className="flex min-h-[44px] shrink-0 items-center gap-2.5">
           <span className="flex h-8 w-8 items-center justify-center border-2 border-black bg-yellow font-mono text-[13px] font-bold text-black shadow-brutal-xs">
             {"<>"}
           </span>
@@ -40,14 +40,14 @@ export default async function Navbar() {
           </span>
         </Link>
 
-        {/* Delapan link tidak muat di breakpoint md — nav desktop mulai
-            dari lg, di bawah itu pakai hamburger. */}
-        <nav className="hidden items-center gap-7 lg:flex">
+        {/* Delapan link tidak muat di breakpoint lg — nav desktop mulai
+            dari xl, di bawah itu pakai hamburger. */}
+        <nav className="hidden items-center gap-7 xl:flex">
           {NAV_LINKS.map((l) => (
             <Link
               key={l.href}
               href={l.href}
-              className="text-[14px] font-semibold text-black transition-colors hover:text-blue"
+              className="text-[14px] font-semibold text-black transition-colors hover:text-blue hover:underline hover:underline-offset-4"
             >
               {l.label}
             </Link>
@@ -55,7 +55,7 @@ export default async function Navbar() {
         </nav>
 
         {/* Desktop: toggle bahasa + tombol auth lengkap */}
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-3 xl:flex">
           <LocaleToggle />
           {user ? (
             <>
@@ -89,7 +89,7 @@ export default async function Navbar() {
               <form action="/api/auth/logout" method="POST" className="flex">
                 <button
                   type="submit"
-                  className="text-[13px] font-semibold text-muted transition-colors hover:text-black"
+                  className="text-[13px] font-semibold text-muted transition-colors hover:text-black hover:underline hover:underline-offset-4"
                 >
                   {t.nav.signOut}
                 </button>
@@ -99,7 +99,7 @@ export default async function Navbar() {
             <>
               <Link
                 href="/login"
-                className="text-[14px] font-bold text-black transition-colors hover:text-blue"
+                className="text-[14px] font-bold text-black transition-colors hover:text-blue hover:underline hover:underline-offset-4"
               >
                 {t.nav.signIn}
               </Link>
@@ -114,10 +114,10 @@ export default async function Navbar() {
         </div>
 
         {/* Mobile: satu CTA utama + hamburger (link lain di dalam menu) */}
-        <div className="flex items-center gap-2 lg:hidden">
+        <div className="flex items-center gap-2 xl:hidden">
           <Link
             href={user ? "/dashboard" : "/login"}
-            className="border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-sm"
+            className="flex h-11 items-center border-2 border-black bg-yellow px-4 text-[13px] font-bold text-black shadow-brutal-sm"
           >
             {user ? t.nav.dashboard : t.nav.start}
           </Link>

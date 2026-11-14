@@ -35,8 +35,8 @@ export default function CopyButton({
     <button
       type="button"
       onClick={onCopy}
-      className={`btn-press h-8 shrink-0 border-2 border-black px-3 font-mono text-[12px] font-bold shadow-brutal-sm ${
-        copied ? "bg-green text-white" : "bg-white text-black"
+      className={`btn-press h-11 shrink-0 border-2 border-black px-3 font-mono text-[12px] font-bold shadow-brutal-sm ${
+        copied ? "bg-green text-black" : "bg-white text-black"
       }`}
     >
       {copied ? dict.common.copiedLabel : shownLabel}

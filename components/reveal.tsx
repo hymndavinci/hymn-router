@@ -1,6 +1,10 @@
 /**
- * Reveal — wrapper animasi scroll: elemen mulai tersembunyi
- * (opacity 0, geser 14px ke bawah) lalu muncul saat masuk viewport.
+ * Reveal — wrapper animasi scroll: dengan JS aktif, elemen mulai
+ * tersembunyi (opacity 0, geser 14px ke bawah, visibility hidden)
+ * lalu muncul saat masuk viewport. Tanpa JS, elemen tetap terlihat
+ * (state tersembunyi hanya berlaku di bawah class `js` pada <html>,
+ * ditambahkan skrip inline di <head> — lihat app/layout.tsx dan
+ * app/globals.css).
  *
  * Hanya transform + opacity (tanpa layout shift), satu kali (tidak
  * berulang). Hormati prefers-reduced-motion: langsung terlihat.

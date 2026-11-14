@@ -45,7 +45,7 @@ function StatusBadge({ configured }: { configured: boolean }) {
   return (
     <span
       className={`shrink-0 border-2 border-black px-2.5 py-1 font-mono text-[11px] font-bold ${
-        configured ? "bg-green text-white" : "bg-yellow text-black"
+        configured ? "bg-green text-black" : "bg-yellow text-black"
       }`}
     >
       {configured ? t.statusActive : t.statusNeedsKey}
@@ -91,7 +91,7 @@ export default function ModelCatalog({
   }, [freeModels, query]);
 
   return (
-    <div className="flex flex-col gap-12">
+    <div className="flex flex-col gap-10">
       {/* ---- model router ---- */}
       <section>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -103,7 +103,7 @@ export default function ModelCatalog({
             })}
           </p>
         </div>
-        <p className="mt-1 max-w-[720px] text-[14px] leading-relaxed text-muted">
+        <p className="mt-1 max-w-[720px] text-[15px] leading-relaxed text-muted">
           {t.routerIntroA}{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">hymn/auto</code>{" "}
           {t.routerIntroB}{" "}
@@ -120,7 +120,7 @@ export default function ModelCatalog({
                 {fill(t.autoDesc, { total: providerCount })}
               </p>
             </div>
-            <span className="shrink-0 border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
+            <span className="shrink-0 border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-black">
               {t.recommended}
             </span>
           </div>
@@ -162,7 +162,7 @@ export default function ModelCatalog({
                 </div>
               </dl>
 
-              <p className="mt-3 flex-1 text-[13px] leading-relaxed text-muted">
+              <p className="mt-3 flex-1 text-[14px] leading-relaxed text-muted">
                 {m.providers
                   .map((pid) => dict.providers.notes[pid])
                   .filter(Boolean)
@@ -180,11 +180,11 @@ export default function ModelCatalog({
       <section>
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-[22px] font-black tracking-tight text-black">{t.imageTitle}</h2>
-          <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
+          <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-black">
             {t.statusActive}
           </span>
         </div>
-        <p className="mt-1 max-w-[720px] text-[14px] leading-relaxed text-muted">
+        <p className="mt-1 max-w-[720px] text-[15px] leading-relaxed text-muted">
           {t.imageIntroA}{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">POST /api/v1/images/generations</code>{" "}
           {t.imageIntroB}
@@ -214,7 +214,7 @@ export default function ModelCatalog({
                     <dd className="min-w-0 text-black">{t.noKey}</dd>
                   </div>
                 </dl>
-                <p className="mt-3 flex-1 text-[13px] leading-relaxed text-muted">{m.desc}</p>
+                <p className="mt-3 flex-1 text-[14px] leading-relaxed text-muted">{m.desc}</p>
                 <ModelString model={m.id} />
               </div>
             </Reveal>
@@ -228,13 +228,13 @@ export default function ModelCatalog({
           <h2 className="text-[22px] font-black tracking-tight text-black">{t.freeTitle}</h2>
           <span
             className={`border-2 border-black px-2.5 py-1 font-mono text-[11px] font-bold ${
-              openRouterConfigured ? "bg-green text-white" : "bg-yellow text-black"
+              openRouterConfigured ? "bg-green text-black" : "bg-yellow text-black"
             }`}
           >
             OpenRouter {openRouterConfigured ? t.orConfigured : t.orNotConfigured}
           </span>
         </div>
-        <p className="mt-1 max-w-[720px] text-[14px] leading-relaxed text-muted">
+        <p className="mt-1 max-w-[720px] text-[15px] leading-relaxed text-muted">
           {t.freeIntroA}{" "}
           <code className="bg-yellow-soft px-1 font-mono text-[13px] font-bold text-black">model</code>{" "}
           {t.freeIntroB}{" "}
@@ -282,7 +282,7 @@ export default function ModelCatalog({
                     <h3 className="truncate font-mono text-[14px] font-bold text-black" title={m.id}>
                       {m.id}
                     </h3>
-                    <p className="mt-1 truncate text-[13px] text-muted" title={m.name}>
+                    <p className="mt-1 truncate text-[14px] text-muted" title={m.name}>
                       {m.name}
                     </p>
                     <p className="mt-3 font-mono text-[12px] text-black">
@@ -295,7 +295,7 @@ export default function ModelCatalog({
                       // untuk language-leak sweep.
                       <p
                         data-external-text
-                        className="mt-2 flex-1 text-[13px] leading-relaxed text-muted"
+                        className="mt-2 flex-1 text-[14px] leading-relaxed text-muted"
                       >
                         {m.description.length > 160
                           ? `${m.description.slice(0, 160)}…`

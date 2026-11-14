@@ -383,10 +383,10 @@ export default function LoginForm({
   }
 
   const inputClass =
-    "w-full border-2 border-black bg-white px-4 py-3 text-[16px] font-medium text-black placeholder:text-faint focus:bg-yellow-soft focus:outline-none";
+    "w-full border-2 border-black bg-white px-4 py-3 text-[16px] font-medium text-black placeholder:text-faint focus:bg-yellow-soft focus:shadow-[3px_3px_0_#2563EB] focus:outline-none";
 
   const codeInputClass =
-    "w-full border-2 border-black bg-white px-4 py-3 text-center text-[22px] font-black tracking-[0.3em] text-black placeholder:text-faint focus:bg-yellow-soft focus:outline-none";
+    "w-full border-2 border-black bg-white px-4 py-3 text-center text-[22px] font-black tracking-[0.3em] text-black placeholder:text-faint focus:bg-yellow-soft focus:shadow-[3px_3px_0_#2563EB] focus:outline-none";
 
   return (
     <div>
@@ -504,7 +504,7 @@ export default function LoginForm({
                 setError(null);
                 setNotice(null);
               }}
-              className="mt-4 w-full text-center text-[14px] font-bold text-black underline"
+              className="mt-4 flex min-h-[44px] w-full items-center justify-center text-center text-[14px] font-bold text-black underline"
             >
               {t.forgotLink}
             </button>
@@ -581,7 +581,7 @@ export default function LoginForm({
           <button
             type="button"
             onClick={() => backToForm("signup")}
-            className="mt-4 w-full text-center text-[14px] font-bold text-black underline"
+            className="mt-4 flex min-h-[44px] w-full items-center justify-center text-center text-[14px] font-bold text-black underline"
           >
             {t.wrongEmail}
           </button>
@@ -634,7 +634,7 @@ export default function LoginForm({
           <button
             type="button"
             onClick={() => backToForm("login")}
-            className="mt-4 w-full text-center text-[14px] font-bold text-black underline"
+            className="mt-4 flex min-h-[44px] w-full items-center justify-center text-center text-[14px] font-bold text-black underline"
           >
             {t.forgotBack}
           </button>
@@ -734,14 +734,14 @@ export default function LoginForm({
             type="button"
             onClick={resendResetCode}
             disabled={resending}
-            className="mt-3 w-full text-center text-[14px] font-bold text-black underline disabled:opacity-60"
+            className="mt-3 flex min-h-[44px] w-full items-center justify-center text-center text-[14px] font-bold text-black underline disabled:opacity-60"
           >
             {t.forgotResend}
           </button>
           <button
             type="button"
             onClick={() => backToForm("login")}
-            className="mt-4 w-full text-center text-[14px] font-bold text-black underline"
+            className="mt-4 flex min-h-[44px] w-full items-center justify-center text-center text-[14px] font-bold text-black underline"
           >
             {t.forgotBack}
           </button>

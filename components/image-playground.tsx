@@ -114,7 +114,7 @@ export default function ImagePlayground() {
             <select
               value={model}
               onChange={(e) => setModel(e.target.value as ImageModel)}
-              className="h-10 w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-auto sm:text-sm"
+              className="h-11 w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-auto sm:text-sm"
             >
               <option value="flux">flux</option>
               <option value="turbo">turbo</option>
@@ -128,7 +128,7 @@ export default function ImagePlayground() {
             <select
               value={size}
               onChange={(e) => setSize(e.target.value as ImageSize)}
-              className="h-10 w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-auto sm:text-sm"
+              className="h-11 w-full border-2 border-black bg-white px-2 text-base text-black outline-none focus:shadow-[3px_3px_0_#2563EB] sm:w-auto sm:text-sm"
             >
               {SIZE_OPTIONS.map((s) => (
                 <option key={s} value={s}>
@@ -141,13 +141,13 @@ export default function ImagePlayground() {
           <button
             onClick={generate}
             disabled={loading || prompt.trim() === ""}
-            className="btn-press h-10 w-full border-2 border-black bg-yellow px-6 text-sm font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto"
+            className="btn-press h-11 w-full border-2 border-black bg-yellow px-6 text-sm font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {loading ? t.generating : t.generate}
           </button>
         </div>
 
-        <p className="mt-3 font-mono text-[12px] leading-relaxed text-muted">
+        <p className="mt-3 font-mono text-[13px] leading-relaxed text-muted">
           {model === "flux" ? t.modelFluxDesc : t.modelTurboDesc}
         </p>
       </div>
@@ -167,13 +167,13 @@ export default function ImagePlayground() {
               <button
                 onClick={() => void download()}
                 disabled={downloading}
-                className="btn-press h-10 border-2 border-black bg-yellow px-4 text-sm font-bold text-black shadow-brutal-sm disabled:opacity-50"
+                className="btn-press h-11 border-2 border-black bg-yellow px-4 text-sm font-bold text-black shadow-brutal-sm disabled:opacity-50"
               >
                 {t.download}
               </button>
               <button
                 onClick={() => void copyUrl()}
-                className="h-10 border-2 border-black bg-white px-4 text-sm font-bold text-black hover:bg-yellow-soft"
+                className="h-11 border-2 border-black bg-white px-4 text-sm font-bold text-black hover:bg-yellow-soft"
               >
                 {copied ? t.copied : t.copyUrl}
               </button>
@@ -204,7 +204,7 @@ export default function ImagePlayground() {
         </div>
       )}
 
-      <p className="break-words font-mono text-[12px] leading-relaxed text-faint">
+      <p className="break-words font-mono text-[13px] leading-relaxed text-faint">
         {t.directNote}
       </p>
     </div>

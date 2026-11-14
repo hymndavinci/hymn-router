@@ -278,7 +278,7 @@ export default function ApiDocs({ providerCount }: { providerCount: number }) {
               <p className="mt-2 flex-1 text-[14px] leading-relaxed text-muted">{s.body}</p>
               <a
                 href={quickstartHrefs[i] ?? "/"}
-                className="mt-4 inline-block self-start border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-xs"
+                className="mt-4 inline-flex min-h-[44px] items-center self-start border-2 border-black bg-yellow px-4 text-[13px] font-bold text-black shadow-brutal-xs"
               >
                 {s.cta} →
               </a>

@@ -40,7 +40,7 @@ export type Rich = RichSeg[];
 
 const id = {
   meta: {
-    homeTitle: "Hymn Router — Satu Endpoint untuk Semua Model AI Gratis",
+    homeTitle: "Hymn Router — Satu Router untuk Semua Model AI Gratis",
     homeDescription:
       "Gateway OpenAI-compatible untuk {total} endpoint LLM gratis (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, dan lainnya) dengan fallback otomatis. Masuk, buat API key, dan akses hymnrouter.my.id/api/v1. Rp 0.",
     loginTitle: "Masuk — Hymn Router",
@@ -75,7 +75,7 @@ const id = {
     apiDocs: "API Docs",
     dashboard: "Dasbor",
     signIn: "Masuk",
-    start: "Mulai",
+    start: "Mulai sekarang",
     signOut: "Keluar",
     signInUp: "Masuk / Daftar",
     openMenu: "Buka menu",
@@ -96,73 +96,53 @@ const id = {
     announcement: "100% gratis — {total} provider, tanpa kartu kredit",
     announcementLink: "Lihat provider →",
     heroBadge: "AI Router · Gratis · OpenAI-Compatible",
-    heroTitle: "Satu endpoint untuk semua model AI gratis.",
+    heroTitle: "Satu router untuk semua model AI gratis.",
     heroSub:
-      "{total} provider LLM gratis di balik satu API. Masuk, buat API key, dan panggil dari kode Anda — tanpa kartu kredit, tanpa saldo.",
+      "{total} provider LLM gratis di balik satu API. Masuk, buat API key, dan panggil dari kode Anda.",
     ctaStart: "Mulai sekarang",
     ctaChat: "Coba chat",
     ctaDocs: "Dokumentasi →",
     providerLine:
       "{configured}/{total} provider aktif saat ini · tanpa key pun langsung dapat digunakan",
     stats: [
-      { value: "{total}", label: "provider, satu endpoint" },
+      { value: "{total}", label: "provider gratis" },
       { value: "{keyless}", label: "tanpa API key" },
-      { value: "Rp 0", label: "tanpa kartu kredit" },
+      { value: "Rp 0", label: "gratis selamanya" },
       { value: "1", label: "endpoint OpenAI-compatible" },
     ],
     providersEyebrow: "Provider",
     providersTitle: "{total} provider. Satu endpoint.",
     providersSub:
       "Status live dari server — urutan kartu adalah urutan fallback (atas dicoba duluan). {keyless} provider berfungsi tanpa API key.",
-    howtoEyebrow: "Cara Penggunaan",
     howtoTitle: "Ganti base URL. Kode tetap berfungsi.",
     howtoSub:
       "Gateway memakai format OpenAI API, jadi SDK dan tools yang sudah Anda gunakan tetap berfungsi — yang berubah hanya base URL dan API key.",
-    steps: [
-      {
-        n: "01",
-        title: "Masuk / Daftar",
-        body: "Masuk dengan Google, GitHub, atau email. Akun digunakan untuk dasbor dan API key Anda.",
-      },
-      {
-        n: "02",
-        title: "Buat API key di dasbor",
-        body: "Key diawali hr_, bisa dibuat banyak, dan bisa di-revoke kapan saja.",
-      },
-      {
-        n: "03",
-        title: "Arahkan client ke gateway",
-        body: "Atur base URL ke /api/v1 dan gunakan model hymn/auto — atau pilih provider tertentu.",
-      },
-    ],
     worksWith: "Bisa dipakai di",
     codeNote:
       "Simpan API key di environment variable. Streaming didukung melalui SSE — lihat dokumentasi.",
-    quickstartEyebrow: "Mulai Cepat",
     quickstartTitle: "Mulai dalam 3 langkah.",
     quickstartSub:
-      "Dari nol sampai request pertama — tanpa kartu kredit, tanpa setup rumit.",
+      "Dari nol sampai request pertama dalam waktu kurang dari semenit.",
     quickstartSteps: [
       {
         n: "1",
-        title: "Daftar / Masuk",
+        title: "Akun",
         body: "Buat akun dengan Google, GitHub, atau email — gratis. Pendaftaran email memakai kode verifikasi.",
-        cta: "Masuk / Daftar",
+        cta: "Mulai sekarang",
       },
       {
         n: "2",
-        title: "Buat API Key",
+        title: "Kunci API",
         body: "Di dasbor, buat key pertama Anda. Key diawali hr_ dan bisa di-revoke kapan saja.",
         cta: "Buka dasbor",
       },
       {
         n: "3",
-        title: "Coba Chat",
+        title: "Playground",
         body: "Kirim pesan pertama di playground — atau panggil /api/v1 dari kode Anda.",
         cta: "Buka playground",
       },
     ],
-    dashboardEyebrow: "Dasbor",
     dashboardTitle: "Semua pemakaian Anda, dalam satu dasbor.",
     dashboardSub:
       "Setelah masuk, semua request melalui API key Anda tercatat dan dapat dipantau — tanpa setup apa pun.",
@@ -182,24 +162,21 @@ const id = {
     ],
     mockLabel: "dasbor / pemakaian",
     mockActive: "● {configured}/{total} provider aktif",
-    mockStats: [
-      { v: "1.284", l: "request · 7 hari" },
-      { v: "96,4K", l: "token" },
-      { v: "3", l: "API key aktif" },
-    ],
-    mockActiveLabel: "aktif",
-    mockCaption: "Ilustrasi dasbor. Nama dan angka hanya contoh.",
-    whyEyebrow: "Kenapa Hymn Router",
+    mockRequests24h: "request · 24 jam",
+    mockTokens24h: "token · 24 jam",
+    mockLatency24h: "latensi rata-rata",
+    mockNoData: "Belum ada data 24 jam terakhir",
+    mockLastRequest: "Request terakhir {time}",
     whyTitle: "Semua model gratis, dalam satu akun.",
     whyCards: [
       {
         big: "{total}",
         title: "provider",
-        body: "Satu endpoint untuk semuanya. Fallback otomatis jika satu provider gagal atau mencapai limit.",
+        body: "Fallback otomatis jika satu provider gagal atau mencapai limit.",
       },
       {
         big: "Rp 0",
-        title: "tanpa kartu kredit",
+        title: "gratis",
         body: "Tidak ada saldo, tidak ada langganan, tidak ada tagihan kejutan. Gratis berarti gratis.",
       },
       {
@@ -209,7 +186,7 @@ const id = {
       },
     ],
     whyPrivacy:
-      "Soal privasi: prompt dan response tidak pernah disimpan di server ini — kecuali riwayat chat /chat Anda sendiri saat masuk, yang sengaja disimpan agar bisa dibuka lagi dan bisa dihapus kapan saja dari sidebar riwayat. Yang dicatat hanya jumlah request, token, dan provider — untuk dasbor Anda sendiri. Request tetap diteruskan ke provider gratis pihak ketiga, jadi jangan kirim data sensitif.",
+      "Singkatnya soal privasi: prompt dan response tidak pernah disimpan — kecuali riwayat chat /chat Anda saat masuk, yang bisa dihapus kapan saja dari sidebar. Jawaban lengkap ada di FAQ di bawah.",
     faqEyebrow: "FAQ",
     faqTitle: "Pertanyaan yang sering muncul.",
     faqSub:
@@ -1045,6 +1022,7 @@ const id = {
     copyLabel: "Salin",
     copiedLabel: "Disalin!",
     loading: "Memuat…",
+    skipToContent: "Lewati ke konten",
   },
 };
 
@@ -1052,7 +1030,7 @@ export type Dict = typeof id;
 
 const en: Dict = {
   meta: {
-    homeTitle: "Hymn Router — One Endpoint for Every Free AI Model",
+    homeTitle: "Hymn Router — One Router for Every Free AI Model",
     homeDescription:
       "An OpenAI-compatible gateway for {total} free LLM endpoints (Groq, Gemini, NVIDIA, OpenRouter, Kilo, LLM7, and more) with automatic fallback. Sign in, create an API key, and call hymnrouter.my.id/api/v1. Free.",
     loginTitle: "Sign in — Hymn Router",
@@ -1087,7 +1065,7 @@ const en: Dict = {
     apiDocs: "API Docs",
     dashboard: "Dashboard",
     signIn: "Sign in",
-    start: "Start",
+    start: "Get started",
     signOut: "Sign out",
     signInUp: "Sign in / Create account",
     openMenu: "Open menu",
@@ -1108,73 +1086,53 @@ const en: Dict = {
     announcement: "100% free — {total} providers, no credit card",
     announcementLink: "See providers →",
     heroBadge: "AI Router · Free · OpenAI-Compatible",
-    heroTitle: "One endpoint for every free AI model.",
+    heroTitle: "One router for every free AI model.",
     heroSub:
-      "{total} free LLM providers behind a single API. Sign in, create an API key, and call it from your code — no credit card, no balance.",
+      "{total} free LLM providers behind a single API. Sign in, create an API key, and call it from your code.",
     ctaStart: "Get started",
     ctaChat: "Try the chat",
     ctaDocs: "Documentation →",
     providerLine:
       "{configured}/{total} providers active right now · usable even without a key",
     stats: [
-      { value: "{total}", label: "providers, one endpoint" },
+      { value: "{total}", label: "free providers" },
       { value: "{keyless}", label: "without an API key" },
-      { value: "$0", label: "no credit card" },
+      { value: "$0", label: "free forever" },
       { value: "1", label: "OpenAI-compatible endpoint" },
     ],
     providersEyebrow: "Providers",
     providersTitle: "{total} providers. One endpoint.",
     providersSub:
       "Live status from the server — card order is the fallback order (top is tried first). {keyless} providers work without an API key.",
-    howtoEyebrow: "How to Use",
     howtoTitle: "Change the base URL. Your code keeps working.",
     howtoSub:
       "The gateway speaks the OpenAI API format, so the SDKs and tools you already use keep working — only the base URL and API key change.",
-    steps: [
-      {
-        n: "01",
-        title: "Sign in / Create account",
-        body: "Sign in with Google, GitHub, or email. Your account is used for the dashboard and your API keys.",
-      },
-      {
-        n: "02",
-        title: "Create an API key in the dashboard",
-        body: "Keys start with hr_, you can create many, and revoke any of them at any time.",
-      },
-      {
-        n: "03",
-        title: "Point your client at the gateway",
-        body: "Set the base URL to /api/v1 and use the hymn/auto model — or pick a specific provider.",
-      },
-    ],
     worksWith: "Works with",
     codeNote:
       "Store your API key in an environment variable. Streaming is supported via SSE — see the documentation.",
-    quickstartEyebrow: "Quick Start",
     quickstartTitle: "Start in 3 steps.",
     quickstartSub:
-      "From zero to your first request — no credit card, no complicated setup.",
+      "From zero to your first request in under a minute.",
     quickstartSteps: [
       {
         n: "1",
-        title: "Sign up / Sign in",
+        title: "Account",
         body: "Create an account with Google, GitHub, or email — free. Email sign-up uses a verification code.",
-        cta: "Sign in / Create account",
+        cta: "Get started",
       },
       {
         n: "2",
-        title: "Create an API Key",
+        title: "API key",
         body: "In the dashboard, create your first key. Keys start with hr_ and can be revoked anytime.",
         cta: "Open dashboard",
       },
       {
         n: "3",
-        title: "Try the Chat",
+        title: "Playground",
         body: "Send your first message in the playground — or call /api/v1 from your code.",
         cta: "Open playground",
       },
     ],
-    dashboardEyebrow: "Dashboard",
     dashboardTitle: "All your usage, in one dashboard.",
     dashboardSub:
       "Once you sign in, every request made with your API keys is recorded and can be monitored — with no setup at all.",
@@ -1194,24 +1152,21 @@ const en: Dict = {
     ],
     mockLabel: "dashboard / usage",
     mockActive: "● {configured}/{total} providers active",
-    mockStats: [
-      { v: "1,284", l: "requests · 7 days" },
-      { v: "96.4K", l: "tokens" },
-      { v: "3", l: "active API keys" },
-    ],
-    mockActiveLabel: "active",
-    mockCaption: "Dashboard illustration. Names and numbers are examples only.",
-    whyEyebrow: "Why Hymn Router",
+    mockRequests24h: "requests · 24h",
+    mockTokens24h: "tokens · 24h",
+    mockLatency24h: "avg latency",
+    mockNoData: "No data in the last 24 hours",
+    mockLastRequest: "Last request {time}",
     whyTitle: "Every free model, in one account.",
     whyCards: [
       {
         big: "{total}",
         title: "providers",
-        body: "One endpoint for all of them. Automatic fallback when a provider fails or hits its limit.",
+        body: "Automatic fallback when a provider fails or hits its limit.",
       },
       {
         big: "$0",
-        title: "no credit card",
+        title: "free",
         body: "No balance, no subscription, no surprise bills. Free means free.",
       },
       {
@@ -1221,7 +1176,7 @@ const en: Dict = {
       },
     ],
     whyPrivacy:
-      "On privacy: prompts and responses are never stored on this server — except your own /chat history while signed in, which is deliberately saved so conversations can be reopened, and can be deleted at any time from the history sidebar. Only request counts, tokens, and providers are recorded — for your own dashboard. Requests are still forwarded to third-party free providers, so never send sensitive data.",
+      "Privacy in short: prompts and responses are never stored — except your own /chat history while signed in, deletable anytime from the sidebar. The full answer is in the FAQ below.",
     faqEyebrow: "FAQ",
     faqTitle: "Frequently asked questions.",
     faqSub:
@@ -2061,6 +2016,7 @@ const en: Dict = {
     copyLabel: "Copy",
     copiedLabel: "Copied!",
     loading: "Loading…",
+    skipToContent: "Skip to content",
   },
 };
 

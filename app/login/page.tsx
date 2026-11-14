@@ -44,7 +44,7 @@ export default async function LoginPage({
   return (
     <div className="flex-1">
       <Navbar />
-      <div className="mx-auto w-full max-w-[480px] px-4 py-12 sm:px-6 sm:py-16">
+      <div className="mx-auto w-full max-w-[480px] px-4 py-10 sm:px-6 sm:py-12">
         <p className="text-center font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-black">
           <span className="bg-yellow px-2 py-1">{t.login.badge}</span>
         </p>

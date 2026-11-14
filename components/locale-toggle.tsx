@@ -74,7 +74,7 @@ export default function LocaleToggle() {
           type="button"
           onClick={() => setLocale(l)}
           aria-pressed={locale === l}
-          className={`h-8 px-2.5 font-mono text-[12px] font-bold text-black ${
+          className={`h-11 px-2.5 font-mono text-[12px] font-bold text-black ${
             locale === l ? "bg-yellow" : "hover:bg-yellow-soft"
           } ${l === "id" ? "border-r-2 border-black" : ""}`}
         >

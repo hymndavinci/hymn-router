@@ -346,7 +346,7 @@ export default function DashboardClient({
   const topModels = initialModelUsage.slice(0, 5);
 
   return (
-    <div className="mx-auto w-full max-w-[1280px] px-6 py-10 lg:px-8">
+    <div className="mx-auto w-full max-w-[1280px] px-6 py-8 lg:px-8">
       {/* Header user */}
       <div className="flex flex-wrap items-center gap-4">
         {user.avatarUrl ? (
@@ -392,7 +392,7 @@ export default function DashboardClient({
             </a>
             <a
               href="/chat"
-              className="px-2 py-2 font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
+              className="inline-flex min-h-[44px] items-center px-2 font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
             >
               {t.guideChatLink}
             </a>
@@ -420,7 +420,7 @@ export default function DashboardClient({
                 type="button"
                 onClick={() => goTo(d, tab)}
                 aria-pressed={days === d}
-                className={`h-9 px-4 font-mono text-[13px] font-bold ${
+                className={`h-11 px-4 font-mono text-[13px] font-bold ${
                   days === d
                     ? "bg-black text-white"
                     : "bg-white text-black hover:bg-yellow-soft"
@@ -524,7 +524,12 @@ export default function DashboardClient({
                       }}
                     />
                   </div>
-                  <p className="mt-2 font-mono text-[11px] leading-relaxed text-muted">
+                  <p
+                    className="mt-1.5 truncate font-mono text-[11px] leading-relaxed text-muted"
+                    title={fill(t.quotaReset, {
+                      date: fmtDateTime(initialQuota.resetsAt, locale, t.neverUsed, "Asia/Jakarta"),
+                    })}
+                  >
                     {fill(t.quotaReset, {
                       date: fmtDateTime(initialQuota.resetsAt, locale, t.neverUsed, "Asia/Jakarta"),
                     })}
@@ -545,7 +550,7 @@ export default function DashboardClient({
                   </p>
                   <a
                     href="/chat"
-                    className="mt-3 inline-block font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
+                    className="mt-3 inline-flex min-h-[44px] items-center font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
                   >
                     {t.guideChatLink}
                   </a>
@@ -567,7 +572,7 @@ export default function DashboardClient({
                     <button
                       type="button"
                       onClick={() => goTo(days, "explore")}
-                      className="mt-4 font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
+                      className="mt-4 inline-flex min-h-[44px] items-center font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
                     >
                       {t.viewAllExplore}
                     </button>
@@ -584,7 +589,7 @@ export default function DashboardClient({
                   </p>
                   <a
                     href="/chat"
-                    className="mt-3 inline-block font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
+                    className="mt-3 inline-flex min-h-[44px] items-center font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
                   >
                     {t.guideChatLink}
                   </a>
@@ -606,7 +611,7 @@ export default function DashboardClient({
                     <button
                       type="button"
                       onClick={() => goTo(days, "explore")}
-                      className="mt-4 font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
+                      className="mt-4 inline-flex min-h-[44px] items-center font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
                     >
                       {t.viewAllExplore}
                     </button>
@@ -703,7 +708,7 @@ export default function DashboardClient({
                     type="button"
                     onClick={() => setChartMetric(m)}
                     aria-pressed={chartMetric === m}
-                    className={`h-8 px-3 font-mono text-[12px] font-bold ${
+                    className={`h-11 px-3 font-mono text-[12px] font-bold ${
                       chartMetric === m
                         ? "bg-black text-white"
                         : "bg-white text-black hover:bg-yellow-soft"
@@ -934,7 +939,7 @@ export default function DashboardClient({
           <button
             onClick={() => void createKey()}
             disabled={!name.trim() || creating}
-            className="btn-press h-11 border-2 border-black bg-yellow px-6 text-[14px] font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-40"
+            className="btn-press h-11 border-2 border-black bg-yellow px-6 text-[14px] font-bold text-black shadow-brutal-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             {creating ? t.creating : t.createKey}
           </button>
@@ -958,7 +963,7 @@ export default function DashboardClient({
               </code>
               <button
                 onClick={() => void copy(newKey.key)}
-                className="btn-press h-10 shrink-0 border-2 border-black bg-black px-5 text-[13px] font-bold text-white shadow-brutal-sm"
+                className="btn-press h-11 shrink-0 border-2 border-black bg-black px-5 text-[13px] font-bold text-white shadow-brutal-sm"
               >
                 {copied ? t.copiedBtn : t.copyKeyBtn}
               </button>
@@ -986,7 +991,7 @@ export default function DashboardClient({
                         {t.revoked}
                       </span>
                     ) : (
-                      <span className="shrink-0 border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
+                      <span className="shrink-0 border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-black">
                         {t.active}
                       </span>
                     )}
@@ -1001,7 +1006,7 @@ export default function DashboardClient({
                       onClick={() => void revokeKey(k.id)}
                       aria-label={`${t.revokeBtn}: ${k.name}`}
                       disabled={revoking === k.id}
-                      className="mt-3 h-9 border-2 border-bad bg-white px-4 font-mono text-[12px] font-bold text-bad hover:bg-bad hover:text-white disabled:opacity-50"
+                      className="mt-3 h-11 border-2 border-bad bg-white px-4 font-mono text-[12px] font-bold text-bad hover:bg-bad hover:text-white disabled:opacity-50"
                     >
                       {revoking === k.id ? "…" : t.revokeBtn}
                     </button>
@@ -1040,7 +1045,7 @@ export default function DashboardClient({
                             {t.revoked}
                           </span>
                         ) : (
-                          <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-white">
+                          <span className="border-2 border-black bg-green px-2.5 py-1 font-mono text-[11px] font-bold text-black">
                             {t.active}
                           </span>
                         )}
@@ -1051,7 +1056,7 @@ export default function DashboardClient({
                             onClick={() => void revokeKey(k.id)}
                             aria-label={`${t.revokeBtn}: ${k.name}`}
                             disabled={revoking === k.id}
-                            className="border-2 border-bad bg-white px-3.5 py-1.5 font-mono text-[12px] font-bold text-bad hover:bg-bad hover:text-white disabled:opacity-50"
+                            className="inline-flex h-11 items-center border-2 border-bad bg-white px-3.5 font-mono text-[12px] font-bold text-bad hover:bg-bad hover:text-white disabled:opacity-50"
                           >
                             {revoking === k.id ? "…" : t.revokeBtn}
                           </button>
@@ -1073,15 +1078,20 @@ export default function DashboardClient({
             {t.quickstartTitle}
           </span>
         </div>
-        <pre className="overflow-x-auto p-5 font-mono text-[13px] leading-relaxed text-ondark">
-{`curl ${baseUrl}/api/v1/chat/completions \\
+        <pre className="overflow-x-auto p-3 font-mono text-[10.5px] leading-relaxed text-ondark sm:p-5 sm:text-[13px]">
+{`BASE="${baseUrl}"
+curl $BASE/api/v1/chat/completions \\
   -H "Authorization: Bearer hr_YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{"model": "hymn/auto",
-       "messages": [{"role": "user", "content": "Halo!"}]}'`}
+  -d '{
+    "model": "hymn/auto",
+    "messages": [
+      {"role": "user", "content": "Halo!"}
+    ]
+  }'`}
         </pre>
       </div>
-      <p className="mt-3 break-words font-mono text-[12px] leading-relaxed text-faint">
+      <p className="mt-3 break-words font-mono text-[13px] leading-relaxed text-faint">
         {t.quickstartA}
         {baseUrl}
         {t.quickstartB}

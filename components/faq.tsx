@@ -19,7 +19,7 @@ export default function Faq({ items }: { items: FaqItem[] }) {
             <button
               onClick={() => setOpen(isOpen ? null : i)}
               aria-expanded={isOpen}
-              className="flex w-full items-center justify-between gap-4 py-5 text-left"
+              className="flex w-full items-center justify-between gap-4 py-4 text-left"
             >
               <span className="text-[16px] font-bold text-black">{item.q}</span>
               <span
@@ -31,7 +31,7 @@ export default function Faq({ items }: { items: FaqItem[] }) {
               </span>
             </button>
             {isOpen && (
-              <p className="pb-5 pr-10 text-[15px] leading-relaxed text-muted">
+              <p className="pb-4 pr-10 text-[16px] leading-relaxed text-muted">
                 {item.a}
               </p>
             )}

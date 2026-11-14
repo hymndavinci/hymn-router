@@ -35,7 +35,7 @@ function badge(p: ProviderStatus, t: Dict["providers"]): Badge {
   }
   return {
     text: p.needsKey ? t.badgeActive : t.badgeActiveKeyless,
-    cls: "border-black bg-green text-white",
+    cls: "border-black bg-green text-black",
   };
 }
 
@@ -64,7 +64,7 @@ export default function ProvidersPanel({
         <div className="mt-4">
           <button
             onClick={onRefresh}
-            className="btn-press h-10 border-2 border-black bg-yellow px-5 text-[14px] font-bold text-black shadow-brutal-sm"
+            className="btn-press h-11 border-2 border-black bg-yellow px-5 text-[14px] font-bold text-black shadow-brutal-sm"
           >
             {t.retry}
           </button>
@@ -88,7 +88,7 @@ export default function ProvidersPanel({
         <button
           onClick={onRefresh}
           disabled={refreshing}
-          className="btn-press h-10 shrink-0 border-2 border-black bg-white px-5 text-[14px] font-bold text-black shadow-brutal-sm disabled:opacity-50"
+          className="btn-press h-11 shrink-0 border-2 border-black bg-white px-5 text-[14px] font-bold text-black shadow-brutal-sm disabled:opacity-50"
         >
           {refreshing ? t.refreshing : t.refresh}
         </button>
@@ -108,11 +108,11 @@ export default function ProvidersPanel({
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
                     <span className="font-mono text-[12px] font-bold text-faint">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <h3 className="font-mono text-[15px] font-bold text-black">{p.id}</h3>
+                    <h3 className="min-w-0 truncate font-mono text-[15px] font-bold text-black" title={p.id}>{p.id}</h3>
                   </div>
                   <p className="mt-1 truncate font-mono text-[12px] text-muted" title={p.model}>
                     {p.model}
@@ -125,7 +125,7 @@ export default function ProvidersPanel({
                 </span>
               </div>
 
-              <p className="mt-3 flex-1 text-[14px] leading-relaxed text-muted">
+              <p className="mt-3 flex-1 text-[15px] leading-relaxed text-muted">
                 {t.notes[p.id] ?? p.notes}
               </p>
 
@@ -152,7 +152,7 @@ export default function ProvidersPanel({
                   href={keyLink.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-3 break-words font-mono text-[12px] font-bold text-blue underline underline-offset-4 hover:text-black"
+                  className="mt-3 inline-flex min-h-[44px] items-center break-words font-mono text-[12px] font-bold text-blue underline underline-offset-4 hover:text-black"
                 >
                   {t.getKey} {keyLink.label}
                 </a>
@@ -162,7 +162,7 @@ export default function ProvidersPanel({
                   href={keyLink.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-3 break-words font-mono text-[12px] font-bold text-faint hover:text-blue hover:underline"
+                  className="mt-3 inline-flex min-h-[44px] items-center break-words font-mono text-[12px] font-bold text-faint hover:text-blue hover:underline"
                 >
                   {t.optionalToken} {keyLink.label} {t.optional}
                 </a>
