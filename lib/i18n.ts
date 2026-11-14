@@ -89,7 +89,7 @@ const id = {
     resources: "Resource",
     privacy: "Privasi",
     privacyText:
-      "Prompt dan isi response tidak disimpan. Yang dicatat hanya jumlah request, token, dan provider — untuk dasbor pemakaian Anda. Free tier berubah-ubah; jangan kirim data sensitif melalui endpoint gratis.",
+      "Prompt dan isi response tidak disimpan — kecuali riwayat chat /chat Anda saat masuk, yang sengaja disimpan agar bisa dibuka lagi dan bisa dihapus dari sidebar. Yang dicatat hanya jumlah request, token, dan provider — untuk dasbor pemakaian Anda. Free tier berubah-ubah; jangan kirim data sensitif melalui endpoint gratis.",
     bottom: "{total} provider gratis · 1 endpoint · Rp 0",
   },
   home: {
@@ -1101,7 +1101,7 @@ const en: Dict = {
     resources: "Resources",
     privacy: "Privacy",
     privacyText:
-      "Prompts and response content are never stored. Only request counts, tokens, and providers are recorded — for your usage dashboard. Free tiers change over time; never send sensitive data through free endpoints.",
+      "Prompts and response content are never stored — except your own /chat history while signed in, which is deliberately saved so conversations can be reopened, and can be deleted from the sidebar. Only request counts, tokens, and providers are recorded — for your usage dashboard. Free tiers change over time; never send sensitive data through free endpoints.",
     bottom: "{total} free providers · 1 endpoint · $0",
   },
   home: {
