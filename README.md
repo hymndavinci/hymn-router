@@ -52,9 +52,11 @@ Hymn Router (Next.js, Vercel)
   atau GitHub (opsional). Satu email = satu akun, apa pun cara loginnya.
   Signup email memakai kode verifikasi 6 digit via email (Resend,
   berlaku 10 menit); lupa password juga via kode email.
-- **`/dashboard`** — login wajib: ringkasan pemakaian (7 hari,
-  per provider), daftar API key + buat key baru + revoke, quickstart
-  snippet.
+- **`/dashboard`** — login wajib: Activity ala OpenRouter — rentang 7/30
+  hari, tab Overview / Trends / Explore, 4 stat card + sparkline
+  (Requests, Token volume, Avg latency, Kuota hari ini), tabel Top API
+  Keys | Top Models, plus manajemen API key (buat + revoke) dan
+  quickstart snippet.
 
 ## Endpoint gratis yang dipakai
 
