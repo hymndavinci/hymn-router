@@ -40,7 +40,21 @@ async function DbErrorView() {
   );
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ days?: string; tab?: string }>;
+}) {
+  const params = await searchParams;
+  // Rentang aktivitas: 7 atau 30 hari (default 30, seperti "Past 1 Month").
+  const days = params.days === "7" ? 7 : 30;
+  const tab: "overview" | "trends" | "explore" =
+    params.tab === "trends"
+      ? "trends"
+      : params.tab === "explore"
+        ? "explore"
+        : "overview";
+
   // getSessionUser melempar kalau query DB gagal — itu BUKAN "belum login",
   // jadi jangan redirect ke /; tampilkan pesan database error.
   const user = await getSessionUser().catch((err) => {
@@ -79,11 +93,11 @@ export default async function DashboardPage() {
 
   const data = await Promise.all([
     listApiKeys(user.id),
-    getUsageSummary(user.id, 7),
-    getModelBreakdown(user.id, 7),
-    getDailyUsage(user.id, 7),
+    getUsageSummary(user.id, days),
+    getModelBreakdown(user.id, days),
+    getDailyUsage(user.id, days),
     getRecentRequests(user.id, 15),
-    getKeyBreakdown(user.id, 7),
+    getKeyBreakdown(user.id, days),
     getTodayQuota(user.id),
     getBaseUrl(),
   ]).catch((err) => {
@@ -108,6 +122,8 @@ export default async function DashboardPage() {
         initialKeyUsage={keyUsage}
         initialQuota={quota}
         baseUrl={baseUrl}
+        days={days}
+        tab={tab}
       />
     </div>
   );

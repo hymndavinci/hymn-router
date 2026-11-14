@@ -1,11 +1,18 @@
 /**
- * DashboardClient — dashboard interaktif: ringkasan usage, daftar API key,
- * buat key baru (key utuh tampil SEKALI), revoke, dan quickstart snippet.
+ * DashboardClient — dasbor interaktif dengan layout Activity ala OpenRouter:
+ * header + pemilih rentang (7/30 hari) + tab Overview/Trends/Explore,
+ * stat card bersparkline, tabel Top API Keys / Top Models berdampingan,
+ * lalu manajemen API key dan quickstart seperti sebelumnya.
+ *
+ * Tema tetap neo-brutalist (putih, kuning, hijau, biru, hitam, border 2px,
+ * hard shadow, sudut tajam). Semua angka nyata dari tabel usage — tidak ada
+ * cache hit rate atau biaya (kita tidak punya data itu).
  */
 
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type { SessionUser } from "@/lib/auth";
 import type { ApiKeyInfo, CreatedApiKey } from "@/lib/api-keys";
@@ -20,6 +27,8 @@ import type {
 import type { Dict, Locale } from "@/lib/i18n";
 import { codedError, errorCode } from "@/lib/api-error";
 import { dateLocaleOf, fill, useLocale } from "@/components/locale-provider";
+
+export type DashboardTab = "overview" | "trends" | "explore";
 
 function fmtDate(iso: string | null, locale: Locale): string {
   if (!iso) return "—";
@@ -58,6 +67,87 @@ function fmtDayLabel(date: string, locale: Locale): string {
     .toLocaleDateString(dateLocaleOf(locale), { weekday: "short" })
     .replace(".", "");
   return `${weekday} ${d}`;
+}
+
+/** Sparkline SVG murni dari series harian. Hari tanpa data (null) dilewati
+    tapi posisi-x hari lainnya dipertahankan, supaya garis tidak menukik ke
+    nol secara menyesatkan. Semua nol → garis datar di bawah. */
+function Sparkline({
+  values,
+  stroke,
+}: {
+  values: (number | null)[];
+  stroke: string;
+}) {
+  const W = 100;
+  const H = 36;
+  const nums = values.filter((v): v is number => v !== null);
+  const max = nums.length > 0 ? Math.max(0, ...nums) : 0;
+  const pts = values
+    .map((v, i) => {
+      if (v === null) return null;
+      const x = values.length <= 1 ? W / 2 : (i / (values.length - 1)) * W;
+      const y = max > 0 ? H - 2 - (v / max) * (H - 4) : H - 2;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .filter((p): p is string => p !== null);
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="none"
+      className="h-9 w-full"
+      aria-hidden="true"
+    >
+      {pts.length >= 2 ? (
+        <polyline
+          points={pts.join(" ")}
+          fill="none"
+          stroke={stroke}
+          strokeWidth="2"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          vectorEffect="non-scaling-stroke"
+        />
+      ) : (
+        <line
+          x1="0"
+          y1={H - 2}
+          x2={W}
+          y2={H - 2}
+          stroke={stroke}
+          strokeWidth="2"
+          vectorEffect="non-scaling-stroke"
+        />
+      )}
+    </svg>
+  );
+}
+
+/** Satu stat card: label, angka besar, sub-teks, dan visual di bawah
+    (sparkline atau progress bar kuota). */
+function StatCard({
+  label,
+  value,
+  sub,
+  children,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
+      <p className="font-mono text-[11px] font-bold uppercase tracking-[0.12em] text-faint">
+        {label}
+      </p>
+      <p className="mt-2 break-words text-[28px] font-black leading-none tracking-tight text-black">
+        {value}
+      </p>
+      <p className="mt-2 font-mono text-[11px] leading-relaxed text-muted">{sub}</p>
+      <div className="mt-auto pt-3">{children}</div>
+    </div>
+  );
 }
 
 /** Bar horizontal reuse untuk breakdown (per provider / per model / per key). */
@@ -140,6 +230,8 @@ export default function DashboardClient({
   initialKeyUsage,
   initialQuota,
   baseUrl,
+  days,
+  tab,
 }: {
   user: SessionUser;
   loginMethods: string[] | null;
@@ -151,6 +243,8 @@ export default function DashboardClient({
   initialKeyUsage: KeyUsage[];
   initialQuota: DailyQuota | null;
   baseUrl: string;
+  days: 7 | 30;
+  tab: DashboardTab;
 }) {
   const { locale, dict } = useLocale();
   const t = dict.dashboard;
@@ -163,6 +257,14 @@ export default function DashboardClient({
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [revoking, setRevoking] = useState<string | null>(null);
+  const [chartMetric, setChartMetric] = useState<"requests" | "tokens">("requests");
+
+  /** Pindah rentang/tab lewat soft navigation (tanpa reload penuh);
+      server me-render ulang dengan query data yang baru. */
+  function goTo(nextDays: 7 | 30, nextTab: DashboardTab) {
+    if (nextDays === days && nextTab === tab) return;
+    router.push(`/dashboard?days=${nextDays}&tab=${nextTab}`);
+  }
 
   async function refreshKeys() {
     try {
@@ -239,6 +341,9 @@ export default function DashboardClient({
 
   const usage = initialUsage;
   const activeKeys = keys.filter((k) => !k.revokedAt).length;
+  const rangeSub = fill(t.statRangeSub, { days: usage.days });
+  const topKeys = initialKeyUsage.slice(0, 5);
+  const topModels = initialModelUsage.slice(0, 5);
 
   return (
     <div className="mx-auto w-full max-w-[1280px] px-6 py-10 lg:px-8">
@@ -295,260 +400,509 @@ export default function DashboardClient({
         </div>
       )}
 
-      {/* Ringkasan usage */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[
-          { v: String(usage.totalRequests), l: fill(t.requestsDays, { days: usage.days }) },
-          { v: usage.totalTokens.toLocaleString(numLocale), l: t.tokensTotal },
-          {
-            v: usage.totalPromptTokens.toLocaleString(numLocale),
-            l: t.tokensPrompt,
-          },
-          {
-            v: usage.totalCompletionTokens.toLocaleString(numLocale),
-            l: t.tokensCompletion,
-          },
-        ].map((s) => (
-          <div key={s.l} className="border-2 border-black bg-white p-4 shadow-brutal-sm sm:p-5">
-            <p className="break-words text-[28px] font-black leading-none tracking-tight text-black">
-              {s.v}
-            </p>
-            <p className="mt-2 font-mono text-[11px] font-bold text-faint">{s.l}</p>
+      {/* Header aktivitas + pemilih rentang */}
+      <div className="mt-8 flex flex-wrap items-end justify-between gap-3">
+        <h2 className="text-[22px] font-black leading-tight tracking-tight text-black">
+          {t.activityTitle}
+        </h2>
+        <div className="flex items-center gap-2">
+          <span className="border-2 border-black bg-white px-2.5 py-1 font-mono text-[11px] font-bold text-black">
+            WIB
+          </span>
+          <div
+            className="flex border-2 border-black bg-white shadow-brutal-xs"
+            role="group"
+            aria-label={t.rangeLabel}
+          >
+            {([7, 30] as const).map((d) => (
+              <button
+                key={d}
+                type="button"
+                onClick={() => goTo(d, tab)}
+                aria-pressed={days === d}
+                className={`h-9 px-4 font-mono text-[13px] font-bold ${
+                  days === d
+                    ? "bg-black text-white"
+                    : "bg-white text-black hover:bg-yellow-soft"
+                }`}
+              >
+                {d === 7 ? t.range7 : t.range30}
+              </button>
+            ))}
           </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div
+        role="tablist"
+        aria-label={t.activityTitle}
+        className="mt-4 flex border-2 border-black bg-white shadow-brutal-sm"
+      >
+        {(
+          [
+            ["overview", t.tabOverview],
+            ["trends", t.tabTrends],
+            ["explore", t.tabExplore],
+          ] as [DashboardTab, string][]
+        ).map(([id, label], i) => (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => goTo(days, id)}
+            className={`h-11 flex-1 px-4 text-[14px] font-bold sm:flex-none sm:px-6 ${
+              i > 0 ? "border-l-2 border-black" : ""
+            } ${tab === id ? "bg-yellow text-black" : "bg-white text-muted hover:text-black"}`}
+          >
+            {label}
+          </button>
         ))}
       </div>
 
-      {/* Kuota harian gratis */}
-      {initialQuota && (
-        <div className="mt-4 border-2 border-black bg-yellow-soft p-5 shadow-brutal-sm">
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 className="text-[16px] font-black text-black">
-              {t.quotaTitle}
-            </h2>
-            <span className="font-mono text-[13px] font-bold text-black">
-              {fill(t.quotaUsed, { used: initialQuota.used, limit: initialQuota.limit })}
-            </span>
-          </div>
-          <div className="mt-3 h-3.5 w-full border-2 border-black bg-white">
-            <div
-              className={`h-full ${initialQuota.remaining <= 0 ? "bg-bad" : initialQuota.remaining <= 20 ? "bg-yellow" : "bg-green"}`}
-              style={{
-                width: `${Math.min(100, Math.round((initialQuota.used / initialQuota.limit) * 100))}%`,
-              }}
-            />
-          </div>
-          <p className="mt-2 font-mono text-[12px] leading-relaxed text-muted">
-            {initialQuota.remaining > 0
-              ? `${fill(t.quotaRemaining, { n: initialQuota.remaining })} `
-              : `${t.quotaExhausted} `}
-            {fill(t.quotaReset, {
-              date: fmtDateTime(initialQuota.resetsAt, locale, t.neverUsed, "Asia/Jakarta"),
-            })}
-          </p>
-        </div>
-      )}
-
-      {/* Per provider */}
-      <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
-        <h2 className="text-[16px] font-black text-black">{t.perProvider}</h2>
-        {usage.byProvider.length === 0 ? (
-          <div className="mt-2">
-            <p className="text-[14px] text-muted">
-              {fill(t.noRequests, { days: usage.days })}
-            </p>
-            {activeKeys === 0 && (
-              <a
-                href="#api-keys"
-                className="mt-3 inline-block border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-xs"
-              >
-                {t.guideCta} ↓
-              </a>
-            )}
-          </div>
-        ) : (
-          <div className="mt-4 space-y-3">
-            {usage.byProvider.map((p) => (
-              <div
-                key={p.provider}
-                className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3"
-              >
-                <span className="font-mono text-[13px] font-bold text-muted sm:w-24 sm:shrink-0">
-                  {p.provider}
-                </span>
-                <div className="h-2.5 w-full border border-black bg-neutral-200 sm:w-auto sm:flex-1">
-                  <div
-                    className="h-full bg-blue"
-                    style={{
-                      width: `${Math.max(4, Math.round((p.requests / usage.totalRequests) * 100))}%`,
-                    }}
-                  />
-                </div>
-                <span className="font-mono text-[12px] text-muted sm:w-40 sm:shrink-0 sm:text-right">
-                  {p.requests} req ·{" "}
-                  {fill(t.tokensCount, { n: p.tokens.toLocaleString(numLocale) })}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Per model */}
-      <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
-        <h2 className="text-[16px] font-black text-black">{t.perModel}</h2>
-        {initialModelUsage.length === 0 ? (
-          <p className="mt-2 text-[14px] text-muted">
-            {fill(t.noRequestsShort, { days: usage.days })}
-          </p>
-        ) : (
-          <BreakdownRows
-            rows={initialModelUsage.map((m) => ({
-              key: `${m.provider}:${m.model}`,
-              label: m.model,
-              sub: m.provider,
-              requests: m.requests,
-              tokens: m.tokens,
-            }))}
-            totalRequests={usage.totalRequests}
-            barClass="bg-green"
-          />
-        )}
-      </div>
-
-      {/* Grafik harian (bar chart CSS murni) */}
-      <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
-        <h2 className="text-[16px] font-black text-black">{t.last7days}</h2>
-        {initialDailyUsage.length === 0 ? (
-          <p className="mt-2 text-[14px] text-muted">{t.noDailyData}</p>
-        ) : (
-          <>
-            <div className="mt-5 flex h-32 items-end gap-2 sm:gap-3">
-              {initialDailyUsage.map((d) => {
-                const max = Math.max(1, ...initialDailyUsage.map((x) => x.requests));
-                const pct = Math.round((d.requests / max) * 100);
-                return (
-                  <div
-                    key={d.date}
-                    className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5"
-                    title={fill(t.chartTooltip, {
-                      date: d.date,
-                      requests: d.requests,
-                      tokens: d.tokens.toLocaleString(numLocale),
-                    })}
-                  >
-                    <span className="font-mono text-[11px] font-bold text-black">
-                      {d.requests > 0 ? d.requests : ""}
-                    </span>
+      {tab === "overview" && (
+        <>
+          {/* Stat cards */}
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              label={t.statRequests}
+              value={String(usage.totalRequests)}
+              sub={rangeSub}
+            >
+              <Sparkline
+                values={initialDailyUsage.map((d) => d.requests)}
+                stroke="#2563eb"
+              />
+            </StatCard>
+            <StatCard
+              label={t.statTokens}
+              value={usage.totalTokens.toLocaleString(numLocale)}
+              sub={`${usage.totalPromptTokens.toLocaleString(numLocale)} ${t.tokensPrompt} · ${usage.totalCompletionTokens.toLocaleString(numLocale)} ${t.tokensCompletion}`}
+            >
+              <Sparkline
+                values={initialDailyUsage.map((d) => d.tokens)}
+                stroke="#00c853"
+              />
+            </StatCard>
+            <StatCard
+              label={t.statLatency}
+              value={
+                usage.avgLatencyMs === null
+                  ? "—"
+                  : `${usage.avgLatencyMs.toLocaleString(numLocale)} ms`
+              }
+              sub={fill(t.statLatencySub, { days: usage.days })}
+            >
+              <Sparkline
+                values={initialDailyUsage.map((d) => d.avgLatencyMs)}
+                stroke="#0c0c0c"
+              />
+            </StatCard>
+            <StatCard
+              label={t.statQuota}
+              value={
+                initialQuota
+                  ? `${initialQuota.used}/${initialQuota.limit}`
+                  : "—"
+              }
+              sub={
+                initialQuota
+                  ? initialQuota.remaining > 0
+                    ? fill(t.quotaRemaining, { n: initialQuota.remaining })
+                    : t.quotaExhausted
+                  : ""
+              }
+            >
+              {initialQuota && (
+                <>
+                  <div className="h-3.5 w-full border-2 border-black bg-white">
                     <div
-                      className="w-full max-w-[48px] border-2 border-black bg-yellow"
-                      style={{ height: `${Math.max(d.requests > 0 ? 8 : 2, pct)}%` }}
+                      className={`h-full ${initialQuota.remaining <= 0 ? "bg-bad" : initialQuota.remaining <= 20 ? "bg-yellow" : "bg-green"}`}
+                      style={{
+                        width: `${Math.min(100, Math.round((initialQuota.used / initialQuota.limit) * 100))}%`,
+                      }}
                     />
                   </div>
-                );
-              })}
-            </div>
-            <div className="mt-2 flex gap-2 border-t-2 border-black pt-2 sm:gap-3">
-              {initialDailyUsage.map((d) => (
-                <span
-                  key={d.date}
-                  className="min-w-0 flex-1 text-center font-mono text-[10px] font-bold text-faint sm:text-[11px]"
-                >
-                  {fmtDayLabel(d.date, locale)}
-                </span>
-              ))}
-            </div>
-            <p className="mt-3 font-mono text-[11px] text-faint">
-              {t.chartNote}
-            </p>
-          </>
-        )}
-      </div>
+                  <p className="mt-2 font-mono text-[11px] leading-relaxed text-muted">
+                    {fill(t.quotaReset, {
+                      date: fmtDateTime(initialQuota.resetsAt, locale, t.neverUsed, "Asia/Jakarta"),
+                    })}
+                  </p>
+                </>
+              )}
+            </StatCard>
+          </div>
 
-      {/* Per API key */}
-      <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
-        <h2 className="text-[16px] font-black text-black">{t.perKey}</h2>
-        {initialKeyUsage.length === 0 ? (
-          <p className="mt-2 text-[14px] text-muted">
-            {fill(t.noRequestsShort, { days: usage.days })}
-          </p>
-        ) : (
-          <BreakdownRows
-            rows={initialKeyUsage.map((k) => ({
-              key: k.apiKeyId,
-              label: k.keyName ?? t.unnamedKey,
-              sub: k.keyPrefix ? `${k.keyPrefix}…` : undefined,
-              requests: k.requests,
-              tokens: k.tokens,
-            }))}
-            totalRequests={usage.totalRequests}
-            barClass="bg-yellow"
-          />
-        )}
-      </div>
-
-      {/* Request terakhir — kartu di mobile, tabel di sm+ */}
-      <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
-        <h2 className="text-[16px] font-black text-black">{t.recentTitle}</h2>
-        {initialRecent.length === 0 ? (
-          <p className="mt-2 text-[14px] text-muted">{t.noRecent}</p>
-        ) : (
-          <>
-            <div className="mt-4 flex flex-col gap-3 sm:hidden">
-              {initialRecent.map((r) => (
-                <div key={r.id} className="border-2 border-black bg-white p-3 shadow-brutal-xs">
-                  <p className="truncate font-mono text-[13px] font-bold text-black" title={r.model}>
-                    {r.model}
+          {/* Top API Keys | Top Models */}
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="border-2 border-black bg-white p-5 shadow-brutal-sm">
+              <h2 className="text-[16px] font-black text-black">{t.topKeys}</h2>
+              {topKeys.length === 0 ? (
+                <div className="mt-2">
+                  <p className="text-[14px] text-muted">
+                    {fill(t.noRequestsShort, { days: usage.days })}
                   </p>
-                  <p className="mt-1 font-mono text-[11px] leading-relaxed text-faint">
-                    {fmtDateTime(r.createdAt, locale, t.neverUsed)} · {r.provider}
-                  </p>
-                  <p className="mt-1 font-mono text-[11px] text-muted">
-                    {fill(t.tokensCount, { n: r.tokens.toLocaleString(numLocale) })} ·{" "}
-                    {r.latencyMs !== null ? `${r.latencyMs.toLocaleString(numLocale)} ms` : "—"}
-                    {r.keyName ? ` · ${r.keyName}` : ""}
-                  </p>
+                  <a
+                    href="/chat"
+                    className="mt-3 inline-block font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
+                  >
+                    {t.guideChatLink}
+                  </a>
                 </div>
-              ))}
+              ) : (
+                <>
+                  <BreakdownRows
+                    rows={topKeys.map((k) => ({
+                      key: k.apiKeyId,
+                      label: k.keyName ?? t.unnamedKey,
+                      sub: k.keyPrefix ? `${k.keyPrefix}…` : undefined,
+                      requests: k.requests,
+                      tokens: k.tokens,
+                    }))}
+                    totalRequests={usage.totalRequests}
+                    barClass="bg-yellow"
+                  />
+                  {initialKeyUsage.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => goTo(days, "explore")}
+                      className="mt-4 font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
+                    >
+                      {t.viewAllExplore}
+                    </button>
+                  )}
+                </>
+              )}
             </div>
-            <div className="mt-4 hidden overflow-x-auto sm:block">
-              <table className="w-full min-w-[640px] text-left text-[14px]">
-                <thead>
-                  <tr className="border-b-2 border-black font-mono text-[11px] uppercase tracking-[0.12em] text-black">
-                    <th className="py-2.5 pr-4 font-bold">{t.thTime}</th>
-                    <th className="py-2.5 pr-4 font-bold">{t.thModel}</th>
-                    <th className="py-2.5 pr-4 font-bold">{t.thProvider}</th>
-                    <th className="py-2.5 pr-4 font-bold">{t.thTokens}</th>
-                    <th className="py-2.5 pr-4 font-bold">{t.thLatency}</th>
-                    <th className="py-2.5 font-bold">{t.thKey}</th>
-                  </tr>
-                </thead>
-                <tbody>
+            <div className="border-2 border-black bg-white p-5 shadow-brutal-sm">
+              <h2 className="text-[16px] font-black text-black">{t.topModels}</h2>
+              {topModels.length === 0 ? (
+                <div className="mt-2">
+                  <p className="text-[14px] text-muted">
+                    {fill(t.noRequestsShort, { days: usage.days })}
+                  </p>
+                  <a
+                    href="/chat"
+                    className="mt-3 inline-block font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
+                  >
+                    {t.guideChatLink}
+                  </a>
+                </div>
+              ) : (
+                <>
+                  <BreakdownRows
+                    rows={topModels.map((m) => ({
+                      key: `${m.provider}:${m.model}`,
+                      label: m.model,
+                      sub: m.provider,
+                      requests: m.requests,
+                      tokens: m.tokens,
+                    }))}
+                    totalRequests={usage.totalRequests}
+                    barClass="bg-green"
+                  />
+                  {initialModelUsage.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => goTo(days, "explore")}
+                      className="mt-4 font-mono text-[13px] font-bold text-black underline underline-offset-4 hover:text-blue"
+                    >
+                      {t.viewAllExplore}
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Request terakhir — kartu di mobile, tabel di sm+ */}
+          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+            <h2 className="text-[16px] font-black text-black">{t.recentTitle}</h2>
+            {initialRecent.length === 0 ? (
+              <p className="mt-2 text-[14px] text-muted">{t.noRecent}</p>
+            ) : (
+              <>
+                <div className="mt-4 flex flex-col gap-3 sm:hidden">
                   {initialRecent.map((r) => (
-                    <tr key={r.id} className="border-b border-neutral-300 last:border-0">
-                      <td className="py-3 pr-4 font-mono text-[12px] text-muted">
-                        {fmtDateTime(r.createdAt, locale, t.neverUsed)}
-                      </td>
-                      <td className="max-w-[220px] truncate py-3 pr-4 font-mono text-[13px] font-bold text-black" title={r.model}>
+                    <div key={r.id} className="border-2 border-black bg-white p-3 shadow-brutal-xs">
+                      <p className="truncate font-mono text-[13px] font-bold text-black" title={r.model}>
                         {r.model}
-                      </td>
-                      <td className="py-3 pr-4 font-mono text-[12px] text-muted">{r.provider}</td>
-                      <td className="py-3 pr-4 font-mono text-[12px] text-muted">
-                        {r.tokens.toLocaleString(numLocale)}
-                      </td>
-                      <td className="py-3 pr-4 font-mono text-[12px] text-muted">
+                      </p>
+                      <p className="mt-1 font-mono text-[11px] leading-relaxed text-faint">
+                        {fmtDateTime(r.createdAt, locale, t.neverUsed)} · {r.provider}
+                      </p>
+                      <p className="mt-1 font-mono text-[11px] text-muted">
+                        {fill(t.tokensCount, { n: r.tokens.toLocaleString(numLocale) })} ·{" "}
                         {r.latencyMs !== null ? `${r.latencyMs.toLocaleString(numLocale)} ms` : "—"}
-                      </td>
-                      <td className="py-3 font-mono text-[12px] text-muted">
-                        {r.keyName ?? (r.keyPrefix ? `${r.keyPrefix}…` : "—")}
-                      </td>
-                    </tr>
+                        {r.keyName ? ` · ${r.keyName}` : ""}
+                      </p>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+                <div className="mt-4 hidden overflow-x-auto sm:block">
+                  <table className="w-full min-w-[640px] text-left text-[14px]">
+                    <thead>
+                      <tr className="border-b-2 border-black font-mono text-[11px] uppercase tracking-[0.12em] text-black">
+                        <th className="py-2.5 pr-4 font-bold">{t.thTime}</th>
+                        <th className="py-2.5 pr-4 font-bold">{t.thModel}</th>
+                        <th className="py-2.5 pr-4 font-bold">{t.thProvider}</th>
+                        <th className="py-2.5 pr-4 font-bold">{t.thTokens}</th>
+                        <th className="py-2.5 pr-4 font-bold">{t.thLatency}</th>
+                        <th className="py-2.5 font-bold">{t.thKey}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {initialRecent.map((r) => (
+                        <tr key={r.id} className="border-b border-neutral-300 last:border-0">
+                          <td className="py-3 pr-4 font-mono text-[12px] text-muted">
+                            {fmtDateTime(r.createdAt, locale, t.neverUsed)}
+                          </td>
+                          <td className="max-w-[220px] truncate py-3 pr-4 font-mono text-[13px] font-bold text-black" title={r.model}>
+                            {r.model}
+                          </td>
+                          <td className="py-3 pr-4 font-mono text-[12px] text-muted">{r.provider}</td>
+                          <td className="py-3 pr-4 font-mono text-[12px] text-muted">
+                            {r.tokens.toLocaleString(numLocale)}
+                          </td>
+                          <td className="py-3 pr-4 font-mono text-[12px] text-muted">
+                            {r.latencyMs !== null ? `${r.latencyMs.toLocaleString(numLocale)} ms` : "—"}
+                          </td>
+                          <td className="py-3 font-mono text-[12px] text-muted">
+                            {r.keyName ?? (r.keyPrefix ? `${r.keyPrefix}…` : "—")}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
+
+      {tab === "trends" && (
+        <>
+          {/* Grafik harian (bar chart CSS murni) + toggle metrik */}
+          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-[16px] font-black text-black">
+                {chartMetric === "requests"
+                  ? fill(t.dailyChartTitle, { days: usage.days })
+                  : fill(t.dailyChartTokensTitle, { days: usage.days })}
+              </h2>
+              <div
+                className="flex border-2 border-black bg-white"
+                role="group"
+                aria-label={chartMetric === "requests" ? t.chartMetricRequests : t.chartMetricTokens}
+              >
+                {(["requests", "tokens"] as const).map((m) => (
+                  <button
+                    key={m}
+                    type="button"
+                    onClick={() => setChartMetric(m)}
+                    aria-pressed={chartMetric === m}
+                    className={`h-8 px-3 font-mono text-[12px] font-bold ${
+                      chartMetric === m
+                        ? "bg-black text-white"
+                        : "bg-white text-black hover:bg-yellow-soft"
+                    }`}
+                  >
+                    {m === "requests" ? t.chartMetricRequests : t.chartMetricTokens}
+                  </button>
+                ))}
+              </div>
             </div>
-          </>
-        )}
-      </div>
+            {initialDailyUsage.length === 0 ? (
+              <p className="mt-2 text-[14px] text-muted">{t.noDailyData}</p>
+            ) : (
+              <>
+                <div className="mt-5 flex h-40 items-stretch gap-1.5 sm:gap-2.5">
+                  {initialDailyUsage.map((d, i) => {
+                    const values = initialDailyUsage.map((x) =>
+                      chartMetric === "requests" ? x.requests : x.tokens,
+                    );
+                    const max = Math.max(1, ...values);
+                    const v = chartMetric === "requests" ? d.requests : d.tokens;
+                    const pct = Math.round((v / max) * 100);
+                    // Rentang 30 hari: angka di atas bar hanya tiap 5 hari
+                    // (kolom ~11px di mobile — angka tiap bar akan bertumpuk).
+                    const showValue =
+                      initialDailyUsage.length <= 7 ||
+                      i % 5 === 0 ||
+                      i === initialDailyUsage.length - 1;
+                    return (
+                      <div
+                        key={d.date}
+                        className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5"
+                        title={fill(t.chartTooltip, {
+                          date: d.date,
+                          requests: d.requests,
+                          tokens: d.tokens.toLocaleString(numLocale),
+                        })}
+                      >
+                        <span className="whitespace-nowrap font-mono text-[11px] font-bold text-black">
+                          {showValue && v > 0 ? v.toLocaleString(numLocale) : ""}
+                        </span>
+                        <div
+                          className="w-full max-w-[48px] border-2 border-black bg-yellow"
+                          style={{ height: `${Math.max(v > 0 ? 8 : 2, pct)}%` }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="mt-2 flex gap-1.5 border-t-2 border-black pt-2 sm:gap-2.5">
+                  {initialDailyUsage.map((d, i) => (
+                    <span
+                      key={d.date}
+                      className="min-w-0 flex-1 overflow-hidden text-center font-mono text-[10px] font-bold text-faint sm:text-[11px]"
+                    >
+                      {initialDailyUsage.length <= 7 ||
+                      i % 5 === 0 ||
+                      i === initialDailyUsage.length - 1
+                        ? fmtDayLabel(d.date, locale)
+                        : ""}
+                    </span>
+                  ))}
+                </div>
+                <p className="mt-3 font-mono text-[11px] text-faint">
+                  {chartMetric === "requests" ? t.chartNote : t.chartNoteTokens}
+                </p>
+              </>
+            )}
+          </div>
+
+          {/* Per provider */}
+          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+            <h2 className="text-[16px] font-black text-black">{t.perProvider}</h2>
+            {usage.byProvider.length === 0 ? (
+              <div className="mt-2">
+                <p className="text-[14px] text-muted">
+                  {fill(t.noRequests, { days: usage.days })}
+                </p>
+                {activeKeys === 0 && (
+                  <a
+                    href="#api-keys"
+                    className="mt-3 inline-block border-2 border-black bg-yellow px-4 py-2 text-[13px] font-bold text-black shadow-brutal-xs"
+                  >
+                    {t.guideCta} ↓
+                  </a>
+                )}
+              </div>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {usage.byProvider.map((p) => (
+                  <div
+                    key={p.provider}
+                    className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3"
+                  >
+                    <span className="font-mono text-[13px] font-bold text-muted sm:w-24 sm:shrink-0">
+                      {p.provider}
+                    </span>
+                    <div className="h-2.5 w-full border border-black bg-neutral-200 sm:w-auto sm:flex-1">
+                      <div
+                        className="h-full bg-blue"
+                        style={{
+                          width: `${Math.max(4, Math.round((p.requests / usage.totalRequests) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="font-mono text-[12px] text-muted sm:w-40 sm:shrink-0 sm:text-right">
+                      {p.requests} req ·{" "}
+                      {fill(t.tokensCount, { n: p.tokens.toLocaleString(numLocale) })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {tab === "explore" && (
+        <>
+          {/* Per model (semua) */}
+          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+            <h2 className="text-[16px] font-black text-black">{t.perModel}</h2>
+            {initialModelUsage.length === 0 ? (
+              <p className="mt-2 text-[14px] text-muted">
+                {fill(t.noRequestsShort, { days: usage.days })}
+              </p>
+            ) : (
+              <BreakdownRows
+                rows={initialModelUsage.map((m) => ({
+                  key: `${m.provider}:${m.model}`,
+                  label: m.model,
+                  sub: m.provider,
+                  requests: m.requests,
+                  tokens: m.tokens,
+                }))}
+                totalRequests={usage.totalRequests}
+                barClass="bg-green"
+              />
+            )}
+          </div>
+
+          {/* Per API key (semua) */}
+          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+            <h2 className="text-[16px] font-black text-black">{t.perKey}</h2>
+            {initialKeyUsage.length === 0 ? (
+              <p className="mt-2 text-[14px] text-muted">
+                {fill(t.noRequestsShort, { days: usage.days })}
+              </p>
+            ) : (
+              <BreakdownRows
+                rows={initialKeyUsage.map((k) => ({
+                  key: k.apiKeyId,
+                  label: k.keyName ?? t.unnamedKey,
+                  sub: k.keyPrefix ? `${k.keyPrefix}…` : undefined,
+                  requests: k.requests,
+                  tokens: k.tokens,
+                }))}
+                totalRequests={usage.totalRequests}
+                barClass="bg-yellow"
+              />
+            )}
+          </div>
+
+          {/* Per provider (semua — salinan dari Trends agar Explore lengkap) */}
+          <div className="mt-4 border-2 border-black bg-white p-5 shadow-brutal-sm">
+            <h2 className="text-[16px] font-black text-black">{t.perProvider}</h2>
+            {usage.byProvider.length === 0 ? (
+              <p className="mt-2 text-[14px] text-muted">
+                {fill(t.noRequestsShort, { days: usage.days })}
+              </p>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {usage.byProvider.map((p) => (
+                  <div
+                    key={p.provider}
+                    className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3"
+                  >
+                    <span className="font-mono text-[13px] font-bold text-muted sm:w-24 sm:shrink-0">
+                      {p.provider}
+                    </span>
+                    <div className="h-2.5 w-full border border-black bg-neutral-200 sm:w-auto sm:flex-1">
+                      <div
+                        className="h-full bg-blue"
+                        style={{
+                          width: `${Math.max(4, Math.round((p.requests / usage.totalRequests) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                    <span className="font-mono text-[12px] text-muted sm:w-40 sm:shrink-0 sm:text-right">
+                      {p.requests} req ·{" "}
+                      {fill(t.tokensCount, { n: p.tokens.toLocaleString(numLocale) })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       {/* API keys */}
       <div id="api-keys" className="mt-8 scroll-mt-20 border-2 border-black bg-white p-5 shadow-brutal-sm sm:p-6">

@@ -14,6 +14,8 @@ export type UsageSummary = {
   totalPromptTokens: number;
   totalCompletionTokens: number;
   totalTokens: number;
+  /** Rata-rata latency_ms (ms, dibulatkan) — null bila belum ada data latensi. */
+  avgLatencyMs: number | null;
   byProvider: { provider: string; requests: number; tokens: number }[];
 };
 
@@ -23,6 +25,7 @@ const EMPTY = (days: number): UsageSummary => ({
   totalPromptTokens: 0,
   totalCompletionTokens: 0,
   totalTokens: 0,
+  avgLatencyMs: null,
   byProvider: [],
 });
 
@@ -40,10 +43,11 @@ export async function getUsageSummary(userId: string, days = 7): Promise<UsageSu
     SELECT
       COUNT(*)::int AS requests,
       COALESCE(SUM(prompt_tokens), 0)::int AS prompt_tokens,
-      COALESCE(SUM(completion_tokens), 0)::int AS completion_tokens
+      COALESCE(SUM(completion_tokens), 0)::int AS completion_tokens,
+      COALESCE(AVG(latency_ms), NULL)::float AS avg_latency_ms
     FROM usage
     WHERE user_id = ${userId} AND created_at >= ${cutoff}
-  `) as { requests: number; prompt_tokens: number; completion_tokens: number }[];
+  `) as { requests: number; prompt_tokens: number; completion_tokens: number; avg_latency_ms: number | null }[];
   const perProvider = (await db`
     SELECT
       provider,
@@ -54,13 +58,14 @@ export async function getUsageSummary(userId: string, days = 7): Promise<UsageSu
     GROUP BY provider
     ORDER BY requests DESC
   `) as { provider: string; requests: number; tokens: number }[];
-  const t = totals[0] ?? { requests: 0, prompt_tokens: 0, completion_tokens: 0 };
+  const t = totals[0] ?? { requests: 0, prompt_tokens: 0, completion_tokens: 0, avg_latency_ms: null };
   return {
     days,
     totalRequests: t.requests,
     totalPromptTokens: t.prompt_tokens,
     totalCompletionTokens: t.completion_tokens,
     totalTokens: t.prompt_tokens + t.completion_tokens,
+    avgLatencyMs: t.avg_latency_ms === null ? null : Math.round(t.avg_latency_ms),
     byProvider: perProvider.map((p) => ({
       provider: p.provider,
       requests: p.requests,
@@ -100,6 +105,8 @@ export type DailyUsage = {
   date: string;
   requests: number;
   tokens: number;
+  /** Rata-rata latency_ms hari itu (ms, dibulatkan) — null bila tidak ada data. */
+  avgLatencyMs: number | null;
 };
 
 /** Pemakaian harian N hari terakhir (zona Asia/Jakarta, hari kosong diisi 0). */
@@ -111,12 +118,13 @@ export async function getDailyUsage(userId: string, days = 7): Promise<DailyUsag
     SELECT
       (created_at AT TIME ZONE 'Asia/Jakarta')::date::text AS day,
       COUNT(*)::int AS requests,
-      COALESCE(SUM(prompt_tokens + completion_tokens), 0)::int AS tokens
+      COALESCE(SUM(prompt_tokens + completion_tokens), 0)::int AS tokens,
+      COALESCE(AVG(latency_ms), NULL)::float AS avg_latency_ms
     FROM usage
     WHERE user_id = ${userId} AND created_at >= ${cutoff}
     GROUP BY day
     ORDER BY day ASC
-  `) as { day: string; requests: number; tokens: number }[];
+  `) as { day: string; requests: number; tokens: number; avg_latency_ms: number | null }[];
   const byDay = new Map(rows.map((r) => [r.day, r]));
   const fmt = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Jakarta",
@@ -133,6 +141,7 @@ export async function getDailyUsage(userId: string, days = 7): Promise<DailyUsag
       date,
       requests: r ? r.requests : 0,
       tokens: r ? r.tokens : 0,
+      avgLatencyMs: r && r.avg_latency_ms !== null ? Math.round(r.avg_latency_ms) : null,
     });
   }
   return out;
